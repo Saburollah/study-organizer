@@ -1,0 +1,39 @@
+@startuml StudyOrganizerBackendComponents
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Study Organizer - Backend Components (C4 Level 3)
+
+Container(webApp, "Webanwendung", "Vue 3, TypeScript", "Webbasierte Benutzeroberfläche.")
+
+Container(iosApp, "iOS-App", "SwiftUI, Swift", "Native iOS-Benutzeroberfläche.")
+
+Container_Boundary(api, "Backend API") {
+    Component(apiControllers, "API Controllers", "ASP.NET Core MVC", "Nehmen HTTP-Anfragen entgegen, validieren Eingaben und liefern HTTP-Antworten.")
+
+    Component(auth, "Authentifizierung und Autorisierung", "ASP.NET Core Identity", "Verwaltet Benutzerkonten, Passwörter, Anmeldung und Zugriffsregeln.")
+
+    Component(applicationServices, "Application Services", "C#", "Führen die Anwendungsfälle für Module und Aufgaben aus.")
+
+    Component(domainModel, "Domain Model", "C#", "Enthält fachliche Entitäten und Geschäftsregeln.")
+
+    Component(persistence, "Persistence", "Entity Framework Core", "Speichert und lädt Benutzer, Module und Aufgaben.")
+}
+
+ContainerDb(database, "Datenbank", "PostgreSQL", "Speichert die Anwendungsdaten dauerhaft.")
+
+Rel(webApp, apiControllers, "Verwendet", "JSON/HTTPS")
+Rel(iosApp, apiControllers, "Verwendet", "JSON/HTTPS")
+
+Rel(apiControllers, auth, "Prüft Identität und Berechtigungen")
+Rel(apiControllers, applicationServices, "Ruft Anwendungsfälle auf")
+
+Rel(applicationServices, domainModel, "Verwendet Entitäten und Geschäftsregeln")
+Rel(applicationServices, persistence, "Liest und speichert Daten")
+
+Rel(auth, persistence, "Speichert und lädt Benutzerdaten")
+Rel(persistence, database, "Liest und schreibt", "SQL")
+
+SHOW_LEGEND()
+
+@enduml
