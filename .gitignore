@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Visual Studio Code
+.vscode/
+
+# .NET
+bin/
+obj/
+
+# Node.js and Vue
+node_modules/
+dist/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
