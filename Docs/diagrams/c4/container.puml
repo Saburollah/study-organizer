@@ -1,0 +1,29 @@
+@startuml StudyOrganizerContainer
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Study Organizer - Container Diagram (C4 Level 2)
+
+Person(student, "Student", "Verwaltet persönliche Module, Aufgaben und Fristen.")
+
+System_Boundary(studyOrganizer, "Study Organizer") {
+    Container(webApp, "Webanwendung", "Vue 3, TypeScript", "Stellt die Benutzeroberfläche im Webbrowser bereit.")
+
+    Container(iosApp, "iOS-App", "SwiftUI, Swift", "Stellt die native Benutzeroberfläche auf iOS-Geräten bereit.")
+
+    Container(api, "Backend API", "ASP.NET Core, C#", "Verarbeitet Geschäftslogik, Authentifizierung und Datenzugriffe.")
+
+    ContainerDb(database, "Datenbank", "PostgreSQL", "Speichert Benutzer, Module und Aufgaben.")
+}
+
+Rel(student, webApp, "Verwendet", "HTTPS")
+Rel(student, iosApp, "Verwendet", "iOS")
+
+Rel(webApp, api, "Sendet API-Anfragen", "JSON/HTTPS")
+Rel(iosApp, api, "Sendet API-Anfragen", "JSON/HTTPS")
+
+Rel(api, database, "Liest und schreibt Daten", "Entity Framework Core / SQL")
+
+SHOW_LEGEND()
+
+@enduml
