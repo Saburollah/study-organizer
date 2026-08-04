@@ -1,0 +1,58 @@
+@startuml StudyOrganizerDomainModel
+
+title Study Organizer - Domain Model
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+class ApplicationUser {
+    +Id: UUID
+    +Email: string
+}
+
+class StudyModule {
+    +Id: UUID
+    +Name: string
+    +Code: string?
+    +Description: string?
+    +Color: string?
+    +OwnerId: UUID
+    +CreatedAt: DateTimeOffset
+}
+
+class StudyTask {
+    +Id: UUID
+    +Title: string
+    +Description: string?
+    +DueDate: DateTimeOffset
+    +Status: StudyTaskStatus
+    +ModuleId: UUID
+    +CreatedAt: DateTimeOffset
+    +UpdatedAt: DateTimeOffset?
+}
+
+enum StudyTaskStatus {
+    Open
+    Completed
+}
+
+ApplicationUser "1" -- "0..*" StudyModule : owns >
+StudyModule "1" *-- "0..*" StudyTask : contains >
+StudyTask --> StudyTaskStatus : has
+
+note right of ApplicationUser
+Passwords are managed securely
+by ASP.NET Core Identity.
+end note
+
+note bottom of StudyModule
+A module always belongs
+to exactly one user.
+end note
+
+note bottom of StudyTask
+A task always belongs
+to exactly one module.
+end note
+
+@enduml
