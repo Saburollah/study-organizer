@@ -1,0 +1,65 @@
+@startuml CreateModuleSequence
+
+title Study Organizer - Modul erstellen (Level 4)
+
+autonumber
+
+actor Student
+boundary "Vue Web App" as WebApp
+control "Authentication Middleware" as Auth
+control "ModulesController" as Controller
+control "ModuleService" as Service
+database "ApplicationDbContext\n(Entity Framework Core)" as DbContext
+database "PostgreSQL" as Database
+
+Student -> WebApp: Modulformular ausfüllen\nund absenden
+activate WebApp
+
+WebApp -> Auth: POST /api/modules\nJSON + Zugriffstoken
+activate Auth
+
+alt Benutzer ist nicht angemeldet
+    Auth --> WebApp: 401 Unauthorized
+    deactivate Auth
+    WebApp --> Student: Anmeldung erforderlich
+else Benutzer ist angemeldet
+    Auth -> Controller: Anfrage mit Benutzer-ID
+    deactivate Auth
+    activate Controller
+
+    Controller -> Controller: Eingaben validieren
+
+    alt Eingaben sind ungültig
+        Controller --> WebApp: 400 Bad Request\nValidierungsfehler
+        deactivate Controller
+        WebApp --> Student: Fehlermeldungen anzeigen
+    else Eingaben sind gültig
+        Controller -> Service: CreateModuleAsync(userId, request)
+        activate Service
+
+        Service -> Service: StudyModule erzeugen\nund Benutzer zuordnen
+        Service -> DbContext: Add(studyModule)
+        activate DbContext
+
+        Service -> DbContext: SaveChangesAsync()
+        DbContext -> Database: INSERT INTO Modules
+        activate Database
+        Database --> DbContext: Datensatz gespeichert
+        deactivate Database
+
+        DbContext --> Service: Speichern erfolgreich
+        deactivate DbContext
+
+        Service --> Controller: ModuleDto
+        deactivate Service
+
+        Controller --> WebApp: 201 Created + ModuleDto
+        deactivate Controller
+
+        WebApp --> Student: Neues Modul anzeigen
+    end
+end
+
+deactivate WebApp
+
+@enduml
