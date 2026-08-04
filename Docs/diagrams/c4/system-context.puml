@@ -1,0 +1,15 @@
+@startuml StudyOrganizerSystemContext
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Study Organizer - System Context (C4 Level 1)
+
+Person(student, "Student", "Organisiert persönliche Module, Aufgaben und Fristen.")
+
+System(studyOrganizer, "Study Organizer", "Ermöglicht Studierenden die Verwaltung ihrer Module und Aufgaben.")
+
+Rel(student, studyOrganizer, "Verwaltet Module und Aufgaben", "HTTPS")
+
+SHOW_LEGEND()
+
+@enduml
