@@ -2,19 +2,23 @@ namespace StudyOrganizer.Domain.Modules;
 
 public sealed class StudyModule
 {
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public Guid OwnerId { get; }
+    public Guid OwnerId { get; private set; }
 
-    public string Name { get; }
+    public string Name { get; private set; } = null!;
 
-    public string? Code { get; }
+    public string? Code { get; private set; }
 
-    public string? Description { get; }
+    public string? Description { get; private set; }
 
-    public string? Color { get; }
+    public string? Color { get; private set; }
 
-    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset CreatedAt { get; private set; }
+
+    private StudyModule()
+    {
+    }
 
     public StudyModule(
         Guid ownerId,

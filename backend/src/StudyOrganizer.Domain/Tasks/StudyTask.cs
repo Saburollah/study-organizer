@@ -2,21 +2,25 @@ namespace StudyOrganizer.Domain.Tasks;
 
 public sealed class StudyTask
 {
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public Guid ModuleId { get; }
+    public Guid ModuleId { get; private set; }
 
-    public string Title { get; }
+    public string Title { get; private set; } = null!;
 
-    public string? Description { get; }
+    public string? Description { get; private set; }
 
-    public DateTimeOffset DueDate { get; }
+    public DateTimeOffset DueDate { get; private set; }
 
     public StudyTaskStatus Status { get; private set; }
 
-    public DateTimeOffset CreatedAt { get; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset? UpdatedAt { get; private set; }
+
+    private StudyTask()
+    {
+    }
 
     public StudyTask(
         Guid moduleId,
