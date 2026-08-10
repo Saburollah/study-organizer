@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StudyOrganizer.Domain.Modules;
 using StudyOrganizer.Domain.Tasks;
+using StudyOrganizer.Infrastructure.Identity;
 
 namespace StudyOrganizer.Infrastructure.Persistence;
 
-public sealed class ApplicationDbContext : DbContext
+public sealed class ApplicationDbContext
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)
