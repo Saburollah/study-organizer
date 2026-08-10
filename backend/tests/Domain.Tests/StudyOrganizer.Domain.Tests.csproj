@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\StudyOrganizer.Domain\StudyOrganizer.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Domain\StudyOrganizer.Domain.csproj" />
   </ItemGroup>
 
 </Project>

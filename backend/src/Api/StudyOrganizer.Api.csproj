@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StudyOrganizer.Application\StudyOrganizer.Application.csproj" />
-    <ProjectReference Include="..\StudyOrganizer.Infrastructure\StudyOrganizer.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\StudyOrganizer.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\StudyOrganizer.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\StudyOrganizer.Application\StudyOrganizer.Application.csproj" />
-    <ProjectReference Include="..\StudyOrganizer.Domain\StudyOrganizer.Domain.csproj" />
+    <ProjectReference Include="..\Application\StudyOrganizer.Application.csproj" />
+    <ProjectReference Include="..\Domain\StudyOrganizer.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
