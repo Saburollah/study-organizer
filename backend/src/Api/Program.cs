@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StudyOrganizer.Api.Users;
+using StudyOrganizer.Application.Users;
 using StudyOrganizer.Infrastructure.Identity;
 using StudyOrganizer.Infrastructure.Persistence;
+using StudyOrganizer.Infrastructure.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,9 +36,13 @@ builder.Services
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<
+    IUserHandler,
+    UserHandler>();
+
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -54,7 +61,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapUserEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+public partial class Program;
