@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Nicht angemeldeter\nStudent" as Guest
+actor "Angemeldeter\nStudent" as Student
+
+rectangle "Study Organizer" {
+    usecase "Registrieren" as UC_Register
+    usecase "Anmelden" as UC_Login
+    usecase "Abmelden" as UC_Logout
+
+    usecase "Module anzeigen" as UC_ViewModules
+    usecase "Modul erstellen" as UC_CreateModule
+    usecase "Modul bearbeiten" as UC_EditModule
+    usecase "Modul löschen" as UC_DeleteModule
+
+    usecase "Aufgaben anzeigen" as UC_ViewTasks
+    usecase "Aufgabe erstellen" as UC_CreateTask
+    usecase "Aufgabe bearbeiten" as UC_EditTask
+    usecase "Aufgabe löschen" as UC_DeleteTask
+    usecase "Aufgabenstatus ändern" as UC_ChangeStatus
+}
+
+Guest --> UC_Register
+Guest --> UC_Login
+
+Student --> UC_Logout
+
+Student --> UC_ViewModules
+Student --> UC_CreateModule
+Student --> UC_EditModule
+Student --> UC_DeleteModule
+
+Student --> UC_ViewTasks
+Student --> UC_CreateTask
+Student --> UC_EditTask
+Student --> UC_DeleteTask
+Student --> UC_ChangeStatus
+
+@enduml
