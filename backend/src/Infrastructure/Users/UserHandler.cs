@@ -5,7 +5,8 @@ using StudyOrganizer.Infrastructure.Identity;
 namespace StudyOrganizer.Infrastructure.Users;
 
 public sealed class UserHandler(
-    UserManager<ApplicationUser> userManager)
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager)
     : IUserHandler
 {
     public async Task<UserResult> RegisterAsync(
@@ -40,5 +41,44 @@ public sealed class UserHandler(
             true,
             user.Id,
             Array.Empty<string>());
+    }
+
+    public async Task<UserLoginResult> LoginAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            return LoginFailed();
+        }
+
+        var signInResult =
+            await signInManager.CheckPasswordSignInAsync(
+                user,
+                password,
+                lockoutOnFailure: true);
+
+        if (!signInResult.Succeeded)
+        {
+            return LoginFailed();
+        }
+
+        return new UserLoginResult(
+            true,
+            user.Id,
+            user.Email ?? email);
+    }
+
+    private static UserLoginResult LoginFailed()
+    {
+        return new UserLoginResult(
+            false,
+            null,
+            null);
     }
 }
