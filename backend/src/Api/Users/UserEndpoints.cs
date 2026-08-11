@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using StudyOrganizer.Api.Validation;
 using StudyOrganizer.Application.Authentication;
 using StudyOrganizer.Application.Users;
 
@@ -37,7 +37,8 @@ public static class UserEndpoints
         IUserHandler userHandler,
         CancellationToken cancellationToken)
     {
-        var validationErrors = Validate(request);
+        var validationErrors =
+            RequestValidator.Validate(request);
 
         if (validationErrors.Count > 0)
         {
@@ -79,7 +80,8 @@ public static class UserEndpoints
         IAccessTokenService accessTokenService,
         CancellationToken cancellationToken)
     {
-        var validationErrors = Validate(request);
+        var validationErrors =
+            RequestValidator.Validate(request);
 
         if (validationErrors.Count > 0)
         {
@@ -116,35 +118,5 @@ public static class UserEndpoints
             new LoginUserResponse(
                 accessToken.Value,
                 accessToken.ExpiresAtUtc));
-    }
-
-    private static Dictionary<string, string[]> Validate(
-        object request)
-    {
-        var results = new List<ValidationResult>();
-        var context = new ValidationContext(request);
-
-        Validator.TryValidateObject(
-            request,
-            context,
-            results,
-            validateAllProperties: true);
-
-        return results
-            .SelectMany(
-                result => result.MemberNames
-                    .DefaultIfEmpty("request"),
-                (result, memberName) => new
-                {
-                    MemberName = memberName,
-                    Message = result.ErrorMessage
-                        ?? "Invalid value."
-                })
-            .GroupBy(item => item.MemberName)
-            .ToDictionary(
-                group => group.Key,
-                group => group
-                    .Select(item => item.Message)
-                    .ToArray());
     }
 }
