@@ -16,3 +16,19 @@ public sealed class RegisterUserRequest
 public sealed record RegisterUserResponse(
     Guid UserId,
     string Email);
+
+public sealed class LoginUserRequest
+{
+    [Required]
+    [EmailAddress]
+    [StringLength(256)]
+    public string Email { get; init; } = string.Empty;
+
+    [Required]
+    [StringLength(1024)]
+    public string Password { get; init; } = string.Empty;
+}
+
+public sealed record LoginUserResponse(
+    string AccessToken,
+    DateTimeOffset ExpiresAtUtc);

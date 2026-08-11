@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StudyOrganizer.Api.Users;
 using StudyOrganizer.Application.Users;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace StudyOrganizer.Api.Tests.Users;
 
@@ -100,6 +101,145 @@ public sealed class UserEndpointsTests
         Assert.True(handler.WasCalled);
     }
 
+    [Fact]
+    public async Task Login_WithValidCredentials_ReturnsOkAndToken()
+    {
+        var userId = Guid.NewGuid();
+        const string email = "existing-user@example.com";
+
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()),
+            new UserLoginResult(
+                true,
+                userId,
+                email));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        var response = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "Registration-Test-2026"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+        var body =
+            await response.Content.ReadFromJsonAsync<
+                LoginUserResponse>();
+
+        Assert.NotNull(body);
+        Assert.False(
+            string.IsNullOrWhiteSpace(body.AccessToken));
+        Assert.True(
+            body.ExpiresAtUtc > DateTimeOffset.UtcNow);
+        Assert.True(handler.WasCalled);
+
+        var token =
+            new JwtSecurityTokenHandler()
+                .ReadJwtToken(body.AccessToken);
+
+        Assert.Equal(
+            userId.ToString(),
+            token.Subject);
+
+        Assert.Equal(
+            email,
+            token.Claims.Single(
+                claim =>
+                    claim.Type
+                    == JwtRegisteredClaimNames.Email).Value);
+
+        Assert.Equal(
+            "StudyOrganizer.Api",
+            token.Issuer);
+
+        Assert.Contains(
+            "StudyOrganizer.Clients",
+            token.Audiences);
+    }
+
+    [Fact]
+    public async Task Login_WithInvalidEmail_ReturnsBadRequest()
+{
+    var handler = new StubUserHandler(
+        new UserResult(
+            false,
+            null,
+            Array.Empty<string>()),
+        new UserLoginResult(
+            true,
+            Guid.NewGuid(),
+            "existing-user@example.com"));
+
+    using var factory = CreateFactory(handler);
+    using var client = CreateClient(factory);
+
+    var response = await client.PostAsJsonAsync(
+        "/api/auth/login",
+        new
+        {
+            email = "invalid-email",
+            password = "Registration-Test-2026"
+        });
+
+    Assert.Equal(
+        HttpStatusCode.BadRequest,
+        response.StatusCode);
+
+    Assert.False(handler.WasCalled);
+}
+
+    [Fact]
+    public async Task Login_WithInvalidCredentials_ReturnsUnauthorized()
+    {
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()),
+            new UserLoginResult(
+                false,
+                null,
+                null));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        var response = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email = "existing-user@example.com",
+                password = "Wrong-Password-2026"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            response.StatusCode);
+
+        var body =
+            await response.Content.ReadAsStringAsync();
+
+        Assert.Contains(
+            "Invalid email or password.",
+            body);
+
+        Assert.DoesNotContain(
+            "existing-user@example.com",
+            body);
+
+        Assert.True(handler.WasCalled);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(
         IUserHandler handler)
     {
@@ -107,6 +247,10 @@ public sealed class UserEndpointsTests
             "ConnectionStrings__DefaultConnection",
             "Host=localhost;Database=test;"
             + "Username=test;Password=test");
+
+        Environment.SetEnvironmentVariable(
+            "Jwt__SigningKey",
+            new string('a', 64));
 
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -134,7 +278,8 @@ public sealed class UserEndpointsTests
     }
 
     private sealed class StubUserHandler(
-        UserResult result)
+        UserResult result,
+        UserLoginResult? loginResult = null)
         : IUserHandler
     {
         public bool WasCalled { get; private set; }
@@ -148,6 +293,22 @@ public sealed class UserEndpointsTests
             WasCalled = true;
 
             return Task.FromResult(result);
+        }
+
+        public Task<UserLoginResult> LoginAsync(
+            string email,
+            string password,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            WasCalled = true;
+
+            return Task.FromResult(
+                loginResult
+                ?? new UserLoginResult(
+                    false,
+                    null,
+                    null));
         }
     }
 }

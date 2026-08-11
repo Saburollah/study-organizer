@@ -6,4 +6,9 @@ public interface IUserHandler
         string email,
         string password,
         CancellationToken cancellationToken = default);
+
+    Task<UserLoginResult> LoginAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default);
 }
