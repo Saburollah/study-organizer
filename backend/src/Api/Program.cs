@@ -10,6 +10,10 @@ using StudyOrganizer.Application.Authentication;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using StudyOrganizer.Application.Modules;
+using StudyOrganizer.Infrastructure.Modules;
+using StudyOrganizer.Api.Modules;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,11 +75,16 @@ builder.Services.AddScoped<
     IUserHandler,
     UserHandler>();
 
+builder.Services.AddScoped<
+    IModuleHandler,
+    ModuleHandler>();
+
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters =
             new TokenValidationParameters
             {
@@ -104,7 +113,25 @@ builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description =
+                "Enter the JWT access token "
+                + "without the Bearer prefix."
+        });
+
+    options.OperationFilter<
+        AuthorizationOperationFilter>();
+});
 
 var app = builder.Build();
 
@@ -121,6 +148,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapUserEndpoints();
+app.MapModuleEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();
