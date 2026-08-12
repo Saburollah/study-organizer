@@ -8,6 +8,7 @@ import { createAppRouter } from '../index'
 
 describe('router authentication guard', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     setActivePinia(createPinia())
   })
 

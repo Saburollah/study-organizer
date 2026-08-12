@@ -27,6 +27,7 @@ vi.mock('vue-router', () => ({
 
 describe('LoginView', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     setActivePinia(createPinia())
     pushMock.mockReset()
   })
