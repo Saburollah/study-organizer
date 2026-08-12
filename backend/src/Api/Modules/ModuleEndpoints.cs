@@ -31,6 +31,25 @@ public static class ModuleEndpoints
             .Produces(
                 StatusCodes.Status401Unauthorized);
 
+        group.MapPut("/{moduleId:guid}", UpdateAsync)
+            .WithName("UpdateModule")
+            .Produces<ModuleResponse>(
+                StatusCodes.Status200OK)
+            .ProducesValidationProblem(
+                StatusCodes.Status400BadRequest)
+            .Produces(
+                StatusCodes.Status401Unauthorized)
+            .Produces(
+                StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{moduleId:guid}", DeleteAsync)
+            .WithName("DeleteModule")
+            .Produces(
+                StatusCodes.Status204NoContent)
+            .Produces(
+                StatusCodes.Status401Unauthorized)
+            .Produces(
+                StatusCodes.Status404NotFound);
         return group;
     }
 
@@ -84,6 +103,66 @@ public static class ModuleEndpoints
 
         return Results.Ok(
             modules.Select(ToResponse));
+    }
+
+    private static async Task<IResult> UpdateAsync(
+        Guid moduleId,
+        UpdateModuleRequest request,
+        ClaimsPrincipal user,
+        IModuleHandler moduleHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var validationErrors =
+            RequestValidator.Validate(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(
+                validationErrors);
+        }
+
+        var module = await moduleHandler.UpdateAsync(
+            ownerId,
+            moduleId,
+            request.Name,
+            request.Code,
+            request.Description,
+            request.Color,
+            cancellationToken);
+
+        if (module is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(ToResponse(module));
+    }
+
+    private static async Task<IResult> DeleteAsync(
+        Guid moduleId,
+        ClaimsPrincipal user,
+        IModuleHandler moduleHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var wasDeleted =
+            await moduleHandler.DeleteAsync(
+                ownerId,
+                moduleId,
+                cancellationToken);
+
+        return wasDeleted
+            ? Results.NoContent()
+            : Results.NotFound();
     }
 
     private static ModuleResponse ToResponse(

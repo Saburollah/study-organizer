@@ -49,6 +49,24 @@ public sealed class StudyModule
         Color = NormalizeOptionalValue(color);
         CreatedAt = DateTimeOffset.UtcNow;
     }
+    public void Update(
+        string name,
+        string? code,
+        string? description,
+        string? color)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                "Module name must not be empty.",
+                nameof(name));
+        }
+
+        Name = name.Trim();
+        Code = NormalizeOptionalValue(code);
+        Description = NormalizeOptionalValue(description);
+        Color = NormalizeOptionalValue(color);
+    }
 
     private static string? NormalizeOptionalValue(string? value)
     {

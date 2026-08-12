@@ -27,6 +27,10 @@ async function logout(): Promise<void> {
         <RouterLink to="/">Startseite</RouterLink>
 
         <template v-if="authStore.isAuthenticated">
+          <RouterLink to="/modules">
+            Lernmodule
+          </RouterLink>
+
           <span class="user-email">
             {{ authStore.userEmail }}
           </span>
