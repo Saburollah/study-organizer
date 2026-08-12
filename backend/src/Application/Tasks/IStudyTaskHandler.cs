@@ -1,3 +1,5 @@
+using StudyOrganizer.Domain.Tasks;
+
 namespace StudyOrganizer.Application.Tasks;
 
 public interface IStudyTaskHandler
@@ -15,4 +17,26 @@ public interface IStudyTaskHandler
             Guid ownerId,
             Guid moduleId,
             CancellationToken cancellationToken = default);
+
+    Task<StudyTaskResult?> UpdateAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        string title,
+        DateTimeOffset dueDateUtc,
+        string? description,
+        CancellationToken cancellationToken = default);
+
+    Task<StudyTaskResult?> SetStatusAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        StudyTaskStatus status,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        CancellationToken cancellationToken = default);
 }

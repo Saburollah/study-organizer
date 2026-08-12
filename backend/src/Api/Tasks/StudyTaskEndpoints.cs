@@ -2,6 +2,7 @@ using System.Security.Claims;
 using StudyOrganizer.Api.Authentication;
 using StudyOrganizer.Api.Validation;
 using StudyOrganizer.Application.Tasks;
+using StudyOrganizer.Domain.Tasks;
 
 namespace StudyOrganizer.Api.Tasks;
 
@@ -31,6 +32,39 @@ public static class StudyTaskEndpoints
             .WithName("GetStudyTasks")
             .Produces<IReadOnlyList<StudyTaskResponse>>(
                 StatusCodes.Status200OK)
+            .Produces(
+                StatusCodes.Status401Unauthorized)
+            .Produces(
+                StatusCodes.Status404NotFound);
+
+        group.MapPut("/{taskId:guid}", UpdateAsync)
+            .WithName("UpdateStudyTask")
+            .Produces<StudyTaskResponse>(
+                StatusCodes.Status200OK)
+            .ProducesValidationProblem(
+                StatusCodes.Status400BadRequest)
+            .Produces(
+                StatusCodes.Status401Unauthorized)
+            .Produces(
+                StatusCodes.Status404NotFound);
+
+        group.MapPatch(
+                "/{taskId:guid}/status",
+                UpdateStatusAsync)
+            .WithName("UpdateStudyTaskStatus")
+            .Produces<StudyTaskResponse>(
+                StatusCodes.Status200OK)
+            .ProducesValidationProblem(
+                StatusCodes.Status400BadRequest)
+            .Produces(
+                StatusCodes.Status401Unauthorized)
+            .Produces(
+                StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{taskId:guid}", DeleteAsync)
+            .WithName("DeleteStudyTask")
+            .Produces(
+                StatusCodes.Status204NoContent)
             .Produces(
                 StatusCodes.Status401Unauthorized)
             .Produces(
@@ -102,6 +136,117 @@ public static class StudyTaskEndpoints
 
         return Results.Ok(
             tasks.Select(ToResponse));
+    }
+
+    private static async Task<IResult> UpdateAsync(
+        Guid moduleId,
+        Guid taskId,
+        UpdateStudyTaskRequest request,
+        ClaimsPrincipal user,
+        IStudyTaskHandler taskHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var validationErrors =
+            RequestValidator.Validate(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(
+                validationErrors);
+        }
+
+        var task = await taskHandler.UpdateAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            request.Title,
+            request.DueDateUtc!.Value,
+            request.Description,
+            cancellationToken);
+
+        return task is null
+            ? Results.NotFound()
+            : Results.Ok(ToResponse(task));
+    }
+
+    private static async Task<IResult> UpdateStatusAsync(
+        Guid moduleId,
+        Guid taskId,
+        UpdateStudyTaskStatusRequest request,
+        ClaimsPrincipal user,
+        IStudyTaskHandler taskHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var validationErrors =
+            RequestValidator.Validate(request);
+
+        var isValidStatus =
+            Enum.TryParse<StudyTaskStatus>(
+                request.Status,
+                ignoreCase: true,
+                out var status)
+            && Enum.IsDefined(status)
+            && Enum.GetNames<StudyTaskStatus>().Any(name =>
+                string.Equals(
+                    name,
+                    request.Status,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (!isValidStatus)
+        {
+            validationErrors[nameof(request.Status)] =
+                ["Status must be Open or Completed."];
+        }
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(
+                validationErrors);
+        }
+
+        var task = await taskHandler.SetStatusAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            status,
+            cancellationToken);
+
+        return task is null
+            ? Results.NotFound()
+            : Results.Ok(ToResponse(task));
+    }
+
+    private static async Task<IResult> DeleteAsync(
+        Guid moduleId,
+        Guid taskId,
+        ClaimsPrincipal user,
+        IStudyTaskHandler taskHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var wasDeleted = await taskHandler.DeleteAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            cancellationToken);
+
+        return wasDeleted
+            ? Results.NoContent()
+            : Results.NotFound();
     }
 
     private static StudyTaskResponse ToResponse(
