@@ -9,6 +9,7 @@ import HomeView from '@/views/HomeView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import { useAuthStore } from '@/features/auth/authStore'
 import ModulesView from '@/views/modules/ModulesView.vue'
+import StudyTasksView from '@/views/tasks/StudyTasksView.vue'
 
 export function createAppRouter(
   history: RouterHistory = createWebHistory(
@@ -37,6 +38,15 @@ export function createAppRouter(
         path: '/modules',
         name: 'modules',
         component: ModulesView,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/modules/:moduleId/tasks',
+        name: 'module-tasks',
+        component: StudyTasksView,
+        props: true,
         meta: {
           requiresAuth: true,
         },

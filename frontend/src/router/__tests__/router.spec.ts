@@ -44,4 +44,48 @@ describe('router authentication guard', () => {
 
     expect(router.currentRoute.value.name).toBe('modules')
   })
+
+  it('protects the tasks route', async () => {
+    const moduleId =
+      'e6ab31a1-292b-4b31-b65b-dab568512b40'
+
+    const router = createAppRouter(
+      createMemoryHistory(),
+    )
+
+    await router.push(`/modules/${moduleId}/tasks`)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query).toEqual({
+      redirect: `/modules/${moduleId}/tasks`,
+    })
+  })
+
+  it('allows authenticated users to open tasks', async () => {
+    const authStore = useAuthStore()
+
+    authStore.session = {
+      email: 'student@example.com',
+      accessToken: 'test-access-token',
+      expiresAtUtc: '2999-01-01T00:00:00Z',
+    }
+
+    const moduleId =
+      'e6ab31a1-292b-4b31-b65b-dab568512b40'
+
+    const router = createAppRouter(
+      createMemoryHistory(),
+    )
+
+    await router.push(`/modules/${moduleId}/tasks`)
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe(
+      'module-tasks',
+    )
+    expect(router.currentRoute.value.params.moduleId).toBe(
+      moduleId,
+    )
+  })
 })

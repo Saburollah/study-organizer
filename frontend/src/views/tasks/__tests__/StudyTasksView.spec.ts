@@ -1,0 +1,223 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import {
+  afterEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
+
+import { moduleService } from '@/features/modules/moduleService'
+import { taskService } from '@/features/tasks/taskService'
+import type { StudyTask } from '@/features/tasks/taskModels'
+
+import StudyTasksView from '../StudyTasksView.vue'
+
+vi.mock('vue-router', () => ({
+  RouterLink: {
+    template: '<a><slot /></a>',
+  },
+}))
+
+const moduleId = 'e6ab31a1-292b-4b31-b65b-dab568512b40'
+
+const studyModule = {
+  id: moduleId,
+  name: 'Sichere Systeme',
+  code: 'SIS',
+  description: 'Vorlesung im 4. Semester',
+  color: '#3366FF',
+  createdAtUtc: '2026-08-12T12:00:00Z',
+}
+
+function createTask(
+  overrides: Partial<StudyTask> = {},
+): StudyTask {
+  return {
+    id: '90c69198-eccb-4c85-a1d6-ac6a93620b8f',
+    moduleId,
+    title: 'Kapitel 4 wiederholen',
+    description: 'Notizen lesen',
+    dueDateUtc: '2026-09-01T18:00:00Z',
+    status: 'Open',
+    createdAtUtc: '2026-08-13T08:00:00Z',
+    updatedAtUtc: null,
+    ...overrides,
+  }
+}
+
+function mockPageLoad(tasks: StudyTask[] = []): void {
+  vi.spyOn(moduleService, 'getAll').mockResolvedValue([
+    studyModule,
+  ])
+  vi.spyOn(taskService, 'getByModule').mockResolvedValue(tasks)
+}
+
+function mountView() {
+  return mount(StudyTasksView, {
+    props: { moduleId },
+  })
+}
+
+describe('StudyTasksView', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('shows the selected module and its tasks', async () => {
+    mockPageLoad([createTask()])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Sichere Systeme')
+    expect(wrapper.text()).toContain('Kapitel 4 wiederholen')
+    expect(wrapper.findAll('.task-card')).toHaveLength(1)
+  })
+
+  it('shows an empty state when no tasks exist', async () => {
+    mockPageLoad()
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Noch keine Aufgaben')
+  })
+
+  it('shows an error and retries loading', async () => {
+    vi.spyOn(moduleService, 'getAll')
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce([studyModule])
+
+    const getTasksMock = vi
+      .spyOn(taskService, 'getByModule')
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce([])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toContain(
+      'konnten nicht geladen werden',
+    )
+
+    await wrapper.get('.retry-button').trigger('click')
+    await flushPromises()
+
+    expect(getTasksMock).toHaveBeenCalledTimes(2)
+    expect(wrapper.text()).toContain('Noch keine Aufgaben')
+  })
+
+  it('creates a task and adds it to the list', async () => {
+    mockPageLoad()
+
+    const createdTask = createTask()
+    const createMock = vi
+      .spyOn(taskService, 'create')
+      .mockResolvedValue(createdTask)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    await wrapper.get('.add-task-button').trigger('click')
+    await wrapper.get('#task-title').setValue(createdTask.title)
+    await wrapper
+      .get('#task-description')
+      .setValue(createdTask.description)
+    await wrapper
+      .get('#task-due-date')
+      .setValue('2026-09-01T20:00')
+    await wrapper.get('.task-form').trigger('submit')
+    await flushPromises()
+
+    expect(createMock).toHaveBeenCalledWith(moduleId, {
+      title: createdTask.title,
+      description: createdTask.description,
+      dueDateUtc: new Date(
+        '2026-09-01T20:00',
+      ).toISOString(),
+    })
+    expect(wrapper.text()).toContain('erfolgreich erstellt')
+    expect(wrapper.findAll('.task-card')).toHaveLength(1)
+  })
+
+  it('updates a task and replaces it in the list', async () => {
+    const originalTask = createTask()
+    const updatedTask = createTask({
+      title: 'Alle Kapitel wiederholen',
+      updatedAtUtc: '2026-08-13T09:00:00Z',
+    })
+
+    mockPageLoad([originalTask])
+
+    const updateMock = vi
+      .spyOn(taskService, 'update')
+      .mockResolvedValue(updatedTask)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    await wrapper.get('.edit-task-button').trigger('click')
+    await wrapper
+      .get('#task-title')
+      .setValue(updatedTask.title)
+    await wrapper.get('.task-form').trigger('submit')
+    await flushPromises()
+
+    expect(updateMock).toHaveBeenCalledWith(
+      moduleId,
+      originalTask.id,
+      expect.objectContaining({
+        title: updatedTask.title,
+      }),
+    )
+    expect(wrapper.text()).toContain(updatedTask.title)
+    expect(wrapper.text()).toContain('erfolgreich aktualisiert')
+  })
+
+  it('marks an open task as completed', async () => {
+    const openTask = createTask()
+    const completedTask = createTask({ status: 'Completed' })
+
+    mockPageLoad([openTask])
+
+    const updateStatusMock = vi
+      .spyOn(taskService, 'updateStatus')
+      .mockResolvedValue(completedTask)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    await wrapper.get('.status-button').trigger('click')
+    await flushPromises()
+
+    expect(updateStatusMock).toHaveBeenCalledWith(
+      moduleId,
+      openTask.id,
+      'Completed',
+    )
+    expect(wrapper.get('.status-label').text()).toBe('Erledigt')
+    expect(wrapper.text()).toContain('als erledigt markiert')
+  })
+
+  it('deletes a confirmed task', async () => {
+    const task = createTask()
+    mockPageLoad([task])
+
+    const deleteMock = vi
+      .spyOn(taskService, 'delete')
+      .mockResolvedValue()
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    await wrapper.get('.delete-task-button').trigger('click')
+    await flushPromises()
+
+    expect(deleteMock).toHaveBeenCalledWith(moduleId, task.id)
+    expect(wrapper.find('.task-card').exists()).toBe(false)
+    expect(wrapper.text()).toContain('erfolgreich gelöscht')
+  })
+})

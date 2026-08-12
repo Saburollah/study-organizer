@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import ModuleForm from '@/features/modules/ModuleForm.vue'
 import type {
@@ -317,6 +318,16 @@ function getDeleteErrorMessage(error: unknown): string {
           </p>
 
           <div class="module-actions">
+            <RouterLink
+              class="module-tasks-link"
+              :to="{
+                name: 'module-tasks',
+                params: { moduleId: module.id },
+              }"
+            >
+              Aufgaben
+            </RouterLink>
+
             <button
               class="edit-module-button"
               type="button"
@@ -510,11 +521,13 @@ h1 {
 
 .module-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: auto;
   padding-top: 1.25rem;
 }
 
+.module-tasks-link,
 .edit-module-button,
 .delete-module-button {
   padding: 0.5rem 0.75rem;
@@ -522,6 +535,13 @@ h1 {
   border-radius: 0.4rem;
   background: #ffffff;
   cursor: pointer;
+}
+
+.module-tasks-link {
+  border-color: #0c66e4;
+  color: #0c66e4;
+  font-weight: 650;
+  text-decoration: none;
 }
 
 .edit-module-button {
