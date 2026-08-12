@@ -11,6 +11,12 @@ import { moduleService } from '@/features/modules/moduleService'
 
 import ModulesView from '../ModulesView.vue'
 
+vi.mock('vue-router', () => ({
+  RouterLink: {
+    template: '<a><slot /></a>',
+  },
+}))
+
 describe('ModulesView', () => {
   afterEach(() => {
     vi.restoreAllMocks()
