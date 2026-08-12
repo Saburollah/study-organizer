@@ -58,6 +58,24 @@ public sealed class StudyTask
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void Update(
+        string title,
+        DateTimeOffset dueDate,
+        string? description = null)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException(
+                "Task title must not be empty.",
+                nameof(title));
+        }
+
+        Title = title.Trim();
+        Description = NormalizeOptionalValue(description);
+        DueDate = dueDate;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Reopen()
     {
         Status = StudyTaskStatus.Open;

@@ -96,28 +96,28 @@ public sealed class StudyTaskTests
 
     [Fact]
     public void Complete_WhenTaskIsOpen_SetsStatusToCompleted()
-{
-    // Arrange
-    var task = new StudyTask(
-        Guid.NewGuid(),
-        "Prepare exercise",
-        DateTimeOffset.UtcNow.AddDays(7));
+    {
+        // Arrange
+        var task = new StudyTask(
+            Guid.NewGuid(),
+            "Prepare exercise",
+            DateTimeOffset.UtcNow.AddDays(7));
 
-    var beforeUpdate = DateTimeOffset.UtcNow;
+        var beforeUpdate = DateTimeOffset.UtcNow;
 
-    // Act
-    task.Complete();
+        // Act
+        task.Complete();
 
-    var afterUpdate = DateTimeOffset.UtcNow;
+        var afterUpdate = DateTimeOffset.UtcNow;
 
-    // Assert
-    Assert.Equal(StudyTaskStatus.Completed, task.Status);
-    Assert.NotNull(task.UpdatedAt);
-    Assert.InRange(
-        task.UpdatedAt.Value,
-        beforeUpdate,
-        afterUpdate);
-}
+        // Assert
+        Assert.Equal(StudyTaskStatus.Completed, task.Status);
+        Assert.NotNull(task.UpdatedAt);
+        Assert.InRange(
+            task.UpdatedAt.Value,
+            beforeUpdate,
+            afterUpdate);
+    }
 
     [Fact]
     public void Reopen_WhenTaskIsCompleted_SetsStatusToOpen()
@@ -143,5 +143,62 @@ public sealed class StudyTaskTests
             task.UpdatedAt.Value,
             beforeReopen,
             afterReopen);
+    }
+
+    [Fact]
+    public void Update_WithValidValues_ChangesEditableFields()
+    {
+        // Arrange
+        var task = new StudyTask(
+            Guid.NewGuid(),
+            "Alter Titel",
+            DateTimeOffset.UtcNow.AddDays(3),
+            "Alte Beschreibung");
+
+        var newDueDate =
+            DateTimeOffset.UtcNow.AddDays(10);
+
+        var beforeUpdate = DateTimeOffset.UtcNow;
+
+        // Act
+        task.Update(
+            "  Neuer Titel  ",
+            newDueDate,
+            "  Neue Beschreibung  ");
+
+        var afterUpdate = DateTimeOffset.UtcNow;
+
+        // Assert
+        Assert.Equal("Neuer Titel", task.Title);
+        Assert.Equal(
+            "Neue Beschreibung",
+            task.Description);
+        Assert.Equal(newDueDate, task.DueDate);
+        Assert.NotNull(task.UpdatedAt);
+        Assert.InRange(
+            task.UpdatedAt.Value,
+            beforeUpdate,
+            afterUpdate);
+    }
+
+    [Fact]
+    public void Update_WithEmptyTitle_ThrowsArgumentException()
+    {
+        // Arrange
+        var task = new StudyTask(
+            Guid.NewGuid(),
+            "Bestehender Titel",
+            DateTimeOffset.UtcNow.AddDays(3));
+
+        // Act
+        var action = () => task.Update(
+            "   ",
+            DateTimeOffset.UtcNow.AddDays(10));
+
+        // Assert
+        var exception =
+            Assert.Throws<ArgumentException>(action);
+
+        Assert.Equal("title", exception.ParamName);
     }
 }

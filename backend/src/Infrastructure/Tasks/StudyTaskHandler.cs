@@ -82,6 +82,117 @@ public sealed class StudyTaskHandler(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<StudyTaskResult?> UpdateAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        string title,
+        DateTimeOffset dueDateUtc,
+        string? description,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await GetOwnedTaskAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            cancellationToken);
+
+        if (task is null)
+        {
+            return null;
+        }
+
+        task.Update(
+            title,
+            dueDateUtc,
+            description);
+
+        await dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return ToResult(task);
+    }
+
+    public async Task<StudyTaskResult?> SetStatusAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        StudyTaskStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await GetOwnedTaskAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            cancellationToken);
+
+        if (task is null)
+        {
+            return null;
+        }
+
+        switch (status)
+        {
+            case StudyTaskStatus.Open:
+                task.Reopen();
+                break;
+            case StudyTaskStatus.Completed:
+                task.Complete();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(status),
+                    status,
+                    "Unsupported task status.");
+        }
+
+        await dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return ToResult(task);
+    }
+
+    public async Task<bool> DeleteAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await GetOwnedTaskAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            cancellationToken);
+
+        if (task is null)
+        {
+            return false;
+        }
+
+        dbContext.Tasks.Remove(task);
+
+        await dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return true;
+    }
+
+    private Task<StudyTask?> GetOwnedTaskAsync(
+        Guid ownerId,
+        Guid moduleId,
+        Guid taskId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.Tasks.SingleOrDefaultAsync(
+            task =>
+                task.Id == taskId
+                && task.ModuleId == moduleId
+                && dbContext.Modules.Any(module =>
+                    module.Id == moduleId
+                    && module.OwnerId == ownerId),
+            cancellationToken);
+    }
+
     private static StudyTaskResult ToResult(
         StudyTask task)
     {

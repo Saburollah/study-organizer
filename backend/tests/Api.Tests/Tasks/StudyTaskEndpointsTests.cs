@@ -33,6 +33,37 @@ public sealed class StudyTaskEndpointsTests
             response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("PUT", "")]
+    [InlineData("PATCH", "/status")]
+    [InlineData("DELETE", "")]
+    public async Task ManageTask_WithoutToken_ReturnsUnauthorized(
+        string method,
+        string routeSuffix)
+    {
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+
+        using var factory = CreateFactory();
+        using var client = CreateClient(factory);
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            $"/api/modules/{moduleId}/tasks/{taskId}{routeSuffix}");
+
+        request.Content = JsonContent.Create(new
+        {
+            title = "Nicht autorisierte Änderung",
+            dueDateUtc = "2026-10-01T18:00:00Z",
+            status = "Completed"
+        });
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            response.StatusCode);
+    }
+
     [Fact]
     public async Task CreateTask_WithValidData_ReturnsCreated()
     {
@@ -216,6 +247,261 @@ public sealed class StudyTaskEndpointsTests
             handler.ReceivedGetRequests[1].OwnerId);
     }
 
+    [Fact]
+    public async Task UpdateTask_WithValidData_ReturnsOk()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var dueDate = DateTimeOffset.Parse(
+            "2026-10-01T18:00:00Z");
+
+        var updatedTask = new StudyTaskResult(
+            taskId,
+            moduleId,
+            "Prüfung vorbereiten",
+            "Kapitel 1 bis 4",
+            dueDate,
+            StudyTaskStatus.Open,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubStudyTaskHandler(
+            updateResult: updatedTask);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}",
+            new
+            {
+                title = "Prüfung vorbereiten",
+                description = "Kapitel 1 bis 4",
+                dueDateUtc = dueDate
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<
+            StudyTaskResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(taskId, body.Id);
+        Assert.Equal("Prüfung vorbereiten", body.Title);
+        Assert.Equal(ownerId, handler.ReceivedUpdateOwnerId);
+        Assert.Equal(moduleId, handler.ReceivedUpdateModuleId);
+        Assert.Equal(taskId, handler.ReceivedUpdateTaskId);
+    }
+
+    [Fact]
+    public async Task UpdateTask_WithInvalidData_ReturnsBadRequest()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler();
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}",
+            new
+            {
+                title = "   "
+            });
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+        Assert.False(handler.UpdateWasCalled);
+    }
+
+    [Fact]
+    public async Task UpdateTask_WhenNotOwned_ReturnsNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler();
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}",
+            new
+            {
+                title = "Fremde Aufgabe",
+                dueDateUtc = "2026-10-01T18:00:00Z"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+        Assert.True(handler.UpdateWasCalled);
+    }
+
+    [Theory]
+    [InlineData("Completed", StudyTaskStatus.Completed)]
+    [InlineData("Open", StudyTaskStatus.Open)]
+    public async Task UpdateTaskStatus_WithValidStatus_ReturnsOk(
+        string requestedStatus,
+        StudyTaskStatus expectedStatus)
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+
+        var updatedTask = new StudyTaskResult(
+            taskId,
+            moduleId,
+            "Übung abgeben",
+            null,
+            DateTimeOffset.UtcNow.AddDays(2),
+            expectedStatus,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubStudyTaskHandler(
+            statusResult: updatedTask);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PatchAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}/status",
+            new
+            {
+                status = requestedStatus
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<
+            StudyTaskResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(requestedStatus, body.Status);
+        Assert.Equal(
+            expectedStatus,
+            handler.ReceivedStatus);
+        Assert.Equal(ownerId, handler.ReceivedStatusOwnerId);
+        Assert.Equal(moduleId, handler.ReceivedStatusModuleId);
+        Assert.Equal(taskId, handler.ReceivedStatusTaskId);
+    }
+
+    [Theory]
+    [InlineData("InProgress")]
+    [InlineData("1")]
+    public async Task UpdateTaskStatus_WithInvalidStatus_ReturnsBadRequest(
+        string invalidStatus)
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler();
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PatchAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}/status",
+            new
+            {
+                status = invalidStatus
+            });
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+        Assert.False(handler.StatusWasCalled);
+    }
+
+    [Fact]
+    public async Task UpdateTaskStatus_WhenNotOwned_ReturnsNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler();
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PatchAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}/status",
+            new
+            {
+                status = "Open"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+        Assert.True(handler.StatusWasCalled);
+    }
+
+    [Fact]
+    public async Task DeleteTask_WhenOwned_ReturnsNoContent()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler(
+            deleteResult: true);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}");
+
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            response.StatusCode);
+        Assert.Equal(ownerId, handler.ReceivedDeleteOwnerId);
+        Assert.Equal(moduleId, handler.ReceivedDeleteModuleId);
+        Assert.Equal(taskId, handler.ReceivedDeleteTaskId);
+    }
+
+    [Fact]
+    public async Task DeleteTask_WhenNotOwned_ReturnsNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler();
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}");
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+        Assert.Equal(ownerId, handler.ReceivedDeleteOwnerId);
+    }
+
     private static void AddAuthorization(
         HttpClient client,
         Guid userId)
@@ -289,7 +575,10 @@ public sealed class StudyTaskEndpointsTests
         IReadOnlyDictionary<
             (Guid OwnerId, Guid ModuleId),
             IReadOnlyList<StudyTaskResult>>?
-            tasksByOwnerAndModule = null)
+            tasksByOwnerAndModule = null,
+        StudyTaskResult? updateResult = null,
+        StudyTaskResult? statusResult = null,
+        bool deleteResult = false)
         : IStudyTaskHandler
     {
         public Guid? ReceivedCreateOwnerId
@@ -305,6 +594,30 @@ public sealed class StudyTaskEndpointsTests
         }
 
         public bool CreateWasCalled { get; private set; }
+
+        public bool UpdateWasCalled { get; private set; }
+
+        public Guid? ReceivedUpdateOwnerId { get; private set; }
+
+        public Guid? ReceivedUpdateModuleId { get; private set; }
+
+        public Guid? ReceivedUpdateTaskId { get; private set; }
+
+        public bool StatusWasCalled { get; private set; }
+
+        public Guid? ReceivedStatusOwnerId { get; private set; }
+
+        public Guid? ReceivedStatusModuleId { get; private set; }
+
+        public Guid? ReceivedStatusTaskId { get; private set; }
+
+        public StudyTaskStatus? ReceivedStatus { get; private set; }
+
+        public Guid? ReceivedDeleteOwnerId { get; private set; }
+
+        public Guid? ReceivedDeleteModuleId { get; private set; }
+
+        public Guid? ReceivedDeleteTaskId { get; private set; }
 
         public List<(Guid OwnerId, Guid ModuleId)>
         ReceivedGetRequests { get; } = [];
@@ -348,6 +661,58 @@ public sealed class StudyTaskEndpointsTests
 
             return Task.FromResult<
                 IReadOnlyList<StudyTaskResult>?>(null);
+        }
+
+        public Task<StudyTaskResult?> UpdateAsync(
+            Guid ownerId,
+            Guid moduleId,
+            Guid taskId,
+            string title,
+            DateTimeOffset dueDateUtc,
+            string? description,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            UpdateWasCalled = true;
+            ReceivedUpdateOwnerId = ownerId;
+            ReceivedUpdateModuleId = moduleId;
+            ReceivedUpdateTaskId = taskId;
+
+            return Task.FromResult(updateResult);
+        }
+
+        public Task<StudyTaskResult?> SetStatusAsync(
+            Guid ownerId,
+            Guid moduleId,
+            Guid taskId,
+            StudyTaskStatus status,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            StatusWasCalled = true;
+            ReceivedStatusOwnerId = ownerId;
+            ReceivedStatusModuleId = moduleId;
+            ReceivedStatusTaskId = taskId;
+            ReceivedStatus = status;
+
+            return Task.FromResult(statusResult);
+        }
+
+        public Task<bool> DeleteAsync(
+            Guid ownerId,
+            Guid moduleId,
+            Guid taskId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ReceivedDeleteOwnerId = ownerId;
+            ReceivedDeleteModuleId = moduleId;
+            ReceivedDeleteTaskId = taskId;
+
+            return Task.FromResult(deleteResult);
         }
     }
 }
