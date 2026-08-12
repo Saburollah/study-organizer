@@ -1,0 +1,132 @@
+import { createPinia, setActivePinia } from 'pinia'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
+import {
+  flushPromises,
+  mount,
+} from '@vue/test-utils'
+
+import { useAuthStore } from '@/features/auth/authStore'
+import { ApiError } from '@/services/api/apiClient'
+import LoginView from '../LoginView.vue'
+
+const pushMock =
+  vi.fn<(path: string) => Promise<void>>()
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: pushMock,
+  }),
+}))
+
+describe('LoginView', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    pushMock.mockReset()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('does not submit empty form data', async () => {
+    const store = useAuthStore()
+    const loginSpy = vi.spyOn(store, 'login')
+
+    const wrapper = mount(LoginView)
+
+    await wrapper.get('form').trigger('submit')
+
+    expect(loginSpy).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain(
+      'Bitte gib deine E-Mail-Adresse ein.',
+    )
+    expect(wrapper.text()).toContain(
+      'Bitte gib dein Passwort ein.',
+    )
+  })
+
+  it('logs in with valid credentials', async () => {
+    const store = useAuthStore()
+    const loginSpy = vi
+      .spyOn(store, 'login')
+      .mockResolvedValue()
+
+    const wrapper = mount(LoginView)
+
+    await wrapper
+      .get('#login-email')
+      .setValue(' student@example.com ')
+
+    await wrapper
+      .get('#login-password')
+      .setValue('Sicheres-Passwort-2026!')
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(loginSpy).toHaveBeenCalledWith(
+      'student@example.com',
+      'Sicheres-Passwort-2026!',
+    )
+    expect(pushMock).toHaveBeenCalledWith('/')
+  })
+
+  it('shows a message for invalid credentials', async () => {
+    const store = useAuthStore()
+
+    vi.spyOn(store, 'login').mockRejectedValue(
+      new ApiError(401, {
+        title: 'Authentication failed.',
+      }),
+    )
+
+    const wrapper = mount(LoginView)
+
+    await wrapper
+      .get('#login-email')
+      .setValue('student@example.com')
+
+    await wrapper
+      .get('#login-password')
+      .setValue('Falsches-Passwort-2026!')
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain(
+      'E-Mail-Adresse oder Passwort ist falsch.',
+    )
+    expect(pushMock).not.toHaveBeenCalled()
+  })
+
+  it('toggles password visibility', async () => {
+    const wrapper = mount(LoginView)
+    const passwordInput =
+      wrapper.get('#login-password')
+
+    expect(
+      passwordInput.attributes('type'),
+    ).toBe('password')
+
+    await wrapper
+      .get('button[aria-label="Passwort anzeigen"]')
+      .trigger('click')
+
+    expect(
+      passwordInput.attributes('type'),
+    ).toBe('text')
+
+    expect(
+      wrapper.get(
+        'button[aria-label="Passwort ausblenden"]',
+      ).attributes('aria-pressed'),
+    ).toBe('true')
+  })
+})

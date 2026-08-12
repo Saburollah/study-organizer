@@ -1,5 +1,19 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import {
+  RouterLink,
+  RouterView,
+  useRouter,
+} from 'vue-router'
+
+import { useAuthStore } from '@/features/auth/authStore'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+async function logout(): Promise<void> {
+  authStore.logout()
+  await router.push('/login')
+}
 </script>
 
 <template>
@@ -11,7 +25,25 @@ import { RouterLink, RouterView } from 'vue-router'
 
       <nav aria-label="Hauptnavigation">
         <RouterLink to="/">Startseite</RouterLink>
-        <RouterLink to="/register">Registrieren</RouterLink>
+
+        <template v-if="authStore.isAuthenticated">
+          <span class="user-email">
+            {{ authStore.userEmail }}
+          </span>
+
+          <button
+            class="logout-button"
+            type="button"
+            @click="logout"
+          >
+            Abmelden
+          </button>
+        </template>
+
+        <template v-else>
+          <RouterLink to="/login">Anmelden</RouterLink>
+          <RouterLink to="/register">Registrieren</RouterLink>
+        </template>
       </nav>
     </header>
 
@@ -45,6 +77,25 @@ nav {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.user-email {
+  color: #626f86;
+  font-size: 0.9rem;
+}
+
+.logout-button {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #b6c2cf;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  color: #172b4d;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  border-color: #0c66e4;
+  color: #0c66e4;
 }
 
 nav a {
