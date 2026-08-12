@@ -11,6 +11,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
       <nav aria-label="Hauptnavigation">
         <RouterLink to="/">Startseite</RouterLink>
+        <RouterLink to="/register">Registrieren</RouterLink>
       </nav>
     </header>
 
@@ -38,6 +39,12 @@ import { RouterLink, RouterView } from 'vue-router'
   font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 nav a {
