@@ -53,6 +53,63 @@ public sealed class ModuleHandler(
                     module.CreatedAt))
             .ToListAsync(cancellationToken);
     }
+    public async Task<ModuleResult?> UpdateAsync(
+        Guid ownerId,
+        Guid moduleId,
+        string name,
+        string? code,
+        string? description,
+        string? color,
+        CancellationToken cancellationToken = default)
+    {
+        var module = await dbContext.Modules
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == moduleId
+                    && item.OwnerId == ownerId,
+                cancellationToken);
+
+        if (module is null)
+        {
+            return null;
+        }
+
+        module.Update(
+            name,
+            code,
+            description,
+            color);
+
+        await dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return ToResult(module);
+    }
+
+    public async Task<bool> DeleteAsync(
+        Guid ownerId,
+        Guid moduleId,
+        CancellationToken cancellationToken = default)
+    {
+        var module = await dbContext.Modules
+            .SingleOrDefaultAsync(
+                item =>
+                    item.Id == moduleId
+                    && item.OwnerId == ownerId,
+                cancellationToken);
+
+        if (module is null)
+        {
+            return false;
+        }
+
+        dbContext.Modules.Remove(module);
+
+        await dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return true;
+    }
 
     private static ModuleResult ToResult(
         StudyModule module)

@@ -100,4 +100,53 @@ public sealed class StudyModuleTests
             beforeCreation,
             afterCreation);
     }
+
+    [Fact]
+    public void Update_WithValidValues_UpdatesAndNormalizesModule()
+    {
+        // Arrange
+        var module = new StudyModule(
+            Guid.NewGuid(),
+            "Altes Modul",
+            "ALT",
+            "Alte Beschreibung",
+            "#000000");
+
+        // Act
+        module.Update(
+            "  Neues Modul  ",
+            "  NEU  ",
+            "  Neue Beschreibung  ",
+            "  #3366FF  ");
+
+        // Assert
+        Assert.Equal("Neues Modul", module.Name);
+        Assert.Equal("NEU", module.Code);
+        Assert.Equal(
+            "Neue Beschreibung",
+            module.Description);
+        Assert.Equal("#3366FF", module.Color);
+    }
+
+    [Fact]
+    public void Update_WithEmptyName_ThrowsArgumentException()
+    {
+        // Arrange
+        var module = new StudyModule(
+            Guid.NewGuid(),
+            "Secure Systems");
+
+        // Act
+        var action = () => module.Update(
+            "   ",
+            null,
+            null,
+            null);
+
+        // Assert
+        var exception =
+            Assert.Throws<ArgumentException>(action);
+
+        Assert.Equal("name", exception.ParamName);
+    }
 }

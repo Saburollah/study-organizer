@@ -181,6 +181,189 @@ public sealed class ModuleEndpointsTests
             handler.ReceivedGetOwnerIds);
     }
 
+    [Fact]
+    public async Task UpdateModule_WithValidData_ReturnsOk()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+
+        var updatedModule = new ModuleResult(
+            moduleId,
+            "Verteilte Systeme",
+            "VS",
+            "Aktualisierte Beschreibung",
+            "#3366FF",
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubModuleHandler(
+            updatedModule,
+            updateResult: updatedModule);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{moduleId}",
+            new
+            {
+                name = "Verteilte Systeme",
+                code = "VS",
+                description =
+                    "Aktualisierte Beschreibung",
+                color = "#3366FF"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+        var body =
+            await response.Content.ReadFromJsonAsync<
+                ModuleResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(moduleId, body.Id);
+        Assert.Equal("Verteilte Systeme", body.Name);
+
+        Assert.Equal(
+            ownerId,
+            handler.ReceivedUpdateOwnerId);
+
+        Assert.Equal(
+            moduleId,
+            handler.ReceivedUpdateModuleId);
+
+        Assert.Equal(
+            "Verteilte Systeme",
+            handler.ReceivedUpdateName);
+    }
+
+    [Fact]
+    public async Task UpdateModule_WhenNotOwned_ReturnsNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var foreignModuleId = Guid.NewGuid();
+
+        var fallbackModule = new ModuleResult(
+            Guid.NewGuid(),
+            "Testmodul",
+            null,
+            null,
+            null,
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubModuleHandler(
+            fallbackModule,
+            updateResult: null);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{foreignModuleId}",
+            new
+            {
+                name = "Fremdes Modul",
+                code = "FM",
+                description = "Darf nicht geändert werden",
+                color = "#3366FF"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+
+        Assert.Equal(
+            ownerId,
+            handler.ReceivedUpdateOwnerId);
+
+        Assert.Equal(
+            foreignModuleId,
+            handler.ReceivedUpdateModuleId);
+    }
+
+    [Fact]
+    public async Task DeleteModule_WhenOwned_ReturnsNoContent()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+
+        var fallbackModule = new ModuleResult(
+            moduleId,
+            "Testmodul",
+            null,
+            null,
+            null,
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubModuleHandler(
+            fallbackModule,
+            deleteResult: true);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync(
+            $"/api/modules/{moduleId}");
+
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            response.StatusCode);
+
+        Assert.Equal(
+            ownerId,
+            handler.ReceivedDeleteOwnerId);
+
+        Assert.Equal(
+            moduleId,
+            handler.ReceivedDeleteModuleId);
+    }
+
+    [Fact]
+    public async Task DeleteModule_WhenNotOwned_ReturnsNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var foreignModuleId = Guid.NewGuid();
+
+        var fallbackModule = new ModuleResult(
+            Guid.NewGuid(),
+            "Testmodul",
+            null,
+            null,
+            null,
+            DateTimeOffset.UtcNow);
+
+        var handler = new StubModuleHandler(
+            fallbackModule,
+            deleteResult: false);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync(
+            $"/api/modules/{foreignModuleId}");
+
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+
+        Assert.Equal(
+            ownerId,
+            handler.ReceivedDeleteOwnerId);
+
+        Assert.Equal(
+            foreignModuleId,
+            handler.ReceivedDeleteModuleId);
+    }
+
     private static void AddAuthorization(
         HttpClient client,
         Guid userId)
@@ -251,11 +434,18 @@ public sealed class ModuleEndpointsTests
         ModuleResult createResult,
         IReadOnlyDictionary<
             Guid,
-            IReadOnlyList<ModuleResult>>? modulesByOwner = null)
+            IReadOnlyList<ModuleResult>>? modulesByOwner = null,
+        ModuleResult? updateResult = null,
+        bool deleteResult = false)
         : IModuleHandler
     {
         public Guid? ReceivedOwnerId { get; private set; }
         public List<Guid> ReceivedGetOwnerIds { get; } = [];
+        public Guid? ReceivedUpdateOwnerId { get; private set; }
+        public Guid? ReceivedUpdateModuleId { get; private set; }
+        public string? ReceivedUpdateName { get; private set; }
+        public Guid? ReceivedDeleteOwnerId { get; private set; }
+        public Guid? ReceivedDeleteModuleId { get; private set; }
 
         public Task<ModuleResult> CreateAsync(
             Guid ownerId,
@@ -292,6 +482,36 @@ public sealed class ModuleEndpointsTests
                 IReadOnlyList<ModuleResult>>(
                     Array.Empty<ModuleResult>());
         }
+
+        public Task<ModuleResult?> UpdateAsync(
+            Guid ownerId,
+            Guid moduleId,
+            string name,
+            string? code,
+            string? description,
+            string? color,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ReceivedUpdateOwnerId = ownerId;
+            ReceivedUpdateModuleId = moduleId;
+            ReceivedUpdateName = name;
+
+            return Task.FromResult(updateResult);
+        }
+
+        public Task<bool> DeleteAsync(
+            Guid ownerId,
+            Guid moduleId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ReceivedDeleteOwnerId = ownerId;
+            ReceivedDeleteModuleId = moduleId;
+
+            return Task.FromResult(deleteResult);
+        }
     }
 }
-
