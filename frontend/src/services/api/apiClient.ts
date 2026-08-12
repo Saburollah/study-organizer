@@ -1,5 +1,17 @@
 import { environment } from '@/config/environment'
 
+export type AccessTokenProvider =
+  () => string | null
+
+let accessTokenProvider: AccessTokenProvider =
+  () => null
+
+export function configureAccessTokenProvider(
+  provider: AccessTokenProvider,
+): void {
+  accessTokenProvider = provider
+}
+
 export interface ApiProblem {
   title?: string
   detail?: string
@@ -32,6 +44,18 @@ export async function apiRequest<T>(
     path.startsWith('/') ? path : `/${path}`
 
   const headers = new Headers(options.headers)
+
+  const accessToken = accessTokenProvider()
+
+if (
+  accessToken
+  && !headers.has('Authorization')
+) {
+  headers.set(
+    'Authorization',
+    `Bearer ${accessToken}`,
+  )
+}
 
   if (options.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
