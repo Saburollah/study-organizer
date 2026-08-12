@@ -5,10 +5,18 @@ import { authService } from './authService'
 
 import type { AuthSession } from './authModels'
 
+import {
+  loadAuthSession,
+  removeAuthSession,
+  saveAuthSession,
+} from './authSessionStorage'
+
 export const useAuthStore = defineStore(
   'auth',
   () => {
-    const session = ref<AuthSession | null>(null)
+    const session = ref<AuthSession | null>(
+      loadAuthSession(),
+    )
 
     const isAuthenticated = computed(() => {
       if (!session.value) {
@@ -47,15 +55,19 @@ export const useAuthStore = defineStore(
         password,
       })
 
-      session.value = {
+      const newSession: AuthSession = {
         email: normalizedEmail,
         accessToken: response.accessToken,
         expiresAtUtc: response.expiresAtUtc,
       }
+
+      session.value = newSession
+      saveAuthSession(newSession)
     }
 
     function logout(): void {
       session.value = null
+      removeAuthSession()
     }
 
     return {

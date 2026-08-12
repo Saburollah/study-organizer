@@ -10,9 +10,14 @@ import {
 
 import { authService } from '../authService'
 import { useAuthStore } from '../authStore'
+import {
+  loadAuthSession,
+  saveAuthSession,
+} from '../authSessionStorage'
 
 describe('useAuthStore', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     setActivePinia(createPinia())
   })
 
@@ -20,7 +25,7 @@ describe('useAuthStore', () => {
     vi.restoreAllMocks()
   })
 
-  it('stores a valid session in memory after login', async () => {
+  it('stores a valid session after login', async () => {
     const loginSpy = vi
       .spyOn(authService, 'login')
       .mockResolvedValue({
@@ -42,6 +47,25 @@ describe('useAuthStore', () => {
     expect(store.isAuthenticated).toBe(true)
     expect(store.accessToken).toBe('test-access-token')
     expect(store.userEmail).toBe('student@example.com')
+    expect(loadAuthSession()).toEqual({
+      email: 'student@example.com',
+      accessToken: 'test-access-token',
+      expiresAtUtc: '2099-08-12T15:00:00Z',
+    })
+  })
+
+  it('restores a valid stored session', () => {
+    saveAuthSession({
+      email: 'student@example.com',
+      accessToken: 'stored-access-token',
+      expiresAtUtc: '2099-08-12T15:00:00Z',
+    })
+
+    const store = useAuthStore()
+
+    expect(store.isAuthenticated).toBe(true)
+    expect(store.accessToken).toBe('stored-access-token')
+    expect(store.userEmail).toBe('student@example.com')
   })
 
   it('treats an expired session as unauthenticated', () => {
@@ -59,17 +83,18 @@ describe('useAuthStore', () => {
   })
 
   it('removes the session on logout', () => {
-    const store = useAuthStore()
-
-    store.session = {
+    saveAuthSession({
       email: 'student@example.com',
       accessToken: 'test-access-token',
       expiresAtUtc: '2099-08-12T15:00:00Z',
-    }
+    })
+
+    const store = useAuthStore()
 
     store.logout()
 
     expect(store.session).toBeNull()
     expect(store.isAuthenticated).toBe(false)
+    expect(loadAuthSession()).toBeNull()
   })
 })
