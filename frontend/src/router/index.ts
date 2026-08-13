@@ -11,6 +11,7 @@ import { useAuthStore } from '@/features/auth/authStore'
 import ModulesView from '@/views/modules/ModulesView.vue'
 import StudyTasksView from '@/views/tasks/StudyTasksView.vue'
 import DashboardView from '@/views/dashboard/DashboardView.vue'
+import ProfileView from '@/views/profile/ProfileView.vue'
 
 export function createAppRouter(
   history: RouterHistory = createWebHistory(
@@ -56,6 +57,14 @@ export function createAppRouter(
         name: 'module-tasks',
         component: StudyTasksView,
         props: true,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/profile',
+        name: 'profile',
+        component: ProfileView,
         meta: {
           requiresAuth: true,
         },
