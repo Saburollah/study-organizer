@@ -1,6 +1,7 @@
 import { apiRequest } from '@/services/api/apiClient'
 
 import type {
+  ChangePasswordRequest,
   LoginUserRequest,
   LoginUserResponse,
   RegisterUserRequest,
@@ -12,9 +13,13 @@ export interface AuthService {
     request: RegisterUserRequest,
   ): Promise<RegisterUserResponse>
 
-    login(
+  login(
     request: LoginUserRequest,
   ): Promise<LoginUserResponse>
+
+  changePassword(
+    request: ChangePasswordRequest,
+  ): Promise<void>
 }
 
 export class HttpAuthService implements AuthService {
@@ -30,13 +35,25 @@ export class HttpAuthService implements AuthService {
     )
   }
 
-    login(
+  login(
     request: LoginUserRequest,
   ): Promise<LoginUserResponse> {
     return apiRequest<LoginUserResponse>(
       '/api/auth/login',
       {
         method: 'POST',
+        body: JSON.stringify(request),
+      },
+    )
+  }
+
+  changePassword(
+    request: ChangePasswordRequest,
+  ): Promise<void> {
+    return apiRequest<void>(
+      '/api/auth/password',
+      {
+        method: 'PUT',
         body: JSON.stringify(request),
       },
     )

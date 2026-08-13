@@ -11,4 +11,10 @@ public interface IUserHandler
         string email,
         string password,
         CancellationToken cancellationToken = default);
+
+    Task<ChangePasswordResult> ChangePasswordAsync(
+        Guid userId,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default);
 }

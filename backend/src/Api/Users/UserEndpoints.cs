@@ -1,6 +1,8 @@
 using StudyOrganizer.Api.Validation;
 using StudyOrganizer.Application.Authentication;
 using StudyOrganizer.Application.Users;
+using System.Security.Claims;
+using StudyOrganizer.Api.Authentication;
 
 namespace StudyOrganizer.Api.Users;
 
@@ -28,6 +30,14 @@ public static class UserEndpoints
                 StatusCodes.Status400BadRequest)
             .ProducesProblem(
                 StatusCodes.Status401Unauthorized);
+
+        group.MapPut("/password", ChangePasswordAsync)
+            .WithName("ChangePassword")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem(
+                StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         return group;
     }
@@ -118,5 +128,42 @@ public static class UserEndpoints
             new LoginUserResponse(
                 accessToken.Value,
                 accessToken.ExpiresAtUtc));
+    }
+    private static async Task<IResult> ChangePasswordAsync(
+        ChangePasswordRequest request,
+        ClaimsPrincipal user,
+        IUserHandler userHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var validationErrors =
+            RequestValidator.Validate(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(
+                validationErrors);
+        }
+
+        var result = await userHandler.ChangePasswordAsync(
+            userId,
+            request.CurrentPassword,
+            request.NewPassword,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["password"] = result.Errors.ToArray()
+                });
+        }
+
+        return Results.NoContent();
     }
 }

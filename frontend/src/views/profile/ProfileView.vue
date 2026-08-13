@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
+import ChangePasswordForm from '@/features/profile/ChangePasswordForm.vue'
 import type {
   ProfileGender,
   UserProfile,
@@ -518,6 +519,8 @@ function getErrorMessage(
         </button>
       </div>
     </form>
+
+    <ChangePasswordForm v-if="profile" />
   </section>
 </template>
 

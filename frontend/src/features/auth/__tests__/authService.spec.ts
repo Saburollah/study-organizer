@@ -92,4 +92,32 @@ describe('HttpAuthService', () => {
       expiresAtUtc: '2026-08-12T15:00:00Z',
     })
   })
+
+  it('sends a password change to the API', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response(null, { status: 204 }),
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const service = new HttpAuthService()
+
+    await service.changePassword({
+      currentPassword: 'Bisheriges-Passwort-2026!',
+      newPassword: 'Neues-Sicheres-Passwort-2026!',
+    })
+
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      'http://localhost:5101/api/auth/password',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({
+          currentPassword: 'Bisheriges-Passwort-2026!',
+          newPassword: 'Neues-Sicheres-Passwort-2026!',
+        }),
+      }),
+    )
+  })
 })

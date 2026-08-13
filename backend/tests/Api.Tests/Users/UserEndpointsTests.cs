@@ -1,17 +1,22 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using StudyOrganizer.Api.Authentication;
 using StudyOrganizer.Api.Users;
 using StudyOrganizer.Application.Users;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace StudyOrganizer.Api.Tests.Users;
 
 public sealed class UserEndpointsTests
 {
+    private static readonly string SigningKey =
+        new('a', 64);
+
     [Fact]
     public async Task Register_WithValidData_ReturnsCreated()
     {
@@ -240,6 +245,144 @@ public sealed class UserEndpointsTests
         Assert.True(handler.WasCalled);
     }
 
+    [Fact]
+    public async Task ChangePassword_WithoutToken_ReturnsUnauthorized()
+    {
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        var response = await client.PutAsJsonAsync(
+            "/api/auth/password",
+            new
+            {
+                currentPassword = "Current-Password-2026!",
+                newPassword = "New-Secure-Password-2026!"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            response.StatusCode);
+
+        Assert.False(handler.WasCalled);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithValidRequest_ReturnsNoContent()
+    {
+        var userId = Guid.NewGuid();
+
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()),
+            changePasswordResult:
+                new ChangePasswordResult(
+                    true,
+                    Array.Empty<string>()));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, userId);
+
+        var response = await client.PutAsJsonAsync(
+            "/api/auth/password",
+            new
+            {
+                currentPassword = "Current-Password-2026!",
+                newPassword = "New-Secure-Password-2026!"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            response.StatusCode);
+
+        Assert.Equal(userId, handler.ReceivedUserId);
+        Assert.Equal(
+            "Current-Password-2026!",
+            handler.ReceivedCurrentPassword);
+        Assert.Equal(
+            "New-Secure-Password-2026!",
+            handler.ReceivedNewPassword);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithEmptyPasswords_ReturnsBadRequest()
+    {
+        var userId = Guid.NewGuid();
+
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, userId);
+
+        var response = await client.PutAsJsonAsync(
+            "/api/auth/password",
+            new
+            {
+                currentPassword = string.Empty,
+                newPassword = string.Empty
+            });
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+
+        Assert.False(handler.WasCalled);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenRejected_ReturnsBadRequest()
+    {
+        var userId = Guid.NewGuid();
+
+        var handler = new StubUserHandler(
+            new UserResult(
+                false,
+                null,
+                Array.Empty<string>()),
+            changePasswordResult:
+                new ChangePasswordResult(
+                    false,
+                    new[] { "Incorrect password." }));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+
+        AddAuthorization(client, userId);
+
+        var response = await client.PutAsJsonAsync(
+            "/api/auth/password",
+            new
+            {
+                currentPassword = "Wrong-Password-2026!",
+                newPassword = "New-Secure-Password-2026!"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("Incorrect password.", body);
+        Assert.True(handler.WasCalled);
+        Assert.Equal(userId, handler.ReceivedUserId);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(
         IUserHandler handler)
     {
@@ -250,7 +393,7 @@ public sealed class UserEndpointsTests
 
         Environment.SetEnvironmentVariable(
             "Jwt__SigningKey",
-            new string('a', 64));
+            SigningKey);
 
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -277,12 +420,44 @@ public sealed class UserEndpointsTests
             });
     }
 
+    private static void AddAuthorization(
+        HttpClient client,
+        Guid userId)
+    {
+        var tokenService =
+            new JwtAccessTokenService(
+                new JwtOptions
+                {
+                    Issuer = "StudyOrganizer.Api",
+                    Audience = "StudyOrganizer.Clients",
+                    SigningKey = SigningKey,
+                    ExpiresInMinutes = 15
+                },
+                TimeProvider.System);
+
+        var token = tokenService.Create(
+            userId,
+            "test@example.com");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token.Value);
+    }
+
     private sealed class StubUserHandler(
         UserResult result,
-        UserLoginResult? loginResult = null)
+        UserLoginResult? loginResult = null,
+        ChangePasswordResult? changePasswordResult = null)
         : IUserHandler
     {
         public bool WasCalled { get; private set; }
+
+        public Guid? ReceivedUserId { get; private set; }
+
+        public string? ReceivedCurrentPassword { get; private set; }
+
+        public string? ReceivedNewPassword { get; private set; }
 
         public Task<UserResult> RegisterAsync(
             string email,
@@ -309,6 +484,25 @@ public sealed class UserEndpointsTests
                     false,
                     null,
                     null));
+        }
+
+        public Task<ChangePasswordResult> ChangePasswordAsync(
+            Guid userId,
+            string currentPassword,
+            string newPassword,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            WasCalled = true;
+            ReceivedUserId = userId;
+            ReceivedCurrentPassword = currentPassword;
+            ReceivedNewPassword = newPassword;
+
+            return Task.FromResult(
+                changePasswordResult
+                ?? new ChangePasswordResult(
+                    false,
+                    new[] { "Password change failed." }));
         }
     }
 }
