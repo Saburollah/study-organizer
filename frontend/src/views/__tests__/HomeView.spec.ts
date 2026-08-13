@@ -11,17 +11,20 @@ import {
 } from 'vitest'
 
 import { useAuthStore } from '@/features/auth/authStore'
+import { i18n, setLocale } from '@/i18n'
 import HomeView from '../HomeView.vue'
 
 describe('HomeView', () => {
   beforeEach(() => {
     sessionStorage.clear()
     setActivePinia(createPinia())
+    setLocale('de')
   })
 
   function mountView() {
     return mount(HomeView, {
       global: {
+        plugins: [i18n],
         stubs: {
           RouterLink: RouterLinkStub,
         },
@@ -73,5 +76,17 @@ describe('HomeView', () => {
       .toBe(true)
     expect(wrapper.text()).toContain('Zum Dashboard')
     expect(wrapper.text()).not.toContain('Ich habe schon ein Konto')
+  })
+
+  it('zeigt die Startseite auf Englisch', () => {
+    setLocale('en')
+
+    const wrapper = mountView()
+
+    expect(wrapper.get('h1').text()).toBe(
+      'More clarity. Less stress.',
+    )
+    expect(wrapper.text()).toContain('Study modules')
+    expect(wrapper.text()).toContain('Get started for free')
   })
 })
