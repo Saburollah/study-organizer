@@ -10,6 +10,7 @@ import RegisterView from '@/views/auth/RegisterView.vue'
 import { useAuthStore } from '@/features/auth/authStore'
 import ModulesView from '@/views/modules/ModulesView.vue'
 import StudyTasksView from '@/views/tasks/StudyTasksView.vue'
+import DashboardView from '@/views/dashboard/DashboardView.vue'
 
 export function createAppRouter(
   history: RouterHistory = createWebHistory(
@@ -33,6 +34,14 @@ export function createAppRouter(
         path: '/register',
         name: 'register',
         component: RegisterView,
+      },
+      {
+        path: '/dashboard',
+        name: 'dashboard',
+        component: DashboardView,
+        meta: {
+          requiresAuth: true,
+        },
       },
       {
         path: '/modules',
@@ -77,7 +86,7 @@ export function createAppRouter(
       )
     ) {
       return {
-        name: 'modules',
+        name: 'dashboard',
       }
     }
 

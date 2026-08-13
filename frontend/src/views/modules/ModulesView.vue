@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue'
 import { RouterLink } from 'vue-router'
 
 import ModuleForm from '@/features/modules/ModuleForm.vue'
@@ -17,6 +22,7 @@ const isCreateFormOpen = ref(false)
 const editingModule = ref<StudyModule | null>(null)
 const isSaving = ref(false)
 const deletingModuleId = ref<string | null>(null)
+const modulePendingDeletion = ref<StudyModule | null>(null)
 const saveErrorMessage = ref('')
 const successMessage = ref('')
 
@@ -37,7 +43,14 @@ const formInitialValues = computed<SaveModuleRequest>(() => {
   }
 })
 
-onMounted(loadModules)
+onMounted(() => {
+  void loadModules()
+  document.addEventListener('keydown', handleDialogKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleDialogKeydown)
+})
 
 async function loadModules(): Promise<void> {
   isLoading.value = true
@@ -120,12 +133,34 @@ async function saveModule(
   await createModule(request)
 }
 
-async function deleteModule(module: StudyModule): Promise<void> {
-  const wasConfirmed = window.confirm(
-    `Möchtest du „${module.name}“ wirklich löschen?`,
-  )
+function requestModuleDeletion(module: StudyModule): void {
+  saveErrorMessage.value = ''
+  successMessage.value = ''
+  modulePendingDeletion.value = module
+}
 
-  if (!wasConfirmed) {
+function cancelModuleDeletion(): void {
+  if (deletingModuleId.value) {
+    return
+  }
+
+  modulePendingDeletion.value = null
+}
+
+function handleDialogKeydown(event: KeyboardEvent): void {
+  if (
+    event.key === 'Escape'
+    && modulePendingDeletion.value
+    && !deletingModuleId.value
+  ) {
+    cancelModuleDeletion()
+  }
+}
+
+async function confirmModuleDeletion(): Promise<void> {
+  const module = modulePendingDeletion.value
+
+  if (!module) {
     return
   }
 
@@ -146,6 +181,7 @@ async function deleteModule(module: StudyModule): Promise<void> {
 
     successMessage.value =
       'Das Lernmodul wurde erfolgreich gelöscht.'
+    modulePendingDeletion.value = null
   } catch (error: unknown) {
     saveErrorMessage.value = getDeleteErrorMessage(error)
   } finally {
@@ -343,7 +379,7 @@ function getDeleteErrorMessage(error: unknown): string {
               type="button"
               :aria-label="`${module.name} löschen`"
               :disabled="deletingModuleId === module.id"
-              @click="deleteModule(module)"
+              @click="requestModuleDeletion(module)"
             >
               {{
                 deletingModuleId === module.id
@@ -355,6 +391,64 @@ function getDeleteErrorMessage(error: unknown): string {
         </div>
       </li>
     </ul>
+
+    <div
+      v-if="modulePendingDeletion"
+      class="delete-dialog-backdrop"
+      @click.self="cancelModuleDeletion"
+    >
+      <section
+        class="delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <button
+          class="delete-dialog-close"
+          type="button"
+          aria-label="Löschdialog schließen"
+          :disabled="Boolean(deletingModuleId)"
+          @click="cancelModuleDeletion"
+        >
+          ×
+        </button>
+
+        <div class="delete-dialog-icon" aria-hidden="true">
+          !
+        </div>
+
+        <p class="delete-dialog-eyebrow">LERNMODUL LÖSCHEN</p>
+        <h2 id="delete-dialog-title">
+          Wirklich löschen?
+        </h2>
+        <p id="delete-dialog-description">
+          Möchtest du das Lernmodul
+          <strong>„{{ modulePendingDeletion.name }}“</strong>
+          wirklich löschen? Diese Aktion kann nicht
+          rückgängig gemacht werden.
+        </p>
+
+        <div class="delete-dialog-actions">
+          <button
+            class="cancel-delete-button"
+            type="button"
+            :disabled="Boolean(deletingModuleId)"
+            @click="cancelModuleDeletion"
+          >
+            Abbrechen
+          </button>
+          <button
+            class="confirm-delete-button"
+            type="button"
+            :disabled="Boolean(deletingModuleId)"
+            @click="confirmModuleDeletion"
+          >
+            {{ deletingModuleId ? 'Wird gelöscht …' : 'Löschen' }}
+          </button>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -396,14 +490,54 @@ h1 {
 }
 
 .add-module-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex: 0 0 auto;
   padding: 0.75rem 1rem;
-  border: 1px solid #0c66e4;
+  border: 1px solid #0755c7;
   border-radius: 0.5rem;
-  background: #0c66e4;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 24%) 0%,
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #2781f5 0%,
+      #0c66e4 55%,
+      #0754bd 100%
+    );
   color: #ffffff;
   font-weight: 650;
+  box-shadow:
+    0 0.65rem 1.25rem rgb(12 102 228 / 24%),
+    inset 0 1px rgb(255 255 255 / 65%),
+    inset 0 -2px rgb(5 53 122 / 20%);
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    filter 150ms ease;
+}
+
+.add-module-button:hover {
+  filter: saturate(1.08) brightness(1.04);
+  box-shadow:
+    0 0.9rem 1.55rem rgb(12 102 228 / 31%),
+    inset 0 1px rgb(255 255 255 / 75%),
+    inset 0 -2px rgb(5 53 122 / 22%);
+  transform: translateY(-0.14rem);
+}
+
+.add-module-button:active {
+  transform: translateY(0.03rem);
+}
+
+.add-module-button:focus-visible {
+  outline: 0.2rem solid rgb(12 102 228 / 25%);
+  outline-offset: 0.18rem;
 }
 
 .feedback-message {
@@ -462,10 +596,7 @@ h1 {
 
 .module-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, 18rem), 1fr)
-  );
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin: 0;
   padding: 0;
@@ -473,21 +604,55 @@ h1 {
 }
 
 .module-card {
+  position: relative;
   display: flex;
   min-height: 12rem;
   overflow: hidden;
   border: 1px solid #dfe3e8;
   border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 0.25rem 1rem rgb(9 30 66 / 6%);
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 60%,
+    #f4f7fb 100%
+  );
+  box-shadow:
+    0 0.7rem 1.4rem rgb(9 30 66 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 95%);
+  transition: box-shadow 160ms ease;
+}
+
+.module-card::after {
+  position: absolute;
+  top: -4.5rem;
+  right: 4%;
+  width: 45%;
+  height: 8rem;
+  transform: rotate(-11deg);
+  background: linear-gradient(
+    110deg,
+    transparent 10%,
+    rgb(255 255 255 / 72%) 50%,
+    transparent 90%
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.module-card:hover {
+  box-shadow:
+    0 1rem 1.8rem rgb(9 30 66 / 16%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
 }
 
 .color-marker {
-  width: 0.75rem;
+  width: 1rem;
   flex: 0 0 auto;
 }
 
 .module-card-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -497,7 +662,7 @@ h1 {
 .module-code {
   margin: 0 0 0.5rem;
   color: #0c66e4;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -530,11 +695,53 @@ h1 {
 .module-tasks-link,
 .edit-module-button,
 .delete-module-button {
+  position: relative;
+  overflow: hidden;
   padding: 0.5rem 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.4rem;
-  background: #ffffff;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      transparent 43%,
+      rgb(255 255 255 / 90%) 50%,
+      transparent 58%,
+      transparent 100%
+    ),
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #ffffff 55%,
+      #eef2f7 100%
+    );
+  box-shadow:
+    0 0.3rem 0.65rem rgb(9 30 66 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.module-tasks-link:hover,
+.edit-module-button:hover,
+.delete-module-button:hover {
+  transform: translateY(-0.12rem);
+  box-shadow:
+    0 0.5rem 0.9rem rgb(9 30 66 / 17%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
+}
+
+.module-tasks-link:active,
+.edit-module-button:active,
+.delete-module-button:active {
+  transform: translateY(0.04rem);
+  box-shadow:
+    0 0.15rem 0.35rem rgb(9 30 66 / 14%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
 }
 
 .module-tasks-link {
@@ -559,13 +766,185 @@ h1 {
 
 .delete-module-button:hover {
   border-color: #ae2e24;
-  background: #ffebe6;
+  background: linear-gradient(
+    145deg,
+    #fff7f5 0%,
+    #ffebe6 100%
+  );
 }
 
 .edit-module-button:disabled,
 .delete-module-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.delete-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 1rem;
+  place-items: center;
+  background: rgb(9 30 66 / 48%);
+  backdrop-filter: blur(0.22rem);
+}
+
+.delete-dialog {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(100%, 38rem);
+  padding: 2rem;
+  border: 1px solid #d8dee8;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 54%,
+    #f6f8fb 100%
+  );
+  box-shadow:
+    0 1.5rem 3.5rem rgb(9 30 66 / 30%),
+    0 0.35rem 0.9rem rgb(9 30 66 / 15%);
+}
+
+.delete-dialog::before {
+  position: absolute;
+  z-index: -1;
+  top: -42%;
+  left: -12%;
+  width: 78%;
+  height: 68%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 78%);
+  pointer-events: none;
+  transform: rotate(-8deg);
+  content: '';
+}
+
+.delete-dialog-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #626f86;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.delete-dialog-close:hover:not(:disabled) {
+  background: #f1f2f4;
+  color: #172b4d;
+  transform: translateY(-0.08rem);
+}
+
+.delete-dialog-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffebe6 0%, #ffd7d2 100%);
+  color: #ae2e24;
+  font-size: 1.45rem;
+  font-weight: 800;
+  box-shadow: 0 0.45rem 0.9rem rgb(174 46 36 / 18%);
+}
+
+.delete-dialog-eyebrow {
+  margin: 0 0 0.4rem;
+  color: #ae2e24;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.delete-dialog h2 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 1.75rem;
+}
+
+.delete-dialog > p:last-of-type {
+  max-width: 31rem;
+  margin: 0.8rem 0 0;
+  color: #44546f;
+  line-height: 1.6;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.cancel-delete-button,
+.confirm-delete-button {
+  min-width: 8.5rem;
+  padding: 0.75rem 1.15rem;
+  border-radius: 0.55rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0.4rem 0.85rem rgb(9 30 66 / 14%);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.cancel-delete-button {
+  border: 1px solid #b6c2cf;
+  background: linear-gradient(145deg, #ffffff 0%, #edf2f7 100%);
+  color: #172b4d;
+}
+
+.confirm-delete-button {
+  border: 1px solid #ae2e24;
+  background: linear-gradient(145deg, #d9473f 0%, #ae2e24 100%);
+  color: #ffffff;
+}
+
+.cancel-delete-button:hover:not(:disabled),
+.confirm-delete-button:hover:not(:disabled) {
+  box-shadow: 0 0.7rem 1.2rem rgb(9 30 66 / 20%);
+  transform: translateY(-0.12rem);
+}
+
+.cancel-delete-button:hover:not(:disabled) {
+  border-color: #0c66e4;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  border-color: #8e201a;
+}
+
+.cancel-delete-button:active:not(:disabled),
+.confirm-delete-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
+}
+
+.delete-dialog button:focus-visible {
+  outline: 0.18rem solid rgb(12 102 228 / 28%);
+  outline-offset: 0.15rem;
+}
+
+.delete-dialog button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 @media (max-width: 40rem) {
@@ -576,6 +955,20 @@ h1 {
 
   .add-module-button {
     align-self: start;
+  }
+
+  .delete-dialog {
+    padding: 1.5rem;
+  }
+
+  .delete-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .cancel-delete-button,
+  .confirm-delete-button {
+    width: 100%;
   }
 }
 </style>

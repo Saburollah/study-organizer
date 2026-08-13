@@ -223,12 +223,39 @@ function clearErrors(): void {
 
 <style scoped>
 .module-form {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   margin-bottom: 2rem;
   padding: 1.5rem;
   border: 1px solid #b6c2cf;
   border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 0.5rem 1.5rem rgb(9 30 66 / 8%);
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #ffffff 54%,
+      #f5f8fc 100%
+    );
+  box-shadow:
+    0 1.15rem 2.4rem rgb(9 30 66 / 13%),
+    0 0.25rem 0.7rem rgb(9 30 66 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
+}
+
+.module-form::before {
+  position: absolute;
+  z-index: -1;
+  top: -35%;
+  left: -8%;
+  width: 72%;
+  height: 78%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 72%);
+  filter: blur(0.15rem);
+  pointer-events: none;
+  transform: rotate(-8deg);
+  content: '';
 }
 
 .form-heading,
@@ -293,14 +320,40 @@ textarea {
   padding: 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background: #ffffff;
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #ffffff 58%,
+      #f3f6fa 100%
+    );
   color: #172b4d;
+  box-shadow:
+    0 0.3rem 0.7rem rgb(9 30 66 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+input:hover,
+textarea:hover {
+  border-color: #8fa6c0;
+  box-shadow:
+    0 0.55rem 1rem rgb(9 30 66 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
+  transform: translateY(-0.08rem);
 }
 
 input:focus,
 textarea:focus {
   border-color: #0c66e4;
   outline: 0.15rem solid rgb(12 102 228 / 15%);
+  box-shadow:
+    0 0.55rem 1rem rgb(12 102 228 / 13%),
+    inset 0 1px 0 rgb(255 255 255 / 100%);
+  transform: translateY(-0.08rem);
 }
 
 .color-control {
@@ -333,22 +386,63 @@ output {
 
 .primary-button,
 .secondary-button {
+  position: relative;
+  overflow: hidden;
   padding: 0.7rem 1rem;
   border-radius: 0.5rem;
   font-weight: 650;
   cursor: pointer;
+  box-shadow: 0 0.45rem 0.9rem rgb(9 30 66 / 13%);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
 }
 
 .primary-button {
   border: 1px solid #0c66e4;
-  background: #0c66e4;
+  background: linear-gradient(
+    145deg,
+    #1f7bf2 0%,
+    #0c66e4 58%,
+    #0754bd 100%
+  );
   color: #ffffff;
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.close-button:focus-visible {
+  outline: 0.18rem solid rgb(12 102 228 / 24%);
+  outline-offset: 0.15rem;
 }
 
 .secondary-button {
   border: 1px solid #b6c2cf;
-  background: #ffffff;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      transparent 42%,
+      rgb(255 255 255 / 92%) 50%,
+      transparent 59%,
+      transparent 100%
+    ),
+    linear-gradient(145deg, #ffffff 0%, #ffffff 55%, #edf2f7 100%);
   color: #172b4d;
+}
+
+.primary-button:hover:not(:disabled),
+.secondary-button:hover:not(:disabled),
+.close-button:hover:not(:disabled) {
+  box-shadow: 0 0.75rem 1.25rem rgb(9 30 66 / 18%);
+  transform: translateY(-0.12rem);
+}
+
+.primary-button:active:not(:disabled),
+.secondary-button:active:not(:disabled),
+.close-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
 }
 
 button:disabled {

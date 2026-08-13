@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { moduleService } from '@/features/modules/moduleService'
@@ -28,6 +33,7 @@ const editingTask = ref<StudyTask | null>(null)
 const isSaving = ref(false)
 const changingStatusTaskId = ref<string | null>(null)
 const deletingTaskId = ref<string | null>(null)
+const taskPendingDeletion = ref<StudyTask | null>(null)
 
 const isFormOpen = computed(() =>
   isCreateFormOpen.value || editingTask.value !== null,
@@ -48,7 +54,14 @@ const formInitialValues = computed<SaveStudyTaskRequest>(() => {
   }
 })
 
-onMounted(loadPage)
+onMounted(() => {
+  void loadPage()
+  document.addEventListener('keydown', handleDialogKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleDialogKeydown)
+})
 
 async function loadPage(): Promise<void> {
   isLoading.value = true
@@ -182,12 +195,33 @@ async function toggleTaskStatus(task: StudyTask): Promise<void> {
   }
 }
 
-async function deleteTask(task: StudyTask): Promise<void> {
-  const wasConfirmed = window.confirm(
-    `Möchtest du „${task.title}“ wirklich löschen?`,
-  )
+function requestTaskDeletion(task: StudyTask): void {
+  beginAction()
+  taskPendingDeletion.value = task
+}
 
-  if (!wasConfirmed) {
+function cancelTaskDeletion(): void {
+  if (deletingTaskId.value) {
+    return
+  }
+
+  taskPendingDeletion.value = null
+}
+
+function handleDialogKeydown(event: KeyboardEvent): void {
+  if (
+    event.key === 'Escape'
+    && taskPendingDeletion.value
+    && !deletingTaskId.value
+  ) {
+    cancelTaskDeletion()
+  }
+}
+
+async function confirmTaskDeletion(): Promise<void> {
+  const task = taskPendingDeletion.value
+
+  if (!task) {
     return
   }
 
@@ -207,6 +241,7 @@ async function deleteTask(task: StudyTask): Promise<void> {
 
     successMessage.value =
       'Die Aufgabe wurde erfolgreich gelöscht.'
+    taskPendingDeletion.value = null
   } catch (error: unknown) {
     actionErrorMessage.value = getErrorMessage(
       error,
@@ -420,7 +455,7 @@ function getErrorMessage(
               type="button"
               :aria-label="`${task.title} löschen`"
               :disabled="deletingTaskId === task.id"
-              @click="deleteTask(task)"
+              @click="requestTaskDeletion(task)"
             >
               {{
                 deletingTaskId === task.id
@@ -432,6 +467,64 @@ function getErrorMessage(
         </div>
       </li>
     </ul>
+
+    <div
+      v-if="taskPendingDeletion"
+      class="delete-dialog-backdrop"
+      @click.self="cancelTaskDeletion"
+    >
+      <section
+        class="delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-delete-dialog-title"
+        aria-describedby="task-delete-dialog-description"
+      >
+        <button
+          class="delete-dialog-close"
+          type="button"
+          aria-label="Löschdialog schließen"
+          :disabled="Boolean(deletingTaskId)"
+          @click="cancelTaskDeletion"
+        >
+          ×
+        </button>
+
+        <div class="delete-dialog-icon" aria-hidden="true">
+          !
+        </div>
+
+        <p class="delete-dialog-eyebrow">AUFGABE LÖSCHEN</p>
+        <h2 id="task-delete-dialog-title">
+          Wirklich löschen?
+        </h2>
+        <p id="task-delete-dialog-description">
+          Möchtest du die Aufgabe
+          <strong>„{{ taskPendingDeletion.title }}“</strong>
+          wirklich löschen? Diese Aktion kann nicht
+          rückgängig gemacht werden.
+        </p>
+
+        <div class="delete-dialog-actions">
+          <button
+            class="cancel-delete-button"
+            type="button"
+            :disabled="Boolean(deletingTaskId)"
+            @click="cancelTaskDeletion"
+          >
+            Abbrechen
+          </button>
+          <button
+            class="confirm-delete-button"
+            type="button"
+            :disabled="Boolean(deletingTaskId)"
+            @click="confirmTaskDeletion"
+          >
+            {{ deletingTaskId ? 'Wird gelöscht …' : 'Löschen' }}
+          </button>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -550,14 +643,42 @@ h1 {
 }
 
 .task-card {
+  position: relative;
+  isolation: isolate;
   display: flex;
   gap: 1rem;
   padding: 1.25rem;
+  overflow: hidden;
   border: 1px solid #dfe3e8;
   border-left: 0.5rem solid #0c66e4;
   border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 0.25rem 1rem rgb(9 30 66 / 6%);
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 60%,
+    #f4f7fb 100%
+  );
+  box-shadow:
+    0 0.7rem 1.4rem rgb(9 30 66 / 12%),
+    0 0.18rem 0.45rem rgb(9 30 66 / 7%);
+}
+
+.task-card::after {
+  position: absolute;
+  z-index: -1;
+  top: -4.5rem;
+  right: 4%;
+  width: 45%;
+  height: 8rem;
+  background: linear-gradient(
+    110deg,
+    transparent 10%,
+    rgb(255 255 255 / 72%) 50%,
+    transparent 90%
+  );
+  pointer-events: none;
+  transform: rotate(-11deg);
+  content: '';
 }
 
 .task-card.overdue {
@@ -566,7 +687,12 @@ h1 {
 
 .task-card.completed {
   border-left-color: #22a06b;
-  background: #f7f8f9;
+  background: linear-gradient(
+    145deg,
+    #fbfdfc 0%,
+    #f7faf8 62%,
+    #edf6f1 100%
+  );
 }
 
 .status-button {
@@ -576,10 +702,24 @@ h1 {
   padding: 0;
   border: 2px solid #0c66e4;
   border-radius: 50%;
-  background: #ffffff;
+  background: linear-gradient(145deg, #ffffff 0%, #edf2f7 100%);
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 0.35rem 0.7rem rgb(9 30 66 / 13%);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.status-button:hover:not(:disabled) {
+  box-shadow: 0 0.55rem 0.95rem rgb(9 30 66 / 20%);
+  transform: translateY(-0.1rem);
+}
+
+.status-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
 }
 
 .completed .status-button {
@@ -638,6 +778,7 @@ h1 {
 
 .due-date {
   margin: 0.75rem 0 0;
+  font-size: 1.08rem;
 }
 
 .overdue .due-date {
@@ -656,11 +797,28 @@ h1 {
 
 .edit-task-button,
 .delete-task-button {
+  position: relative;
+  overflow: hidden;
   padding: 0.5rem 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.4rem;
-  background: #ffffff;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      transparent 43%,
+      rgb(255 255 255 / 90%) 50%,
+      transparent 58%,
+      transparent 100%
+    ),
+    linear-gradient(145deg, #ffffff 0%, #eef2f7 100%);
+  box-shadow: 0 0.3rem 0.65rem rgb(9 30 66 / 12%);
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
 }
 
 .edit-task-button {
@@ -674,16 +832,188 @@ h1 {
 .edit-task-button:hover {
   border-color: #0c66e4;
   color: #0c66e4;
+  box-shadow: 0 0.5rem 0.9rem rgb(9 30 66 / 17%);
+  transform: translateY(-0.12rem);
 }
 
 .delete-task-button:hover {
   border-color: #ae2e24;
-  background: #ffebe6;
+  background: linear-gradient(145deg, #fff7f5 0%, #ffebe6 100%);
+  box-shadow: 0 0.5rem 0.9rem rgb(9 30 66 / 17%);
+  transform: translateY(-0.12rem);
+}
+
+.edit-task-button:active:not(:disabled),
+.delete-task-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
 }
 
 button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.delete-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 1rem;
+  place-items: center;
+  background: rgb(9 30 66 / 48%);
+  backdrop-filter: blur(0.22rem);
+}
+
+.delete-dialog {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(100%, 38rem);
+  padding: 2rem;
+  border: 1px solid #d8dee8;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 54%,
+    #f6f8fb 100%
+  );
+  box-shadow:
+    0 1.5rem 3.5rem rgb(9 30 66 / 30%),
+    0 0.35rem 0.9rem rgb(9 30 66 / 15%);
+}
+
+.delete-dialog::before {
+  position: absolute;
+  z-index: -1;
+  top: -42%;
+  left: -12%;
+  width: 78%;
+  height: 68%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 78%);
+  pointer-events: none;
+  transform: rotate(-8deg);
+  content: '';
+}
+
+.delete-dialog-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #626f86;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.delete-dialog-close:hover:not(:disabled) {
+  background: #f1f2f4;
+  color: #172b4d;
+  transform: translateY(-0.08rem);
+}
+
+.delete-dialog-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffebe6 0%, #ffd7d2 100%);
+  color: #ae2e24;
+  font-size: 1.45rem;
+  font-weight: 800;
+  box-shadow: 0 0.45rem 0.9rem rgb(174 46 36 / 18%);
+}
+
+.delete-dialog-eyebrow {
+  margin: 0 0 0.4rem;
+  color: #ae2e24;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.delete-dialog h2 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 1.75rem;
+}
+
+.delete-dialog > p:last-of-type {
+  max-width: 31rem;
+  margin: 0.8rem 0 0;
+  color: #44546f;
+  line-height: 1.6;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.cancel-delete-button,
+.confirm-delete-button {
+  min-width: 8.5rem;
+  padding: 0.75rem 1.15rem;
+  border-radius: 0.55rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0.4rem 0.85rem rgb(9 30 66 / 14%);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.cancel-delete-button {
+  border: 1px solid #b6c2cf;
+  background: linear-gradient(145deg, #ffffff 0%, #edf2f7 100%);
+  color: #172b4d;
+}
+
+.confirm-delete-button {
+  border: 1px solid #ae2e24;
+  background: linear-gradient(145deg, #d9473f 0%, #ae2e24 100%);
+  color: #ffffff;
+}
+
+.cancel-delete-button:hover:not(:disabled),
+.confirm-delete-button:hover:not(:disabled) {
+  box-shadow: 0 0.7rem 1.2rem rgb(9 30 66 / 20%);
+  transform: translateY(-0.12rem);
+}
+
+.cancel-delete-button:hover:not(:disabled) {
+  border-color: #0c66e4;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  border-color: #8e201a;
+}
+
+.cancel-delete-button:active:not(:disabled),
+.confirm-delete-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
+}
+
+.delete-dialog button:focus-visible {
+  outline: 0.18rem solid rgb(12 102 228 / 28%);
+  outline-offset: 0.15rem;
 }
 
 @media (max-width: 40rem) {
@@ -699,6 +1029,20 @@ button:disabled {
 
   .status-label {
     align-self: start;
+  }
+
+  .delete-dialog {
+    padding: 1.5rem;
+  }
+
+  .delete-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .cancel-delete-button,
+  .confirm-delete-button {
+    width: 100%;
   }
 }
 </style>

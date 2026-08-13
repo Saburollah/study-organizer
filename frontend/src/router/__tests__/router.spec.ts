@@ -45,6 +45,39 @@ describe('router authentication guard', () => {
     expect(router.currentRoute.value.name).toBe('modules')
   })
 
+  it('protects the dashboard route', async () => {
+    const router = createAppRouter(
+      createMemoryHistory(),
+    )
+
+    await router.push('/dashboard')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query).toEqual({
+      redirect: '/dashboard',
+    })
+  })
+
+  it('allows authenticated users to open the dashboard', async () => {
+    const authStore = useAuthStore()
+
+    authStore.session = {
+      email: 'student@example.com',
+      accessToken: 'test-access-token',
+      expiresAtUtc: '2999-01-01T00:00:00Z',
+    }
+
+    const router = createAppRouter(
+      createMemoryHistory(),
+    )
+
+    await router.push('/dashboard')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('dashboard')
+  })
+
   it('protects the tasks route', async () => {
     const moduleId =
       'e6ab31a1-292b-4b31-b65b-dab568512b40'
