@@ -1,83 +1,95 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { useAuthStore } from '@/features/auth/authStore'
 
 const authStore = useAuthStore()
+const { t } = useI18n()
 </script>
 
 <template>
   <div class="home-page">
     <section class="hero" aria-labelledby="hero-heading">
       <div class="hero-copy">
-        <p class="eyebrow">DEIN STUDIUM. DEIN PLAN.</p>
+        <p class="eyebrow">
+          {{ t('home.hero.eyebrow') }}
+        </p>
 
         <h1 id="hero-heading">
-          Mehr Überblick.
-          <span>Weniger Stress.</span>
+          {{ t('home.hero.title') }}
+          <span>{{ t('home.hero.titleAccent') }}</span>
         </h1>
 
         <p class="intro">
-          Organisiere Lernmodule, Aufgaben und Fristen an einem Ort – klar,
-          persönlich und immer auf dem neuesten Stand.
+          {{ t('home.hero.description') }}
         </p>
 
         <div class="hero-actions">
           <template v-if="authStore.isAuthenticated">
             <RouterLink class="primary-action" to="/dashboard">
-              Zum Dashboard
+              {{ t('home.hero.dashboard') }}
               <span aria-hidden="true">→</span>
             </RouterLink>
 
             <RouterLink class="secondary-action" to="/modules">
-              Lernmodule öffnen
+              {{ t('home.hero.openModules') }}
             </RouterLink>
           </template>
 
           <template v-else>
             <RouterLink class="primary-action" to="/register">
-              Kostenlos starten
+              {{ t('home.hero.startFree') }}
               <span aria-hidden="true">→</span>
             </RouterLink>
 
             <RouterLink class="secondary-action" to="/login">
-              Ich habe schon ein Konto
+              {{ t('home.hero.existingAccount') }}
             </RouterLink>
           </template>
         </div>
 
-        <ul class="hero-benefits" aria-label="Vorteile">
+        <ul
+          class="hero-benefits"
+          :aria-label="t('home.benefits.label')"
+        >
           <li>
             <span aria-hidden="true">✓</span>
-            Fristen im Blick
+            {{ t('home.benefits.deadlines') }}
           </li>
           <li>
             <span aria-hidden="true">✓</span>
-            Alles an einem Ort
+            {{ t('home.benefits.onePlace') }}
           </li>
           <li>
             <span aria-hidden="true">✓</span>
-            Sicher und persönlich
+            {{ t('home.benefits.secure') }}
           </li>
         </ul>
       </div>
 
-      <div class="organizer-preview" aria-label="Vorschau des Study Organizers">
+      <div
+        class="organizer-preview"
+        :aria-label="t('home.preview.label')"
+      >
         <div class="preview-window">
           <div class="preview-toolbar" aria-hidden="true">
             <span></span>
             <span></span>
             <span></span>
-            <p>MEINE WOCHE</p>
+            <p>{{ t('home.preview.week') }}</p>
           </div>
 
           <div class="preview-heading">
             <div>
-              <p>Guten Morgen</p>
-              <h2>Dein Überblick</h2>
+              <p>{{ t('home.preview.greeting') }}</p>
+              <h2>{{ t('home.preview.overview') }}</h2>
             </div>
 
-            <div class="progress-ring" aria-label="75 Prozent erledigt">
+            <div
+              class="progress-ring"
+              :aria-label="t('home.preview.progressLabel')"
+            >
               <span>75%</span>
             </div>
           </div>
@@ -85,32 +97,32 @@ const authStore = useAuthStore()
           <div class="preview-stats">
             <div>
               <span class="stat-dot blue"></span>
-              <p>Lernmodule</p>
+              <p>{{ t('home.preview.modules') }}</p>
               <strong>5</strong>
             </div>
             <div>
               <span class="stat-dot amber"></span>
-              <p>Offen</p>
+              <p>{{ t('home.preview.open') }}</p>
               <strong>4</strong>
             </div>
             <div>
               <span class="stat-dot green"></span>
-              <p>Erledigt</p>
+              <p>{{ t('home.preview.completed') }}</p>
               <strong>12</strong>
             </div>
           </div>
 
           <div class="next-task-heading">
-            <h3>Als Nächstes</h3>
-            <span>Heute</span>
+            <h3>{{ t('home.preview.next') }}</h3>
+            <span>{{ t('home.preview.today') }}</span>
           </div>
 
           <div class="preview-tasks">
             <article class="preview-task urgent">
               <div class="module-icon">MA</div>
               <div>
-                <p>Mathematik</p>
-                <strong>Übungsblatt 6</strong>
+                <p>{{ t('home.preview.mathematics') }}</p>
+                <strong>{{ t('home.preview.mathTask') }}</strong>
               </div>
               <time datetime="18:00">18:00</time>
             </article>
@@ -118,10 +130,12 @@ const authStore = useAuthStore()
             <article class="preview-task">
               <div class="module-icon purple">SE</div>
               <div>
-                <p>Software Engineering</p>
-                <strong>C4-Diagramm ergänzen</strong>
+                <p>{{ t('home.preview.softwareEngineering') }}</p>
+                <strong>{{ t('home.preview.softwareTask') }}</strong>
               </div>
-              <span class="tomorrow">Morgen</span>
+              <span class="tomorrow">
+                {{ t('home.preview.tomorrow') }}
+              </span>
             </article>
           </div>
         </div>
@@ -129,8 +143,8 @@ const authStore = useAuthStore()
         <div class="floating-badge">
           <span aria-hidden="true">✓</span>
           <div>
-            <strong>Gut organisiert</strong>
-            <p>3 Aufgaben diese Woche erledigt</p>
+            <strong>{{ t('home.preview.organized') }}</strong>
+            <p>{{ t('home.preview.completedThisWeek') }}</p>
           </div>
         </div>
       </div>
@@ -138,11 +152,14 @@ const authStore = useAuthStore()
 
     <section class="features" aria-labelledby="features-heading">
       <div class="section-heading">
-        <p class="eyebrow">ALLES IM BLICK</p>
-        <h2 id="features-heading">Deine Werkzeuge für ein klares Semester</h2>
+        <p class="eyebrow">
+          {{ t('home.features.eyebrow') }}
+        </p>
+        <h2 id="features-heading">
+          {{ t('home.features.title') }}
+        </h2>
         <p>
-          Weniger zwischen Apps wechseln – mehr Zeit für das, was wirklich
-          zählt.
+          {{ t('home.features.description') }}
         </p>
       </div>
 
@@ -155,12 +172,13 @@ const authStore = useAuthStore()
             </svg>
           </div>
           <span class="feature-number">01</span>
-          <h3>Lernmodule</h3>
+          <h3>{{ t('home.features.modules.title') }}</h3>
           <p>
-            Bündele Vorlesungen und Fächer übersichtlich mit eigenen Farben
-            und Kürzeln.
+            {{ t('home.features.modules.description') }}
           </p>
-          <span class="feature-detail">Ordnung für jedes Semester</span>
+          <span class="feature-detail">
+            {{ t('home.features.modules.detail') }}
+          </span>
         </article>
 
         <article class="feature-card tasks-card">
@@ -171,12 +189,13 @@ const authStore = useAuthStore()
             </svg>
           </div>
           <span class="feature-number">02</span>
-          <h3>Aufgaben</h3>
+          <h3>{{ t('home.features.tasks.title') }}</h3>
           <p>
-            Plane deine nächsten Schritte, setze Fristen und hake Erledigtes
-            einfach ab.
+            {{ t('home.features.tasks.description') }}
           </p>
-          <span class="feature-detail">Keine Frist mehr vergessen</span>
+          <span class="feature-detail">
+            {{ t('home.features.tasks.detail') }}
+          </span>
         </article>
 
         <article class="feature-card progress-card">
@@ -187,21 +206,24 @@ const authStore = useAuthStore()
             </svg>
           </div>
           <span class="feature-number">03</span>
-          <h3>Fortschritt</h3>
+          <h3>{{ t('home.features.progress.title') }}</h3>
           <p>
-            Erkenne sofort, was offen, überfällig oder bereits erfolgreich
-            abgeschlossen ist.
+            {{ t('home.features.progress.description') }}
           </p>
-          <span class="feature-detail">Motivation durch Überblick</span>
+          <span class="feature-detail">
+            {{ t('home.features.progress.detail') }}
+          </span>
         </article>
       </div>
     </section>
 
     <section class="final-cta" aria-labelledby="cta-heading">
       <div>
-        <p class="eyebrow">BEREIT FÜR MEHR ÜBERBLICK?</p>
+        <p class="eyebrow">
+          {{ t('home.callToAction.eyebrow') }}
+        </p>
         <h2 id="cta-heading">
-          Dein Semester beginnt mit einem klaren Plan.
+          {{ t('home.callToAction.title') }}
         </h2>
       </div>
 
@@ -210,7 +232,7 @@ const authStore = useAuthStore()
         class="primary-action light-action"
         to="/dashboard"
       >
-        Dashboard öffnen
+        {{ t('home.callToAction.dashboard') }}
         <span aria-hidden="true">→</span>
       </RouterLink>
 
@@ -219,7 +241,7 @@ const authStore = useAuthStore()
         class="primary-action light-action"
         to="/register"
       >
-        Konto erstellen
+        {{ t('home.callToAction.createAccount') }}
         <span aria-hidden="true">→</span>
       </RouterLink>
     </section>

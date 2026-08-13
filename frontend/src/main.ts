@@ -1,4 +1,5 @@
 import './assets/main.css'
+import { i18n } from './i18n'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -15,6 +16,7 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 
 const authStore = useAuthStore(pinia)
 
