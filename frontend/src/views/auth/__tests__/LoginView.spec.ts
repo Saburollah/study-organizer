@@ -18,8 +18,12 @@ import LoginView from '../LoginView.vue'
 
 const pushMock =
   vi.fn<(path: string) => Promise<void>>()
+const routeQuery: Record<string, string> = {}
 
 vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    query: routeQuery,
+  }),
   useRouter: () => ({
     push: pushMock,
   }),
@@ -30,6 +34,9 @@ describe('LoginView', () => {
     sessionStorage.clear()
     setActivePinia(createPinia())
     pushMock.mockReset()
+    for (const key of Object.keys(routeQuery)) {
+      delete routeQuery[key]
+    }
   })
 
   afterEach(() => {
@@ -76,7 +83,29 @@ describe('LoginView', () => {
       'student@example.com',
       'Sicheres-Passwort-2026!',
     )
-    expect(pushMock).toHaveBeenCalledWith('/')
+    expect(pushMock).toHaveBeenCalledWith('/dashboard')
+  })
+
+  it('returns to the requested protected page after login', async () => {
+    routeQuery.redirect = '/modules/module-1/tasks'
+
+    const store = useAuthStore()
+    vi.spyOn(store, 'login').mockResolvedValue()
+
+    const wrapper = mount(LoginView)
+
+    await wrapper
+      .get('#login-email')
+      .setValue('student@example.com')
+    await wrapper
+      .get('#login-password')
+      .setValue('Sicheres-Passwort-2026!')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(pushMock).toHaveBeenCalledWith(
+      '/modules/module-1/tasks',
+    )
   })
 
   it('shows a message for invalid credentials', async () => {

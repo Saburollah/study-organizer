@@ -208,12 +208,16 @@ describe('StudyTasksView', () => {
       .spyOn(taskService, 'delete')
       .mockResolvedValue()
 
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-
     const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.delete-task-button').trigger('click')
+
+    expect(wrapper.get('[role="dialog"]').text()).toContain(
+      task.title,
+    )
+
+    await wrapper.get('.confirm-delete-button').trigger('click')
     await flushPromises()
 
     expect(deleteMock).toHaveBeenCalledWith(moduleId, task.id)

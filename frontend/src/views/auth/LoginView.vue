@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/features/auth/authStore'
 import { ApiError } from '@/services/api/apiClient'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -53,7 +54,18 @@ async function submitLogin(): Promise<void> {
       password.value,
     )
 
-    await router.push('/')
+    const requestedRedirect =
+      typeof route.query.redirect === 'string'
+        ? route.query.redirect
+        : ''
+
+    const redirect =
+      requestedRedirect.startsWith('/')
+      && !requestedRedirect.startsWith('//')
+        ? requestedRedirect
+        : '/dashboard'
+
+    await router.push(redirect)
   } catch (error: unknown) {
     requestError.value = getErrorMessage(error)
   } finally {
@@ -236,11 +248,36 @@ function getErrorMessage(error: unknown): string {
 }
 
 .login-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: min(100%, 32rem);
   padding: 2rem;
   border: 1px solid #dfe3e8;
   border-radius: 1rem;
-  background: #ffffff;
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 54%,
+    #f5f8fc 100%
+  );
+  box-shadow:
+    0 1.15rem 2.4rem rgb(9 30 66 / 13%),
+    0 0.25rem 0.7rem rgb(9 30 66 / 8%);
+}
+
+.login-card::before {
+  position: absolute;
+  z-index: -1;
+  top: -25%;
+  left: -12%;
+  width: 78%;
+  height: 54%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 76%);
+  pointer-events: none;
+  transform: rotate(-8deg);
+  content: '';
 }
 
 .eyebrow {
@@ -289,12 +326,31 @@ label {
   padding: 0.75rem 2.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #ffffff 58%,
+    #f3f6fa 100%
+  );
   color: #172b4d;
+  box-shadow: 0 0.3rem 0.7rem rgb(9 30 66 / 7%);
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.input-control input:hover {
+  border-color: #8fa6c0;
+  box-shadow: 0 0.55rem 1rem rgb(9 30 66 / 12%);
+  transform: translateY(-0.08rem);
 }
 
 .input-control input:focus {
   border-color: #0c66e4;
   outline: 3px solid rgb(12 102 228 / 15%);
+  box-shadow: 0 0.55rem 1rem rgb(12 102 228 / 13%);
+  transform: translateY(-0.08rem);
 }
 
 .input-control input[aria-invalid="true"] {
@@ -326,11 +382,16 @@ label {
   background: transparent;
   color: #7a869a;
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 .visibility-button:hover {
   background: #f1f2f4;
   color: #172b4d;
+  transform: translateY(-0.08rem);
 }
 
 .visibility-button:focus-visible {
@@ -363,16 +424,37 @@ label {
 
 .submit-button {
   padding: 0.8rem 1rem;
-  border: 0;
+  border: 1px solid #0c66e4;
   border-radius: 0.5rem;
-  background: #0c66e4;
+  background: linear-gradient(
+    145deg,
+    #1f7bf2 0%,
+    #0c66e4 58%,
+    #0754bd 100%
+  );
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 0.45rem 0.9rem rgb(9 30 66 / 15%);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #0055cc;
+  border-color: #0055cc;
+  box-shadow: 0 0.75rem 1.25rem rgb(9 30 66 / 20%);
+  transform: translateY(-0.12rem);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0.04rem);
+}
+
+.submit-button:focus-visible {
+  outline: 0.18rem solid rgb(12 102 228 / 24%);
+  outline-offset: 0.15rem;
 }
 
 .submit-button:disabled {

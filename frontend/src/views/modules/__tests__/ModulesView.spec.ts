@@ -198,15 +198,20 @@ describe('ModulesView', () => {
     ])
 
     const deleteMock = vi.spyOn(moduleService, 'delete')
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
-
     const wrapper = mount(ModulesView)
     await flushPromises()
 
     await wrapper.get('.delete-module-button').trigger('click')
 
+    expect(wrapper.get('[role="dialog"]').text()).toContain(
+      'Datenbanken',
+    )
+
+    await wrapper.get('.cancel-delete-button').trigger('click')
+
     expect(deleteMock).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('Datenbanken')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 
   it('deletes a confirmed module and removes it from the list', async () => {
@@ -228,12 +233,11 @@ describe('ModulesView', () => {
       .spyOn(moduleService, 'delete')
       .mockResolvedValue()
 
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-
     const wrapper = mount(ModulesView)
     await flushPromises()
 
     await wrapper.get('.delete-module-button').trigger('click')
+    await wrapper.get('.confirm-delete-button').trigger('click')
     await flushPromises()
 
     expect(deleteMock).toHaveBeenCalledWith(moduleId)
