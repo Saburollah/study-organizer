@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { authService } from '@/features/auth/authService'
 import {
   getPasswordRequirements,
   isPasswordValid,
+  type PasswordRequirementKey,
 } from '@/features/auth/passwordPolicy'
 import { ApiError } from '@/services/api/apiClient'
+
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -19,8 +23,19 @@ const requestError = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
 
+const passwordRequirementKeys: Record<PasswordRequirementKey, string> = {
+  length: 'length',
+  uppercase: 'uppercase',
+  lowercase: 'lowercase',
+  digit: 'digit',
+  'special-character': 'specialCharacter',
+} as const
+
 const passwordRequirements = computed(() =>
-  getPasswordRequirements(password.value),
+  getPasswordRequirements(password.value).map((requirement) => ({
+    ...requirement,
+    label: t(`auth.passwordRequirements.${passwordRequirementKeys[requirement.key]}`),
+  })),
 )
 
 function validateForm(): boolean {
@@ -28,28 +43,17 @@ function validateForm(): boolean {
   const normalizedEmail = email.value.trim()
 
   if (!normalizedEmail) {
-    validationErrors.email =
-      'Bitte gib deine E-Mail-Adresse ein.'
-  } else if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      normalizedEmail,
-    )
-  ) {
-    validationErrors.email =
-      'Bitte gib eine gültige E-Mail-Adresse ein.'
+    validationErrors.email = t('auth.common.emailRequired')
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    validationErrors.email = t('auth.common.emailInvalid')
   }
 
   if (!isPasswordValid(password.value)) {
-    validationErrors.password =
-      'Das Passwort erfüllt noch nicht alle Anforderungen.'
+    validationErrors.password = t('auth.register.passwordInvalid')
   }
 
-  if (
-    passwordConfirmation.value
-    !== password.value
-  ) {
-    validationErrors.passwordConfirmation =
-      'Die Passwörter stimmen nicht überein.'
+  if (passwordConfirmation.value !== password.value) {
+    validationErrors.passwordConfirmation = t('auth.register.confirmationMismatch')
   }
 
   errors.value = validationErrors
@@ -68,14 +72,14 @@ async function submitRegistration(): Promise<void> {
   isSubmitting.value = true
 
   try {
-    const registeredUser =
-      await authService.register({
-        email: email.value.trim(),
-        password: password.value,
-      })
+    const registeredUser = await authService.register({
+      email: email.value.trim(),
+      password: password.value,
+    })
 
-    successMessage.value =
-      `${registeredUser.email} wurde erfolgreich registriert.`
+    successMessage.value = t('auth.register.success', {
+      email: registeredUser.email,
+    })
 
     email.value = ''
     password.value = ''
@@ -90,13 +94,12 @@ async function submitRegistration(): Promise<void> {
 
 function getErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
-    return 'Die Registrierung ist unerwartet fehlgeschlagen.'
+    return t('auth.register.unexpectedError')
   }
 
-  const validationMessage =
-    Object.values(error.problem?.errors ?? {})
-      .flat()
-      .find((message) => message.trim().length > 0)
+  const validationMessage = Object.values(error.problem?.errors ?? {})
+    .flat()
+    .find((message) => message.trim().length > 0)
 
   return validationMessage ?? error.message
 }
@@ -105,29 +108,19 @@ function getErrorMessage(error: unknown): string {
 <template>
   <section class="register-page">
     <div class="register-card">
-      <p class="eyebrow">NEUES KONTO</p>
-      <h1>Registrieren</h1>
+      <p class="eyebrow">{{ t('auth.register.eyebrow') }}</p>
+      <h1>{{ t('auth.register.title') }}</h1>
 
       <p class="introduction">
-        Erstelle dein Konto und beginne damit,
-        dein Studium zu organisieren.
+        {{ t('auth.register.description') }}
       </p>
 
-      <form
-        novalidate
-        @submit.prevent="submitRegistration"
-      >
+      <form novalidate @submit.prevent="submitRegistration">
         <div class="form-field">
-          <label for="email">E-Mail-Adresse</label>
+          <label for="email">{{ t('auth.common.email') }}</label>
           <div class="input-control">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 6h16v12H4z M4 7l8 6 8-6"
-              />
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16v12H4z M4 7l8 6 8-6" />
             </svg>
 
             <input
@@ -135,38 +128,22 @@ function getErrorMessage(error: unknown): string {
               v-model="email"
               type="email"
               autocomplete="email"
-              placeholder="name@beispiel.de"
+              :placeholder="t('auth.common.emailPlaceholder')"
               :aria-invalid="Boolean(errors.email)"
-              :aria-describedby="
-                errors.email ? 'email-error' : undefined
-              "
+              :aria-describedby="errors.email ? 'email-error' : undefined"
             />
           </div>
 
-          <p
-            v-if="errors.email"
-            id="email-error"
-            class="field-error"
-          >
+          <p v-if="errors.email" id="email-error" class="field-error">
             {{ errors.email }}
           </p>
         </div>
 
         <div class="form-field">
-          <label for="password">Passwort</label>
+          <label for="password">{{ t('auth.common.password') }}</label>
           <div class="input-control">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <rect
-                x="5"
-                y="10"
-                width="14"
-                height="10"
-                rx="2"
-              />
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
 
@@ -175,46 +152,29 @@ function getErrorMessage(error: unknown): string {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="Passwort eingeben"
+              :placeholder="t('auth.common.passwordPlaceholder')"
               :aria-invalid="Boolean(errors.password)"
-              :aria-describedby="
-                errors.password
-                  ? 'password-error'
-                  : undefined
-              "
+              :aria-describedby="errors.password ? 'password-error' : undefined"
             />
 
             <button
               class="visibility-button"
               type="button"
               :aria-label="
-                showPassword
-                  ? 'Passwort ausblenden'
-                  : 'Passwort anzeigen'
+                showPassword ? t('auth.common.hidePassword') : t('auth.common.showPassword')
               "
               :aria-pressed="showPassword"
               @click="showPassword = !showPassword"
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
-                />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
                 <circle cx="12" cy="12" r="2.5" />
-                <path
-                  v-if="!showPassword"
-                  d="M4 4l16 16"
-                />
+                <path v-if="!showPassword" d="M4 4l16 16" />
               </svg>
             </button>
           </div>
 
-          <ul
-            class="password-requirements"
-            aria-label="Passwortanforderungen"
-          >
+          <ul class="password-requirements" :aria-label="t('auth.register.requirementsLabel')">
             <li
               v-for="requirement in passwordRequirements"
               :key="requirement.key"
@@ -223,10 +183,7 @@ function getErrorMessage(error: unknown): string {
                 'requirement-missing': !requirement.isMet,
               }"
             >
-              <span
-                class="requirement-symbol"
-                aria-hidden="true"
-              >
+              <span class="requirement-symbol" aria-hidden="true">
                 {{ requirement.isMet ? '✓' : '✕' }}
               </span>
 
@@ -234,52 +191,30 @@ function getErrorMessage(error: unknown): string {
             </li>
           </ul>
 
-          <p
-            v-if="errors.password"
-            id="password-error"
-            class="field-error"
-          >
+          <p v-if="errors.password" id="password-error" class="field-error">
             {{ errors.password }}
           </p>
         </div>
 
         <div class="form-field">
           <label for="password-confirmation">
-            Passwort bestätigen
+            {{ t('auth.register.confirmation') }}
           </label>
           <div class="input-control">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <rect
-                x="5"
-                y="10"
-                width="14"
-                height="10"
-                rx="2"
-              />
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
 
             <input
               id="password-confirmation"
               v-model="passwordConfirmation"
-              :type="
-                showPasswordConfirmation
-                  ? 'text'
-                  : 'password'
-              "
+              :type="showPasswordConfirmation ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="Passwort bestätigen"
-              :aria-invalid="
-                Boolean(errors.passwordConfirmation)
-              "
+              :placeholder="t('auth.register.confirmationPlaceholder')"
+              :aria-invalid="Boolean(errors.passwordConfirmation)"
               :aria-describedby="
-                errors.passwordConfirmation
-                  ? 'password-confirmation-error'
-                  : undefined
+                errors.passwordConfirmation ? 'password-confirmation-error' : undefined
               "
             />
 
@@ -288,27 +223,16 @@ function getErrorMessage(error: unknown): string {
               type="button"
               :aria-label="
                 showPasswordConfirmation
-                  ? 'Passwortbestätigung ausblenden'
-                  : 'Passwortbestätigung anzeigen'
+                  ? t('auth.register.hideConfirmation')
+                  : t('auth.register.showConfirmation')
               "
               :aria-pressed="showPasswordConfirmation"
-              @click="
-                showPasswordConfirmation =
-                  !showPasswordConfirmation
-              "
+              @click="showPasswordConfirmation = !showPasswordConfirmation"
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
-                />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
                 <circle cx="12" cy="12" r="2.5" />
-                <path
-                  v-if="!showPasswordConfirmation"
-                  d="M4 4l16 16"
-                />
+                <path v-if="!showPasswordConfirmation" d="M4 4l16 16" />
               </svg>
             </button>
           </div>
@@ -322,32 +246,16 @@ function getErrorMessage(error: unknown): string {
           </p>
         </div>
 
-        <p
-          v-if="requestError"
-          class="message message-error"
-          role="alert"
-        >
+        <p v-if="requestError" class="message message-error" role="alert">
           {{ requestError }}
         </p>
 
-        <p
-          v-if="successMessage"
-          class="message message-success"
-          role="status"
-        >
+        <p v-if="successMessage" class="message message-success" role="status">
           {{ successMessage }}
         </p>
 
-        <button
-          class="submit-button"
-          type="submit"
-          :disabled="isSubmitting"
-        >
-          {{
-            isSubmitting
-              ? 'Registrierung läuft …'
-              : 'Konto erstellen'
-          }}
+        <button class="submit-button" type="submit" :disabled="isSubmitting">
+          {{ isSubmitting ? t('auth.register.submitting') : t('auth.register.submit') }}
         </button>
       </form>
     </div>
@@ -370,12 +278,7 @@ function getErrorMessage(error: unknown): string {
   padding: 2rem;
   border: 1px solid #dfe3e8;
   border-radius: 1rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 54%,
-    #f5f8fc 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f5f8fc 100%);
   box-shadow:
     0 1.15rem 2.4rem rgb(9 30 66 / 13%),
     0 0.25rem 0.7rem rgb(9 30 66 / 8%);
@@ -441,12 +344,7 @@ label {
   padding: 0.75rem 2.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 58%,
-    #f3f6fa 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 58%, #f3f6fa 100%);
   color: #172b4d;
   box-shadow: 0 0.3rem 0.7rem rgb(9 30 66 / 7%);
   transition:
@@ -472,7 +370,7 @@ label {
   transform: translateY(-0.08rem);
 }
 
-.input-control input[aria-invalid="true"] {
+.input-control input[aria-invalid='true'] {
   border-color: #c9372c;
 }
 
@@ -594,12 +492,7 @@ label {
   padding: 0.8rem 1rem;
   border: 1px solid #0c66e4;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #1f7bf2 0%,
-    #0c66e4 58%,
-    #0754bd 100%
-  );
+  background: linear-gradient(145deg, #1f7bf2 0%, #0c66e4 58%, #0754bd 100%);
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;

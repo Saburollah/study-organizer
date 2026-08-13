@@ -1,13 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import {
-  afterEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { dashboardService } from '@/features/dashboard/dashboardService'
+import { i18n, setLocale } from '@/i18n'
 
 import DashboardView from '../DashboardView.vue'
 
@@ -19,10 +14,22 @@ vi.mock('vue-router', () => ({
 }))
 
 describe('DashboardView', () => {
+  beforeEach(() => {
+    setLocale('de')
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
     vi.useRealTimers()
   })
+
+  function mountView() {
+    return mount(DashboardView, {
+      global: {
+        plugins: [i18n],
+      },
+    })
+  }
 
   it('shows task summaries and the next open tasks', async () => {
     vi.useFakeTimers()
@@ -61,19 +68,12 @@ describe('DashboardView', () => {
       ],
     })
 
-    const wrapper = mount(DashboardView)
+    const wrapper = mountView()
     await flushPromises()
 
-    const summaries = wrapper
-      .findAll('.summary-card')
-      .map((card) => card.text())
+    const summaries = wrapper.findAll('.summary-card').map((card) => card.text())
 
-    expect(summaries).toEqual([
-      'Lernmodule2',
-      'Offene Aufgaben2',
-      'Überfällig1',
-      'Erledigt1',
-    ])
+    expect(summaries).toEqual(['Lernmodule2', 'Offene Aufgaben2', 'Überfällig1', 'Erledigt1'])
     expect(wrapper.text()).toContain('Projekt abgeben')
     expect(wrapper.text()).toContain('SQL üben')
     expect(wrapper.text()).not.toContain('Kapitel lesen')
@@ -87,7 +87,7 @@ describe('DashboardView', () => {
       tasks: [],
     })
 
-    const wrapper = mount(DashboardView)
+    const wrapper = mountView()
     await flushPromises()
 
     expect(wrapper.text()).toContain('Keine offenen Aufgaben')
@@ -102,17 +102,32 @@ describe('DashboardView', () => {
         tasks: [],
       })
 
-    const wrapper = mount(DashboardView)
+    const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.get('[role="alert"]').text()).toContain(
-      'konnte nicht geladen werden',
-    )
+    expect(wrapper.get('[role="alert"]').text()).toContain('konnte nicht geladen werden')
 
     await wrapper.get('.error-state button').trigger('click')
     await flushPromises()
 
     expect(getDashboardMock).toHaveBeenCalledTimes(2)
     expect(wrapper.text()).toContain('Keine offenen Aufgaben')
+  })
+
+  it('shows the dashboard in English', async () => {
+    setLocale('en')
+    vi.spyOn(dashboardService, 'getDashboard').mockResolvedValue({
+      moduleCount: 0,
+      tasks: [],
+    })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('YOUR OVERVIEW')
+    expect(wrapper.text()).toContain('Manage study modules')
+    expect(wrapper.text()).toContain('Open tasks')
+    expect(wrapper.text()).toContain('No open tasks')
+    expect(wrapper.text()).not.toContain('Lernmodule verwalten')
   })
 })

@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import {
-  computed,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 import ModuleForm from '@/features/modules/ModuleForm.vue'
-import type {
-  SaveModuleRequest,
-  StudyModule,
-} from '@/features/modules/moduleModels'
+import type { SaveModuleRequest, StudyModule } from '@/features/modules/moduleModels'
 import { moduleService } from '@/features/modules/moduleService'
 import { ApiError } from '@/services/api/apiClient'
+
+const { t } = useI18n()
 
 const modules = ref<StudyModule[]>([])
 const isLoading = ref(true)
@@ -26,9 +21,7 @@ const modulePendingDeletion = ref<StudyModule | null>(null)
 const saveErrorMessage = ref('')
 const successMessage = ref('')
 
-const isFormOpen = computed(() =>
-  isCreateFormOpen.value || editingModule.value !== null,
-)
+const isFormOpen = computed(() => isCreateFormOpen.value || editingModule.value !== null)
 
 const formInitialValues = computed<SaveModuleRequest>(() => {
   if (!editingModule.value) {
@@ -65,21 +58,17 @@ async function loadModules(): Promise<void> {
   }
 }
 
-async function createModule(
-  request: SaveModuleRequest,
-): Promise<void> {
+async function createModule(request: SaveModuleRequest): Promise<void> {
   isSaving.value = true
   saveErrorMessage.value = ''
   successMessage.value = ''
 
   try {
-    const createdModule =
-      await moduleService.create(request)
+    const createdModule = await moduleService.create(request)
 
     modules.value = [createdModule, ...modules.value]
     closeModuleForm()
-    successMessage.value =
-      'Das Lernmodul wurde erfolgreich erstellt.'
+    successMessage.value = t('modules.success.created')
   } catch (error: unknown) {
     saveErrorMessage.value = getSaveErrorMessage(error)
   } finally {
@@ -87,9 +76,7 @@ async function createModule(
   }
 }
 
-async function updateModule(
-  request: SaveModuleRequest,
-): Promise<void> {
+async function updateModule(request: SaveModuleRequest): Promise<void> {
   const moduleToUpdate = editingModule.value
 
   if (!moduleToUpdate) {
@@ -101,20 +88,14 @@ async function updateModule(
   successMessage.value = ''
 
   try {
-    const updatedModule = await moduleService.update(
-      moduleToUpdate.id,
-      request,
-    )
+    const updatedModule = await moduleService.update(moduleToUpdate.id, request)
 
     modules.value = modules.value.map((module) =>
-      module.id === updatedModule.id
-        ? updatedModule
-        : module,
+      module.id === updatedModule.id ? updatedModule : module,
     )
 
     closeModuleForm()
-    successMessage.value =
-      'Das Lernmodul wurde erfolgreich aktualisiert.'
+    successMessage.value = t('modules.success.updated')
   } catch (error: unknown) {
     saveErrorMessage.value = getSaveErrorMessage(error)
   } finally {
@@ -122,9 +103,7 @@ async function updateModule(
   }
 }
 
-async function saveModule(
-  request: SaveModuleRequest,
-): Promise<void> {
+async function saveModule(request: SaveModuleRequest): Promise<void> {
   if (editingModule.value) {
     await updateModule(request)
     return
@@ -148,11 +127,7 @@ function cancelModuleDeletion(): void {
 }
 
 function handleDialogKeydown(event: KeyboardEvent): void {
-  if (
-    event.key === 'Escape'
-    && modulePendingDeletion.value
-    && !deletingModuleId.value
-  ) {
+  if (event.key === 'Escape' && modulePendingDeletion.value && !deletingModuleId.value) {
     cancelModuleDeletion()
   }
 }
@@ -171,16 +146,13 @@ async function confirmModuleDeletion(): Promise<void> {
   try {
     await moduleService.delete(module.id)
 
-    modules.value = modules.value.filter(
-      (item) => item.id !== module.id,
-    )
+    modules.value = modules.value.filter((item) => item.id !== module.id)
 
     if (editingModule.value?.id === module.id) {
       closeModuleForm()
     }
 
-    successMessage.value =
-      'Das Lernmodul wurde erfolgreich gelöscht.'
+    successMessage.value = t('modules.success.deleted')
     modulePendingDeletion.value = null
   } catch (error: unknown) {
     saveErrorMessage.value = getDeleteErrorMessage(error)
@@ -214,7 +186,7 @@ function getErrorMessage(error: unknown): string {
     return error.message
   }
 
-  return 'Die Lernmodule konnten nicht geladen werden.'
+  return t('modules.errors.load')
 }
 
 function getSaveErrorMessage(error: unknown): string {
@@ -222,7 +194,7 @@ function getSaveErrorMessage(error: unknown): string {
     return error.message
   }
 
-  return 'Das Lernmodul konnte nicht gespeichert werden.'
+  return t('modules.errors.save')
 }
 
 function getDeleteErrorMessage(error: unknown): string {
@@ -230,7 +202,7 @@ function getDeleteErrorMessage(error: unknown): string {
     return error.message
   }
 
-  return 'Das Lernmodul konnte nicht gelöscht werden.'
+  return t('modules.errors.delete')
 }
 </script>
 
@@ -238,37 +210,23 @@ function getDeleteErrorMessage(error: unknown): string {
   <section class="modules-page">
     <header class="page-header">
       <div>
-        <p class="eyebrow">DEIN STUDIUM</p>
-        <h1>Lernmodule</h1>
+        <p class="eyebrow">{{ t('modules.eyebrow') }}</p>
+        <h1>{{ t('modules.title') }}</h1>
         <p class="introduction">
-          Verwalte hier deine persönlichen Fächer und
-          Vorlesungen.
+          {{ t('modules.description') }}
         </p>
       </div>
 
-      <button
-        v-if="!isFormOpen"
-        class="add-module-button"
-        type="button"
-        @click="openCreateForm"
-      >
-        Neues Lernmodul
+      <button v-if="!isFormOpen" class="add-module-button" type="button" @click="openCreateForm">
+        {{ t('modules.new') }}
       </button>
     </header>
 
-    <p
-      v-if="successMessage"
-      class="feedback-message success-message"
-      role="status"
-    >
+    <p v-if="successMessage" class="feedback-message success-message" role="status">
       {{ successMessage }}
     </p>
 
-    <p
-      v-if="saveErrorMessage"
-      class="feedback-message save-error-message"
-      role="alert"
-    >
+    <p v-if="saveErrorMessage" class="feedback-message save-error-message" role="alert">
       {{ saveErrorMessage }}
     </p>
 
@@ -276,60 +234,30 @@ function getDeleteErrorMessage(error: unknown): string {
       v-if="isFormOpen"
       :initial-values="formInitialValues"
       :is-submitting="isSaving"
-      :title="
-        editingModule
-          ? 'Lernmodul bearbeiten'
-          : 'Neues Lernmodul'
-      "
-      :submit-label="
-        editingModule
-          ? 'Änderungen speichern'
-          : 'Lernmodul speichern'
-      "
+      :title="editingModule ? t('modules.form.editTitle') : t('modules.form.newTitle')"
+      :submit-label="editingModule ? t('modules.form.saveChanges') : t('modules.form.create')"
       @save="saveModule"
       @cancel="closeModuleForm"
     />
 
-    <p
-      v-if="isLoading"
-      class="state-card"
-      role="status"
-    >
-      Lernmodule werden geladen …
+    <p v-if="isLoading" class="state-card" role="status">
+      {{ t('modules.loading') }}
     </p>
 
-    <div
-      v-else-if="errorMessage"
-      class="state-card error-state"
-      role="alert"
-    >
+    <div v-else-if="errorMessage" class="state-card error-state" role="alert">
       <p>{{ errorMessage }}</p>
-      <button
-        class="retry-button"
-        type="button"
-        @click="loadModules"
-      >
-        Erneut versuchen
+      <button class="retry-button" type="button" @click="loadModules">
+        {{ t('modules.retry') }}
       </button>
     </div>
 
-    <div
-      v-else-if="modules.length === 0"
-      class="state-card empty-state"
-    >
-      <h2>Noch keine Lernmodule</h2>
-      <p>
-        Erstelle dein erstes Lernmodul, um dein Studium
-        zu organisieren.
-      </p>
+    <div v-else-if="modules.length === 0" class="state-card empty-state">
+      <h2>{{ t('modules.empty.title') }}</h2>
+      <p>{{ t('modules.empty.description') }}</p>
     </div>
 
     <ul v-else class="module-grid">
-      <li
-        v-for="module in modules"
-        :key="module.id"
-        class="module-card"
-      >
+      <li v-for="module in modules" :key="module.id" class="module-card">
         <span
           class="color-marker"
           :style="{
@@ -343,14 +271,11 @@ function getDeleteErrorMessage(error: unknown): string {
             {{ module.code }}
           </p>
           <h2>{{ module.name }}</h2>
-          <p
-            v-if="module.description"
-            class="module-description"
-          >
+          <p v-if="module.description" class="module-description">
             {{ module.description }}
           </p>
           <p v-else class="module-description muted">
-            Keine Beschreibung vorhanden.
+            {{ t('modules.noDescription') }}
           </p>
 
           <div class="module-actions">
@@ -361,30 +286,30 @@ function getDeleteErrorMessage(error: unknown): string {
                 params: { moduleId: module.id },
               }"
             >
-              Aufgaben
+              {{ t('modules.actions.tasks') }}
             </RouterLink>
 
             <button
               class="edit-module-button"
               type="button"
-              :aria-label="`${module.name} bearbeiten`"
+              :aria-label="t('modules.actions.editAria', { name: module.name })"
               :disabled="deletingModuleId === module.id"
               @click="openEditForm(module)"
             >
-              Bearbeiten
+              {{ t('modules.actions.edit') }}
             </button>
 
             <button
               class="delete-module-button"
               type="button"
-              :aria-label="`${module.name} löschen`"
+              :aria-label="t('modules.actions.deleteAria', { name: module.name })"
               :disabled="deletingModuleId === module.id"
               @click="requestModuleDeletion(module)"
             >
               {{
                 deletingModuleId === module.id
-                  ? 'Wird gelöscht …'
-                  : 'Löschen'
+                  ? t('modules.actions.deleting')
+                  : t('modules.actions.delete')
               }}
             </button>
           </div>
@@ -407,26 +332,27 @@ function getDeleteErrorMessage(error: unknown): string {
         <button
           class="delete-dialog-close"
           type="button"
-          aria-label="Löschdialog schließen"
+          :aria-label="t('modules.deleteDialog.close')"
           :disabled="Boolean(deletingModuleId)"
           @click="cancelModuleDeletion"
         >
           ×
         </button>
 
-        <div class="delete-dialog-icon" aria-hidden="true">
-          !
-        </div>
+        <div class="delete-dialog-icon" aria-hidden="true">!</div>
 
-        <p class="delete-dialog-eyebrow">LERNMODUL LÖSCHEN</p>
+        <p class="delete-dialog-eyebrow">
+          {{ t('modules.deleteDialog.eyebrow') }}
+        </p>
         <h2 id="delete-dialog-title">
-          Wirklich löschen?
+          {{ t('modules.deleteDialog.title') }}
         </h2>
         <p id="delete-dialog-description">
-          Möchtest du das Lernmodul
-          <strong>„{{ modulePendingDeletion.name }}“</strong>
-          wirklich löschen? Diese Aktion kann nicht
-          rückgängig gemacht werden.
+          {{
+            t('modules.deleteDialog.message', {
+              name: modulePendingDeletion.name,
+            })
+          }}
         </p>
 
         <div class="delete-dialog-actions">
@@ -436,7 +362,7 @@ function getDeleteErrorMessage(error: unknown): string {
             :disabled="Boolean(deletingModuleId)"
             @click="cancelModuleDeletion"
           >
-            Abbrechen
+            {{ t('modules.deleteDialog.cancel') }}
           </button>
           <button
             class="confirm-delete-button"
@@ -444,7 +370,9 @@ function getDeleteErrorMessage(error: unknown): string {
             :disabled="Boolean(deletingModuleId)"
             @click="confirmModuleDeletion"
           >
-            {{ deletingModuleId ? 'Wird gelöscht …' : 'Löschen' }}
+            {{
+              deletingModuleId ? t('modules.actions.deleting') : t('modules.deleteDialog.confirm')
+            }}
           </button>
         </div>
       </section>
@@ -498,17 +426,8 @@ h1 {
   border: 1px solid #0755c7;
   border-radius: 0.5rem;
   background:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 24%) 0%,
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      #2781f5 0%,
-      #0c66e4 55%,
-      #0754bd 100%
-    );
+    linear-gradient(180deg, rgb(255 255 255 / 24%) 0%, transparent 42%),
+    linear-gradient(145deg, #2781f5 0%, #0c66e4 55%, #0754bd 100%);
   color: #ffffff;
   font-weight: 650;
   box-shadow:
@@ -610,12 +529,7 @@ h1 {
   overflow: hidden;
   border: 1px solid #dfe3e8;
   border-radius: 1rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 60%,
-    #f4f7fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 60%, #f4f7fb 100%);
   box-shadow:
     0 0.7rem 1.4rem rgb(9 30 66 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 95%);
@@ -629,12 +543,7 @@ h1 {
   width: 45%;
   height: 8rem;
   transform: rotate(-11deg);
-  background: linear-gradient(
-    110deg,
-    transparent 10%,
-    rgb(255 255 255 / 72%) 50%,
-    transparent 90%
-  );
+  background: linear-gradient(110deg, transparent 10%, rgb(255 255 255 / 72%) 50%, transparent 90%);
   content: '';
   pointer-events: none;
 }
@@ -709,12 +618,7 @@ h1 {
       transparent 58%,
       transparent 100%
     ),
-    linear-gradient(
-      145deg,
-      #ffffff 0%,
-      #ffffff 55%,
-      #eef2f7 100%
-    );
+    linear-gradient(145deg, #ffffff 0%, #ffffff 55%, #eef2f7 100%);
   box-shadow:
     0 0.3rem 0.65rem rgb(9 30 66 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 100%);
@@ -766,11 +670,7 @@ h1 {
 
 .delete-module-button:hover {
   border-color: #ae2e24;
-  background: linear-gradient(
-    145deg,
-    #fff7f5 0%,
-    #ffebe6 100%
-  );
+  background: linear-gradient(145deg, #fff7f5 0%, #ffebe6 100%);
 }
 
 .edit-module-button:disabled,
@@ -798,12 +698,7 @@ h1 {
   padding: 2rem;
   border: 1px solid #d8dee8;
   border-radius: 1.25rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 54%,
-    #f6f8fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f6f8fb 100%);
   box-shadow:
     0 1.5rem 3.5rem rgb(9 30 66 / 30%),
     0 0.35rem 0.9rem rgb(9 30 66 / 15%);

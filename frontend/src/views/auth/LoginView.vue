@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/features/auth/authStore'
@@ -8,6 +9,7 @@ import { ApiError } from '@/services/api/apiClient'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -26,20 +28,13 @@ async function submitLogin(): Promise<void> {
   const normalizedEmail = email.value.trim()
 
   if (!normalizedEmail) {
-    emailError.value =
-      'Bitte gib deine E-Mail-Adresse ein.'
-  } else if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      normalizedEmail,
-    )
-  ) {
-    emailError.value =
-      'Bitte gib eine gültige E-Mail-Adresse ein.'
+    emailError.value = t('auth.common.emailRequired')
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    emailError.value = t('auth.common.emailInvalid')
   }
 
   if (!password.value) {
-    passwordError.value =
-      'Bitte gib dein Passwort ein.'
+    passwordError.value = t('auth.login.passwordRequired')
   }
 
   if (emailError.value || passwordError.value) {
@@ -49,19 +44,12 @@ async function submitLogin(): Promise<void> {
   isSubmitting.value = true
 
   try {
-    await authStore.login(
-      normalizedEmail,
-      password.value,
-    )
+    await authStore.login(normalizedEmail, password.value)
 
-    const requestedRedirect =
-      typeof route.query.redirect === 'string'
-        ? route.query.redirect
-        : ''
+    const requestedRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
 
     const redirect =
-      requestedRedirect.startsWith('/')
-      && !requestedRedirect.startsWith('//')
+      requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//')
         ? requestedRedirect
         : '/dashboard'
 
@@ -74,50 +62,37 @@ async function submitLogin(): Promise<void> {
 }
 
 function getErrorMessage(error: unknown): string {
-  if (
-    error instanceof ApiError
-    && error.status === 401
-  ) {
-    return 'E-Mail-Adresse oder Passwort ist falsch.'
+  if (error instanceof ApiError && error.status === 401) {
+    return t('auth.login.invalidCredentials')
   }
 
   if (error instanceof ApiError) {
     return error.message
   }
 
-  return 'Die Anmeldung ist unerwartet fehlgeschlagen.'
+  return t('auth.login.unexpectedError')
 }
 </script>
 
 <template>
   <section class="login-page">
     <div class="login-card">
-      <p class="eyebrow">WILLKOMMEN ZURÜCK</p>
-      <h1>Anmelden</h1>
+      <p class="eyebrow">{{ t('auth.login.eyebrow') }}</p>
+      <h1>{{ t('auth.login.title') }}</h1>
 
       <p class="introduction">
-        Melde dich an, um deine Lernmodule und
-        Aufgaben zu verwalten.
+        {{ t('auth.login.description') }}
       </p>
 
-      <form
-        novalidate
-        @submit.prevent="submitLogin"
-      >
+      <form novalidate @submit.prevent="submitLogin">
         <div class="form-field">
           <label for="login-email">
-            E-Mail-Adresse
+            {{ t('auth.common.email') }}
           </label>
 
           <div class="input-control">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 6h16v12H4z M4 7l8 6 8-6"
-              />
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16v12H4z M4 7l8 6 8-6" />
             </svg>
 
             <input
@@ -125,43 +100,25 @@ function getErrorMessage(error: unknown): string {
               v-model="email"
               type="email"
               autocomplete="email"
-              placeholder="name@beispiel.de"
+              :placeholder="t('auth.common.emailPlaceholder')"
               :aria-invalid="Boolean(emailError)"
-              :aria-describedby="
-                emailError
-                  ? 'login-email-error'
-                  : undefined
-              "
+              :aria-describedby="emailError ? 'login-email-error' : undefined"
             />
           </div>
 
-          <p
-            v-if="emailError"
-            id="login-email-error"
-            class="field-error"
-          >
+          <p v-if="emailError" id="login-email-error" class="field-error">
             {{ emailError }}
           </p>
         </div>
 
         <div class="form-field">
           <label for="login-password">
-            Passwort
+            {{ t('auth.common.password') }}
           </label>
 
           <div class="input-control">
-            <svg
-              class="input-icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <rect
-                x="5"
-                y="10"
-                width="14"
-                height="10"
-                rx="2"
-              />
+            <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
 
@@ -170,69 +127,39 @@ function getErrorMessage(error: unknown): string {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
-              placeholder="Passwort eingeben"
+              :placeholder="t('auth.common.passwordPlaceholder')"
               :aria-invalid="Boolean(passwordError)"
-              :aria-describedby="
-                passwordError
-                  ? 'login-password-error'
-                  : undefined
-              "
+              :aria-describedby="passwordError ? 'login-password-error' : undefined"
             />
 
             <button
               class="visibility-button"
               type="button"
               :aria-label="
-                showPassword
-                  ? 'Passwort ausblenden'
-                  : 'Passwort anzeigen'
+                showPassword ? t('auth.common.hidePassword') : t('auth.common.showPassword')
               "
               :aria-pressed="showPassword"
               @click="showPassword = !showPassword"
             >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
-                />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
                 <circle cx="12" cy="12" r="2.5" />
-                <path
-                  v-if="!showPassword"
-                  d="M4 4l16 16"
-                />
+                <path v-if="!showPassword" d="M4 4l16 16" />
               </svg>
             </button>
           </div>
 
-          <p
-            v-if="passwordError"
-            id="login-password-error"
-            class="field-error"
-          >
+          <p v-if="passwordError" id="login-password-error" class="field-error">
             {{ passwordError }}
           </p>
         </div>
 
-        <p
-          v-if="requestError"
-          class="message-error"
-          role="alert"
-        >
+        <p v-if="requestError" class="message-error" role="alert">
           {{ requestError }}
         </p>
 
-        <button
-          class="submit-button"
-          type="submit"
-          :disabled="isSubmitting"
-        >
-          {{
-            isSubmitting
-              ? 'Anmeldung läuft …'
-              : 'Anmelden'
-          }}
+        <button class="submit-button" type="submit" :disabled="isSubmitting">
+          {{ isSubmitting ? t('auth.login.submitting') : t('auth.login.submit') }}
         </button>
       </form>
     </div>
@@ -255,12 +182,7 @@ function getErrorMessage(error: unknown): string {
   padding: 2rem;
   border: 1px solid #dfe3e8;
   border-radius: 1rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 54%,
-    #f5f8fc 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f5f8fc 100%);
   box-shadow:
     0 1.15rem 2.4rem rgb(9 30 66 / 13%),
     0 0.25rem 0.7rem rgb(9 30 66 / 8%);
@@ -326,12 +248,7 @@ label {
   padding: 0.75rem 2.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 58%,
-    #f3f6fa 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 58%, #f3f6fa 100%);
   color: #172b4d;
   box-shadow: 0 0.3rem 0.7rem rgb(9 30 66 / 7%);
   transition:
@@ -353,7 +270,7 @@ label {
   transform: translateY(-0.08rem);
 }
 
-.input-control input[aria-invalid="true"] {
+.input-control input[aria-invalid='true'] {
   border-color: #c9372c;
 }
 
@@ -426,12 +343,7 @@ label {
   padding: 0.8rem 1rem;
   border: 1px solid #0c66e4;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #1f7bf2 0%,
-    #0c66e4 58%,
-    #0754bd 100%
-  );
+  background: linear-gradient(145deg, #1f7bf2 0%, #0c66e4 58%, #0754bd 100%);
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;

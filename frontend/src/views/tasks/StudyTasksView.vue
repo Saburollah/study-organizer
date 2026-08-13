@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import {
-  computed,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 import { moduleService } from '@/features/modules/moduleService'
 import type { StudyModule } from '@/features/modules/moduleModels'
 import StudyTaskForm from '@/features/tasks/StudyTaskForm.vue'
-import type {
-  SaveStudyTaskRequest,
-  StudyTask,
-  StudyTaskStatus,
-} from '@/features/tasks/taskModels'
+import type { SaveStudyTaskRequest, StudyTask, StudyTaskStatus } from '@/features/tasks/taskModels'
 import { taskService } from '@/features/tasks/taskService'
 import { ApiError } from '@/services/api/apiClient'
+
+const { locale, t } = useI18n()
 
 const props = defineProps<{
   moduleId: string
@@ -34,10 +28,9 @@ const isSaving = ref(false)
 const changingStatusTaskId = ref<string | null>(null)
 const deletingTaskId = ref<string | null>(null)
 const taskPendingDeletion = ref<StudyTask | null>(null)
+const dateLocale = computed(() => (locale.value === 'en' ? 'en-GB' : 'de-DE'))
 
-const isFormOpen = computed(() =>
-  isCreateFormOpen.value || editingTask.value !== null,
-)
+const isFormOpen = computed(() => isCreateFormOpen.value || editingTask.value !== null)
 
 const formInitialValues = computed<SaveStudyTaskRequest>(() => {
   if (!editingTask.value) {
@@ -73,29 +66,21 @@ async function loadPage(): Promise<void> {
       taskService.getByModule(props.moduleId),
     ])
 
-    module.value = modules.find(
-      (item) => item.id === props.moduleId,
-    ) ?? null
+    module.value = modules.find((item) => item.id === props.moduleId) ?? null
 
     tasks.value = sortTasks(loadedTasks)
 
     if (!module.value) {
-      loadErrorMessage.value =
-        'Das ausgewählte Lernmodul wurde nicht gefunden.'
+      loadErrorMessage.value = t('tasks.errors.moduleNotFound')
     }
   } catch (error: unknown) {
-    loadErrorMessage.value = getErrorMessage(
-      error,
-      'Die Aufgaben konnten nicht geladen werden.',
-    )
+    loadErrorMessage.value = getErrorMessage(error, t('tasks.errors.load'))
   } finally {
     isLoading.value = false
   }
 }
 
-async function saveTask(
-  request: SaveStudyTaskRequest,
-): Promise<void> {
+async function saveTask(request: SaveStudyTaskRequest): Promise<void> {
   if (editingTask.value) {
     await updateTask(request)
     return
@@ -104,39 +89,25 @@ async function saveTask(
   await createTask(request)
 }
 
-async function createTask(
-  request: SaveStudyTaskRequest,
-): Promise<void> {
+async function createTask(request: SaveStudyTaskRequest): Promise<void> {
   beginAction()
   isSaving.value = true
 
   try {
-    const createdTask = await taskService.create(
-      props.moduleId,
-      request,
-    )
+    const createdTask = await taskService.create(props.moduleId, request)
 
-    tasks.value = sortTasks([
-      ...tasks.value,
-      createdTask,
-    ])
+    tasks.value = sortTasks([...tasks.value, createdTask])
 
     closeTaskForm()
-    successMessage.value =
-      'Die Aufgabe wurde erfolgreich erstellt.'
+    successMessage.value = t('tasks.success.created')
   } catch (error: unknown) {
-    actionErrorMessage.value = getErrorMessage(
-      error,
-      'Die Aufgabe konnte nicht gespeichert werden.',
-    )
+    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.save'))
   } finally {
     isSaving.value = false
   }
 }
 
-async function updateTask(
-  request: SaveStudyTaskRequest,
-): Promise<void> {
+async function updateTask(request: SaveStudyTaskRequest): Promise<void> {
   const taskToUpdate = editingTask.value
 
   if (!taskToUpdate) {
@@ -147,21 +118,13 @@ async function updateTask(
   isSaving.value = true
 
   try {
-    const updatedTask = await taskService.update(
-      props.moduleId,
-      taskToUpdate.id,
-      request,
-    )
+    const updatedTask = await taskService.update(props.moduleId, taskToUpdate.id, request)
 
     replaceTask(updatedTask)
     closeTaskForm()
-    successMessage.value =
-      'Die Aufgabe wurde erfolgreich aktualisiert.'
+    successMessage.value = t('tasks.success.updated')
   } catch (error: unknown) {
-    actionErrorMessage.value = getErrorMessage(
-      error,
-      'Die Aufgabe konnte nicht gespeichert werden.',
-    )
+    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.save'))
   } finally {
     isSaving.value = false
   }
@@ -171,25 +134,16 @@ async function toggleTaskStatus(task: StudyTask): Promise<void> {
   beginAction()
   changingStatusTaskId.value = task.id
 
-  const nextStatus: StudyTaskStatus =
-    task.status === 'Completed' ? 'Open' : 'Completed'
+  const nextStatus: StudyTaskStatus = task.status === 'Completed' ? 'Open' : 'Completed'
 
   try {
-    const updatedTask = await taskService.updateStatus(
-      props.moduleId,
-      task.id,
-      nextStatus,
-    )
+    const updatedTask = await taskService.updateStatus(props.moduleId, task.id, nextStatus)
 
     replaceTask(updatedTask)
-    successMessage.value = nextStatus === 'Completed'
-      ? 'Die Aufgabe wurde als erledigt markiert.'
-      : 'Die Aufgabe wurde wieder geöffnet.'
+    successMessage.value =
+      nextStatus === 'Completed' ? t('tasks.success.completed') : t('tasks.success.reopened')
   } catch (error: unknown) {
-    actionErrorMessage.value = getErrorMessage(
-      error,
-      'Der Aufgabenstatus konnte nicht geändert werden.',
-    )
+    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.status'))
   } finally {
     changingStatusTaskId.value = null
   }
@@ -209,11 +163,7 @@ function cancelTaskDeletion(): void {
 }
 
 function handleDialogKeydown(event: KeyboardEvent): void {
-  if (
-    event.key === 'Escape'
-    && taskPendingDeletion.value
-    && !deletingTaskId.value
-  ) {
+  if (event.key === 'Escape' && taskPendingDeletion.value && !deletingTaskId.value) {
     cancelTaskDeletion()
   }
 }
@@ -231,22 +181,16 @@ async function confirmTaskDeletion(): Promise<void> {
   try {
     await taskService.delete(props.moduleId, task.id)
 
-    tasks.value = tasks.value.filter(
-      (item) => item.id !== task.id,
-    )
+    tasks.value = tasks.value.filter((item) => item.id !== task.id)
 
     if (editingTask.value?.id === task.id) {
       closeTaskForm()
     }
 
-    successMessage.value =
-      'Die Aufgabe wurde erfolgreich gelöscht.'
+    successMessage.value = t('tasks.success.deleted')
     taskPendingDeletion.value = null
   } catch (error: unknown) {
-    actionErrorMessage.value = getErrorMessage(
-      error,
-      'Die Aufgabe konnte nicht gelöscht werden.',
-    )
+    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.delete'))
   } finally {
     deletingTaskId.value = null
   }
@@ -277,36 +221,30 @@ function beginAction(): void {
 
 function replaceTask(updatedTask: StudyTask): void {
   tasks.value = sortTasks(
-    tasks.value.map((task) =>
-      task.id === updatedTask.id ? updatedTask : task,
-    ),
+    tasks.value.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
   )
 }
 
 function sortTasks(items: StudyTask[]): StudyTask[] {
   return [...items].sort(
-    (first, second) =>
-      Date.parse(first.dueDateUtc)
-      - Date.parse(second.dueDateUtc),
+    (first, second) => Date.parse(first.dueDateUtc) - Date.parse(second.dueDateUtc),
   )
 }
 
 function formatDueDate(value: string): string {
-  return new Intl.DateTimeFormat('de-DE', {
+  const formattedDate = new Intl.DateTimeFormat(dateLocale.value, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value))
+
+  return locale.value === 'de' ? `${formattedDate} Uhr` : formattedDate
 }
 
 function isOverdue(task: StudyTask): boolean {
-  return task.status === 'Open'
-    && Date.parse(task.dueDateUtc) < Date.now()
+  return task.status === 'Open' && Date.parse(task.dueDateUtc) < Date.now()
 }
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -318,18 +256,17 @@ function getErrorMessage(
 <template>
   <section class="tasks-page">
     <RouterLink class="back-link" to="/modules">
-      ← Zurück zu den Lernmodulen
+      {{ t('tasks.back') }}
     </RouterLink>
 
     <header class="page-header">
       <div>
         <p class="eyebrow">
-          {{ module?.code || 'LERNMODUL' }}
+          {{ module?.code || t('tasks.eyebrow') }}
         </p>
-        <h1>{{ module?.name || 'Aufgaben' }}</h1>
+        <h1>{{ module?.name || t('tasks.title') }}</h1>
         <p class="introduction">
-          Plane deine Aufgaben, Fälligkeiten und deinen
-          Bearbeitungsstand.
+          {{ t('tasks.description') }}
         </p>
       </div>
 
@@ -339,23 +276,15 @@ function getErrorMessage(
         type="button"
         @click="openCreateForm"
       >
-        Neue Aufgabe
+        {{ t('tasks.new') }}
       </button>
     </header>
 
-    <p
-      v-if="successMessage"
-      class="feedback-message success-message"
-      role="status"
-    >
+    <p v-if="successMessage" class="feedback-message success-message" role="status">
       {{ successMessage }}
     </p>
 
-    <p
-      v-if="actionErrorMessage"
-      class="feedback-message error-message"
-      role="alert"
-    >
+    <p v-if="actionErrorMessage" class="feedback-message error-message" role="alert">
       {{ actionErrorMessage }}
     </p>
 
@@ -363,36 +292,26 @@ function getErrorMessage(
       v-if="isFormOpen"
       :initial-values="formInitialValues"
       :is-submitting="isSaving"
-      :title="editingTask ? 'Aufgabe bearbeiten' : 'Neue Aufgabe'"
-      :submit-label="
-        editingTask
-          ? 'Änderungen speichern'
-          : 'Aufgabe speichern'
-      "
+      :title="editingTask ? t('tasks.form.editTitle') : t('tasks.form.newTitle')"
+      :submit-label="editingTask ? t('tasks.form.saveChanges') : t('tasks.form.create')"
       @save="saveTask"
       @cancel="closeTaskForm"
     />
 
     <p v-if="isLoading" class="state-card" role="status">
-      Aufgaben werden geladen …
+      {{ t('tasks.loading') }}
     </p>
 
-    <div
-      v-else-if="loadErrorMessage"
-      class="state-card error-state"
-      role="alert"
-    >
+    <div v-else-if="loadErrorMessage" class="state-card error-state" role="alert">
       <p>{{ loadErrorMessage }}</p>
       <button class="retry-button" type="button" @click="loadPage">
-        Erneut versuchen
+        {{ t('tasks.retry') }}
       </button>
     </div>
 
     <div v-else-if="tasks.length === 0" class="state-card empty-state">
-      <h2>Noch keine Aufgaben</h2>
-      <p>
-        Erstelle deine erste Aufgabe für dieses Lernmodul.
-      </p>
+      <h2>{{ t('tasks.empty.title') }}</h2>
+      <p>{{ t('tasks.empty.description') }}</p>
     </div>
 
     <ul v-else class="task-list">
@@ -410,8 +329,8 @@ function getErrorMessage(
           type="button"
           :aria-label="
             task.status === 'Completed'
-              ? `${task.title} wieder öffnen`
-              : `${task.title} als erledigt markieren`
+              ? t('tasks.actions.reopenAria', { title: task.title })
+              : t('tasks.actions.completeAria', { title: task.title })
           "
           :aria-pressed="task.status === 'Completed'"
           :disabled="changingStatusTaskId === task.id"
@@ -424,7 +343,9 @@ function getErrorMessage(
           <div class="task-heading">
             <h2>{{ task.title }}</h2>
             <span class="status-label">
-              {{ task.status === 'Completed' ? 'Erledigt' : 'Offen' }}
+              {{
+                task.status === 'Completed' ? t('tasks.status.completed') : t('tasks.status.open')
+              }}
             </span>
           </div>
 
@@ -432,35 +353,35 @@ function getErrorMessage(
             {{ task.description }}
           </p>
           <p v-else class="task-description muted">
-            Keine Beschreibung vorhanden.
+            {{ t('tasks.noDescription') }}
           </p>
 
           <p class="due-date">
-            <strong>{{ isOverdue(task) ? 'Überfällig:' : 'Fällig:' }}</strong>
-            {{ formatDueDate(task.dueDateUtc) }} Uhr
+            <strong>
+              {{ isOverdue(task) ? t('tasks.due.overdue') : t('tasks.due.due') }}
+            </strong>
+            {{ formatDueDate(task.dueDateUtc) }}
           </p>
 
           <div class="task-actions">
             <button
               class="edit-task-button"
               type="button"
-              :aria-label="`${task.title} bearbeiten`"
+              :aria-label="t('tasks.actions.editAria', { title: task.title })"
               :disabled="deletingTaskId === task.id"
               @click="openEditForm(task)"
             >
-              Bearbeiten
+              {{ t('tasks.actions.edit') }}
             </button>
             <button
               class="delete-task-button"
               type="button"
-              :aria-label="`${task.title} löschen`"
+              :aria-label="t('tasks.actions.deleteAria', { title: task.title })"
               :disabled="deletingTaskId === task.id"
               @click="requestTaskDeletion(task)"
             >
               {{
-                deletingTaskId === task.id
-                  ? 'Wird gelöscht …'
-                  : 'Löschen'
+                deletingTaskId === task.id ? t('tasks.actions.deleting') : t('tasks.actions.delete')
               }}
             </button>
           </div>
@@ -468,11 +389,7 @@ function getErrorMessage(
       </li>
     </ul>
 
-    <div
-      v-if="taskPendingDeletion"
-      class="delete-dialog-backdrop"
-      @click.self="cancelTaskDeletion"
-    >
+    <div v-if="taskPendingDeletion" class="delete-dialog-backdrop" @click.self="cancelTaskDeletion">
       <section
         class="delete-dialog"
         role="dialog"
@@ -483,26 +400,27 @@ function getErrorMessage(
         <button
           class="delete-dialog-close"
           type="button"
-          aria-label="Löschdialog schließen"
+          :aria-label="t('tasks.deleteDialog.close')"
           :disabled="Boolean(deletingTaskId)"
           @click="cancelTaskDeletion"
         >
           ×
         </button>
 
-        <div class="delete-dialog-icon" aria-hidden="true">
-          !
-        </div>
+        <div class="delete-dialog-icon" aria-hidden="true">!</div>
 
-        <p class="delete-dialog-eyebrow">AUFGABE LÖSCHEN</p>
+        <p class="delete-dialog-eyebrow">
+          {{ t('tasks.deleteDialog.eyebrow') }}
+        </p>
         <h2 id="task-delete-dialog-title">
-          Wirklich löschen?
+          {{ t('tasks.deleteDialog.title') }}
         </h2>
         <p id="task-delete-dialog-description">
-          Möchtest du die Aufgabe
-          <strong>„{{ taskPendingDeletion.title }}“</strong>
-          wirklich löschen? Diese Aktion kann nicht
-          rückgängig gemacht werden.
+          {{
+            t('tasks.deleteDialog.message', {
+              title: taskPendingDeletion.title,
+            })
+          }}
         </p>
 
         <div class="delete-dialog-actions">
@@ -512,7 +430,7 @@ function getErrorMessage(
             :disabled="Boolean(deletingTaskId)"
             @click="cancelTaskDeletion"
           >
-            Abbrechen
+            {{ t('tasks.deleteDialog.cancel') }}
           </button>
           <button
             class="confirm-delete-button"
@@ -520,7 +438,7 @@ function getErrorMessage(
             :disabled="Boolean(deletingTaskId)"
             @click="confirmTaskDeletion"
           >
-            {{ deletingTaskId ? 'Wird gelöscht …' : 'Löschen' }}
+            {{ deletingTaskId ? t('tasks.actions.deleting') : t('tasks.deleteDialog.confirm') }}
           </button>
         </div>
       </section>
@@ -652,12 +570,7 @@ h1 {
   border: 1px solid #dfe3e8;
   border-left: 0.5rem solid #0c66e4;
   border-radius: 1rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 60%,
-    #f4f7fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 60%, #f4f7fb 100%);
   box-shadow:
     0 0.7rem 1.4rem rgb(9 30 66 / 12%),
     0 0.18rem 0.45rem rgb(9 30 66 / 7%);
@@ -670,12 +583,7 @@ h1 {
   right: 4%;
   width: 45%;
   height: 8rem;
-  background: linear-gradient(
-    110deg,
-    transparent 10%,
-    rgb(255 255 255 / 72%) 50%,
-    transparent 90%
-  );
+  background: linear-gradient(110deg, transparent 10%, rgb(255 255 255 / 72%) 50%, transparent 90%);
   pointer-events: none;
   transform: rotate(-11deg);
   content: '';
@@ -687,12 +595,7 @@ h1 {
 
 .task-card.completed {
   border-left-color: #22a06b;
-  background: linear-gradient(
-    145deg,
-    #fbfdfc 0%,
-    #f7faf8 62%,
-    #edf6f1 100%
-  );
+  background: linear-gradient(145deg, #fbfdfc 0%, #f7faf8 62%, #edf6f1 100%);
 }
 
 .status-button {
@@ -872,12 +775,7 @@ button:disabled {
   padding: 2rem;
   border: 1px solid #d8dee8;
   border-radius: 1.25rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 54%,
-    #f6f8fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f6f8fb 100%);
   box-shadow:
     0 1.5rem 3.5rem rgb(9 30 66 / 30%),
     0 0.35rem 0.9rem rgb(9 30 66 / 15%);

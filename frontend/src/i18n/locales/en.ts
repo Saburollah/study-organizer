@@ -13,6 +13,325 @@ export default {
     english: 'English',
   },
 
+  auth: {
+    common: {
+      email: 'Email address',
+      emailPlaceholder: "name{'@'}example.com",
+      password: 'Password',
+      passwordPlaceholder: 'Enter password',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
+      emailRequired: 'Please enter your email address.',
+      emailInvalid: 'Please enter a valid email address.',
+    },
+
+    login: {
+      eyebrow: 'WELCOME BACK',
+      title: 'Sign in',
+      description: 'Sign in to manage your study modules and tasks.',
+      passwordRequired: 'Please enter your password.',
+      invalidCredentials: 'The email address or password is incorrect.',
+      unexpectedError: 'Sign-in failed unexpectedly.',
+      submitting: 'Signing in …',
+      submit: 'Sign in',
+    },
+
+    register: {
+      eyebrow: 'NEW ACCOUNT',
+      title: 'Sign up',
+      description: 'Create your account and start organizing your studies.',
+      passwordInvalid: 'The password does not meet all requirements yet.',
+      confirmation: 'Confirm password',
+      confirmationPlaceholder: 'Confirm password',
+      confirmationMismatch: 'The passwords do not match.',
+      showConfirmation: 'Show password confirmation',
+      hideConfirmation: 'Hide password confirmation',
+      requirementsLabel: 'Password requirements',
+      unexpectedError: 'Registration failed unexpectedly.',
+      success: '{email} was registered successfully.',
+      submitting: 'Creating account …',
+      submit: 'Create account',
+    },
+
+    passwordRequirements: {
+      length: 'at least 15 characters',
+      uppercase: 'at least one uppercase letter (A–Z)',
+      lowercase: 'at least one lowercase letter (a–z)',
+      digit: 'at least one digit (0–9)',
+      specialCharacter:
+        "at least one special character: {'@'} # $ % & * - _ ! + = : , . ? / \" ( ) ;",
+    },
+  },
+
+  dashboard: {
+    eyebrow: 'YOUR OVERVIEW',
+    title: 'Dashboard',
+    description: 'Keep track of your study modules and tasks.',
+    manageModules: 'Manage study modules',
+    loading: 'Loading dashboard …',
+    loadError: 'The dashboard could not be loaded.',
+    retry: 'Try again',
+    summary: {
+      modules: 'Study modules',
+      openTasks: 'Open tasks',
+      overdue: 'Overdue',
+      completed: 'Completed',
+    },
+    next: {
+      eyebrow: 'UP NEXT',
+      title: 'Upcoming tasks',
+      emptyTitle: 'No open tasks',
+      emptyDescription: 'There are currently no open tasks.',
+      openModules: 'Go to study modules',
+      overdue: 'Overdue',
+    },
+  },
+
+  modules: {
+    eyebrow: 'YOUR STUDIES',
+    title: 'Study modules',
+    description: 'Manage your personal courses and lectures here.',
+    new: 'New study module',
+    loading: 'Loading study modules …',
+    retry: 'Try again',
+    errors: {
+      load: 'The study modules could not be loaded.',
+      save: 'The study module could not be saved.',
+      delete: 'The study module could not be deleted.',
+    },
+    success: {
+      created: 'The study module was created successfully.',
+      updated: 'The study module was updated successfully.',
+      deleted: 'The study module was deleted successfully.',
+    },
+    empty: {
+      title: 'No study modules yet',
+      description: 'Create your first study module to organize your studies.',
+    },
+    noDescription: 'No description available.',
+    actions: {
+      tasks: 'Tasks',
+      edit: 'Edit',
+      delete: 'Delete',
+      deleting: 'Deleting …',
+      editAria: 'Edit {name}',
+      deleteAria: 'Delete {name}',
+    },
+    form: {
+      eyebrow: 'STUDY MODULE',
+      newTitle: 'New study module',
+      editTitle: 'Edit study module',
+      create: 'Save study module',
+      saveChanges: 'Save changes',
+      saving: 'Saving …',
+      close: 'Close form',
+      cancel: 'Cancel',
+      fields: {
+        name: 'Name *',
+        code: 'Abbreviation',
+        description: 'Description',
+        color: 'Color',
+      },
+      placeholders: {
+        name: 'e.g. Secure Systems',
+        code: 'e.g. SIS',
+        description: 'What is this study module about?',
+      },
+      validation: {
+        nameRequired: 'Please enter a name.',
+        nameMax: 'The name must not exceed 100 characters.',
+        codeMax: 'The abbreviation must not exceed 30 characters.',
+        descriptionMax: 'The description must not exceed 1000 characters.',
+        colorFormat: 'The color must use the format #RRGGBB.',
+      },
+    },
+    deleteDialog: {
+      close: 'Close delete dialog',
+      eyebrow: 'DELETE STUDY MODULE',
+      title: 'Delete this module?',
+      message:
+        'Do you really want to delete the study module “{name}”? This action cannot be undone.',
+      cancel: 'Cancel',
+      confirm: 'Delete',
+    },
+  },
+
+  tasks: {
+    back: '← Back to study modules',
+    eyebrow: 'STUDY MODULE',
+    title: 'Tasks',
+    description: 'Plan your tasks, deadlines, and progress.',
+    new: 'New task',
+    loading: 'Loading tasks …',
+    retry: 'Try again',
+    errors: {
+      moduleNotFound: 'The selected study module was not found.',
+      load: 'The tasks could not be loaded.',
+      save: 'The task could not be saved.',
+      status: 'The task status could not be changed.',
+      delete: 'The task could not be deleted.',
+    },
+    success: {
+      created: 'The task was created successfully.',
+      updated: 'The task was updated successfully.',
+      completed: 'The task was marked as completed.',
+      reopened: 'The task was reopened.',
+      deleted: 'The task was deleted successfully.',
+    },
+    empty: {
+      title: 'No tasks yet',
+      description: 'Create your first task for this study module.',
+    },
+    noDescription: 'No description available.',
+    status: {
+      open: 'Open',
+      completed: 'Completed',
+    },
+    due: {
+      due: 'Due:',
+      overdue: 'Overdue:',
+    },
+    actions: {
+      edit: 'Edit',
+      delete: 'Delete',
+      deleting: 'Deleting …',
+      editAria: 'Edit {title}',
+      deleteAria: 'Delete {title}',
+      reopenAria: 'Reopen {title}',
+      completeAria: 'Mark {title} as completed',
+    },
+    form: {
+      eyebrow: 'TASK',
+      newTitle: 'New task',
+      editTitle: 'Edit task',
+      create: 'Save task',
+      saveChanges: 'Save changes',
+      saving: 'Saving …',
+      close: 'Close form',
+      cancel: 'Cancel',
+      fields: {
+        title: 'Title *',
+        dueDate: 'Due date *',
+        description: 'Description',
+      },
+      placeholders: {
+        title: 'e.g. Review chapter 4',
+        dueDate: 'Select date and time',
+        description: 'What would you like to complete for this task?',
+      },
+      validation: {
+        titleRequired: 'Please enter a title.',
+        titleMax: 'The title must not exceed 200 characters.',
+        descriptionMax: 'The description must not exceed 2000 characters.',
+        dueRequired: 'Please enter a due date.',
+        dueInvalid: 'The due date is invalid.',
+      },
+      calendar: {
+        label: 'Select due date',
+        previousMonth: 'Previous month',
+        nextMonth: 'Next month',
+        time: 'Time',
+        apply: 'Apply',
+      },
+    },
+    deleteDialog: {
+      close: 'Close delete dialog',
+      eyebrow: 'DELETE TASK',
+      title: 'Delete this task?',
+      message: 'Do you really want to delete the task “{title}”? This action cannot be undone.',
+      cancel: 'Cancel',
+      confirm: 'Delete',
+    },
+  },
+
+  profile: {
+    eyebrow: 'YOUR ACCOUNT',
+    title: 'Profile',
+    description: 'Manage your personal details.',
+    loading: 'Loading profile …',
+    retry: 'Try again',
+    errors: {
+      load: 'Your profile could not be loaded.',
+      save: 'Your profile could not be saved.',
+      birthDateFuture: 'The date of birth must not be in the future.',
+    },
+    success: {
+      saved: 'Your profile was saved successfully.',
+    },
+    personalData: {
+      eyebrow: 'PERSONAL DETAILS',
+      defaultName: 'Your profile',
+    },
+    fields: {
+      firstName: 'First name',
+      lastName: 'Last name',
+      email: 'Email address',
+      emailHelp: 'The email address cannot currently be changed.',
+      birthDate: 'Date of birth',
+      gender: 'Gender',
+    },
+    placeholders: {
+      firstName: 'Your first name',
+      lastName: 'Your last name',
+      birthDate: 'Select date of birth',
+    },
+    gender: {
+      none: 'No selection',
+      female: 'Female',
+      male: 'Male',
+      preferNotToSay: 'Prefer not to say',
+    },
+    calendar: {
+      label: 'Select date of birth',
+      previousMonth: 'Previous month',
+      nextMonth: 'Next month',
+      year: 'Select year',
+      clear: 'Clear selection',
+      close: 'Close',
+      weekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    },
+    actions: {
+      saving: 'Saving …',
+      save: 'Save profile',
+    },
+    password: {
+      eyebrow: 'SECURITY',
+      title: 'Change password',
+      description: 'Use a new, unique password for your account.',
+      fields: {
+        current: 'Current password',
+        new: 'New password',
+        confirmation: 'Confirm new password',
+      },
+      placeholders: {
+        current: 'Enter current password',
+        new: 'Enter new password',
+        confirmation: 'Confirm new password',
+      },
+      visibility: {
+        showCurrent: 'Show current password',
+        hideCurrent: 'Hide current password',
+        showNew: 'Show new password',
+        hideNew: 'Hide new password',
+        showConfirmation: 'Show password confirmation',
+        hideConfirmation: 'Hide password confirmation',
+      },
+      requirementsLabel: 'New password requirements',
+      validation: {
+        currentRequired: 'Please enter your current password.',
+        invalid: 'The new password does not meet all requirements yet.',
+        unchanged: 'The new password must differ from the current password.',
+        confirmationMismatch: 'The new passwords do not match.',
+      },
+      success: 'Your password was changed successfully.',
+      error: 'Your password could not be changed.',
+      actions: {
+        submitting: 'Changing password …',
+        submit: 'Change password',
+      },
+    },
+  },
+
   home: {
     hero: {
       eyebrow: 'YOUR STUDIES. YOUR PLAN.',
@@ -56,8 +375,7 @@ export default {
     features: {
       eyebrow: 'EVERYTHING AT A GLANCE',
       title: 'Your tools for a well-organized semester',
-      description:
-        'Spend less time switching between apps—and more time on what really matters.',
+      description: 'Spend less time switching between apps—and more time on what really matters.',
 
       modules: {
         title: 'Study modules',
@@ -68,15 +386,13 @@ export default {
 
       tasks: {
         title: 'Tasks',
-        description:
-          'Plan your next steps, set deadlines, and easily mark completed work.',
+        description: 'Plan your next steps, set deadlines, and easily mark completed work.',
         detail: 'Never miss a deadline',
       },
 
       progress: {
         title: 'Progress',
-        description:
-          'See immediately what is open, overdue, or already completed.',
+        description: 'See immediately what is open, overdue, or already completed.',
         detail: 'Stay motivated through clarity',
       },
     },

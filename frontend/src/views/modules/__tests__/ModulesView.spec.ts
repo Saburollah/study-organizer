@@ -1,13 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import {
-  afterEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
+import { i18n, setLocale } from '@/i18n'
 
 import ModulesView from '../ModulesView.vue'
 
@@ -18,31 +13,37 @@ vi.mock('vue-router', () => ({
 }))
 
 describe('ModulesView', () => {
+  beforeEach(() => {
+    setLocale('de')
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
+  function mountView() {
+    return mount(ModulesView, {
+      global: {
+        plugins: [i18n],
+      },
+    })
+  }
+
   it('shows a loading state while modules are loaded', () => {
-    vi.spyOn(moduleService, 'getAll').mockReturnValue(
-      new Promise(() => undefined),
-    )
+    vi.spyOn(moduleService, 'getAll').mockReturnValue(new Promise(() => undefined))
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
 
-    expect(wrapper.text()).toContain(
-      'Lernmodule werden geladen',
-    )
+    expect(wrapper.text()).toContain('Lernmodule werden geladen')
   })
 
   it('shows an empty state when no modules exist', async () => {
     vi.spyOn(moduleService, 'getAll').mockResolvedValue([])
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.text()).toContain(
-      'Noch keine Lernmodule',
-    )
+    expect(wrapper.text()).toContain('Noch keine Lernmodule')
   })
 
   it('shows the modules returned by the API', async () => {
@@ -57,7 +58,7 @@ describe('ModulesView', () => {
       },
     ])
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
     expect(wrapper.text()).toContain('Sichere Systeme')
@@ -71,12 +72,10 @@ describe('ModulesView', () => {
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce([])
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.get('[role="alert"]').text()).toContain(
-      'konnten nicht geladen werden',
-    )
+    expect(wrapper.get('[role="alert"]').text()).toContain('konnten nicht geladen werden')
 
     await wrapper.get('.retry-button').trigger('click')
     await flushPromises()
@@ -88,26 +87,22 @@ describe('ModulesView', () => {
   it('creates a module and adds it to the list', async () => {
     vi.spyOn(moduleService, 'getAll').mockResolvedValue([])
 
-    const createMock = vi
-      .spyOn(moduleService, 'create')
-      .mockResolvedValue({
-        id: 'e6ab31a1-292b-4b31-b65b-dab568512b40',
-        name: 'Datenbanken',
-        code: 'DB',
-        description: 'SQL und PostgreSQL',
-        color: '#FF8800',
-        createdAtUtc: '2026-08-12T12:00:00Z',
-      })
+    const createMock = vi.spyOn(moduleService, 'create').mockResolvedValue({
+      id: 'e6ab31a1-292b-4b31-b65b-dab568512b40',
+      name: 'Datenbanken',
+      code: 'DB',
+      description: 'SQL und PostgreSQL',
+      color: '#FF8800',
+      createdAtUtc: '2026-08-12T12:00:00Z',
+    })
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.add-module-button').trigger('click')
     await wrapper.get('#module-name').setValue('Datenbanken')
     await wrapper.get('#module-code').setValue('DB')
-    await wrapper
-      .get('#module-description')
-      .setValue('SQL und PostgreSQL')
+    await wrapper.get('#module-description').setValue('SQL und PostgreSQL')
     await wrapper.get('#module-color').setValue('#ff8800')
     await wrapper.get('.module-form').trigger('submit')
     await flushPromises()
@@ -120,15 +115,12 @@ describe('ModulesView', () => {
     })
 
     expect(wrapper.text()).toContain('Datenbanken')
-    expect(wrapper.text()).toContain(
-      'erfolgreich erstellt',
-    )
+    expect(wrapper.text()).toContain('erfolgreich erstellt')
     expect(wrapper.find('.module-form').exists()).toBe(false)
   })
 
   it('updates a module and replaces it in the list', async () => {
-    const moduleId =
-      'e6ab31a1-292b-4b31-b65b-dab568512b40'
+    const moduleId = 'e6ab31a1-292b-4b31-b65b-dab568512b40'
 
     vi.spyOn(moduleService, 'getAll').mockResolvedValue([
       {
@@ -141,32 +133,25 @@ describe('ModulesView', () => {
       },
     ])
 
-    const updateMock = vi
-      .spyOn(moduleService, 'update')
-      .mockResolvedValue({
-        id: moduleId,
-        name: 'Datenbanken 2',
-        code: 'DB2',
-        description: 'SQL und PostgreSQL',
-        color: '#3366FF',
-        createdAtUtc: '2026-08-12T12:00:00Z',
-      })
+    const updateMock = vi.spyOn(moduleService, 'update').mockResolvedValue({
+      id: moduleId,
+      name: 'Datenbanken 2',
+      code: 'DB2',
+      description: 'SQL und PostgreSQL',
+      color: '#3366FF',
+      createdAtUtc: '2026-08-12T12:00:00Z',
+    })
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.edit-module-button').trigger('click')
 
-    expect(wrapper.get('#module-name').element).toHaveProperty(
-      'value',
-      'Datenbanken',
-    )
+    expect(wrapper.get('#module-name').element).toHaveProperty('value', 'Datenbanken')
 
     await wrapper.get('#module-name').setValue('Datenbanken 2')
     await wrapper.get('#module-code').setValue('DB2')
-    await wrapper
-      .get('#module-description')
-      .setValue('SQL und PostgreSQL')
+    await wrapper.get('#module-description').setValue('SQL und PostgreSQL')
     await wrapper.get('#module-color').setValue('#3366ff')
     await wrapper.get('.module-form').trigger('submit')
     await flushPromises()
@@ -179,9 +164,7 @@ describe('ModulesView', () => {
     })
 
     expect(wrapper.text()).toContain('Datenbanken 2')
-    expect(wrapper.text()).toContain(
-      'erfolgreich aktualisiert',
-    )
+    expect(wrapper.text()).toContain('erfolgreich aktualisiert')
     expect(wrapper.find('.module-form').exists()).toBe(false)
   })
 
@@ -198,14 +181,12 @@ describe('ModulesView', () => {
     ])
 
     const deleteMock = vi.spyOn(moduleService, 'delete')
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.delete-module-button').trigger('click')
 
-    expect(wrapper.get('[role="dialog"]').text()).toContain(
-      'Datenbanken',
-    )
+    expect(wrapper.get('[role="dialog"]').text()).toContain('Datenbanken')
 
     await wrapper.get('.cancel-delete-button').trigger('click')
 
@@ -215,8 +196,7 @@ describe('ModulesView', () => {
   })
 
   it('deletes a confirmed module and removes it from the list', async () => {
-    const moduleId =
-      'e6ab31a1-292b-4b31-b65b-dab568512b40'
+    const moduleId = 'e6ab31a1-292b-4b31-b65b-dab568512b40'
 
     vi.spyOn(moduleService, 'getAll').mockResolvedValue([
       {
@@ -229,11 +209,9 @@ describe('ModulesView', () => {
       },
     ])
 
-    const deleteMock = vi
-      .spyOn(moduleService, 'delete')
-      .mockResolvedValue()
+    const deleteMock = vi.spyOn(moduleService, 'delete').mockResolvedValue()
 
-    const wrapper = mount(ModulesView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.delete-module-button').trigger('click')
@@ -244,5 +222,17 @@ describe('ModulesView', () => {
     expect(wrapper.find('.module-card').exists()).toBe(false)
     expect(wrapper.text()).toContain('Noch keine Lernmodule')
     expect(wrapper.text()).toContain('erfolgreich gelöscht')
+  })
+
+  it('shows the module page in English', async () => {
+    setLocale('en')
+    vi.spyOn(moduleService, 'getAll').mockResolvedValue([])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Study modules')
+    expect(wrapper.text()).toContain('New study module')
+    expect(wrapper.text()).toContain('No study modules yet')
   })
 })

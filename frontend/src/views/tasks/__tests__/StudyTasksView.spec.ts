@@ -1,15 +1,10 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import {
-  afterEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
 import { taskService } from '@/features/tasks/taskService'
 import type { StudyTask } from '@/features/tasks/taskModels'
+import { i18n, setLocale } from '@/i18n'
 
 import StudyTasksView from '../StudyTasksView.vue'
 
@@ -30,9 +25,7 @@ const studyModule = {
   createdAtUtc: '2026-08-12T12:00:00Z',
 }
 
-function createTask(
-  overrides: Partial<StudyTask> = {},
-): StudyTask {
+function createTask(overrides: Partial<StudyTask> = {}): StudyTask {
   return {
     id: '90c69198-eccb-4c85-a1d6-ac6a93620b8f',
     moduleId,
@@ -47,19 +40,24 @@ function createTask(
 }
 
 function mockPageLoad(tasks: StudyTask[] = []): void {
-  vi.spyOn(moduleService, 'getAll').mockResolvedValue([
-    studyModule,
-  ])
+  vi.spyOn(moduleService, 'getAll').mockResolvedValue([studyModule])
   vi.spyOn(taskService, 'getByModule').mockResolvedValue(tasks)
 }
 
 function mountView() {
   return mount(StudyTasksView, {
     props: { moduleId },
+    global: {
+      plugins: [i18n],
+    },
   })
 }
 
 describe('StudyTasksView', () => {
+  beforeEach(() => {
+    setLocale('de')
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -97,9 +95,7 @@ describe('StudyTasksView', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.get('[role="alert"]').text()).toContain(
-      'konnten nicht geladen werden',
-    )
+    expect(wrapper.get('[role="alert"]').text()).toContain('konnten nicht geladen werden')
 
     await wrapper.get('.retry-button').trigger('click')
     await flushPromises()
@@ -112,30 +108,22 @@ describe('StudyTasksView', () => {
     mockPageLoad()
 
     const createdTask = createTask()
-    const createMock = vi
-      .spyOn(taskService, 'create')
-      .mockResolvedValue(createdTask)
+    const createMock = vi.spyOn(taskService, 'create').mockResolvedValue(createdTask)
 
     const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.add-task-button').trigger('click')
     await wrapper.get('#task-title').setValue(createdTask.title)
-    await wrapper
-      .get('#task-description')
-      .setValue(createdTask.description)
-    await wrapper
-      .get('#task-due-date')
-      .setValue('2026-09-01T20:00')
+    await wrapper.get('#task-description').setValue(createdTask.description)
+    await wrapper.get('#task-due-date').setValue('2026-09-01T20:00')
     await wrapper.get('.task-form').trigger('submit')
     await flushPromises()
 
     expect(createMock).toHaveBeenCalledWith(moduleId, {
       title: createdTask.title,
       description: createdTask.description,
-      dueDateUtc: new Date(
-        '2026-09-01T20:00',
-      ).toISOString(),
+      dueDateUtc: new Date('2026-09-01T20:00').toISOString(),
     })
     expect(wrapper.text()).toContain('erfolgreich erstellt')
     expect(wrapper.findAll('.task-card')).toHaveLength(1)
@@ -150,17 +138,13 @@ describe('StudyTasksView', () => {
 
     mockPageLoad([originalTask])
 
-    const updateMock = vi
-      .spyOn(taskService, 'update')
-      .mockResolvedValue(updatedTask)
+    const updateMock = vi.spyOn(taskService, 'update').mockResolvedValue(updatedTask)
 
     const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.edit-task-button').trigger('click')
-    await wrapper
-      .get('#task-title')
-      .setValue(updatedTask.title)
+    await wrapper.get('#task-title').setValue(updatedTask.title)
     await wrapper.get('.task-form').trigger('submit')
     await flushPromises()
 
@@ -181,9 +165,7 @@ describe('StudyTasksView', () => {
 
     mockPageLoad([openTask])
 
-    const updateStatusMock = vi
-      .spyOn(taskService, 'updateStatus')
-      .mockResolvedValue(completedTask)
+    const updateStatusMock = vi.spyOn(taskService, 'updateStatus').mockResolvedValue(completedTask)
 
     const wrapper = mountView()
     await flushPromises()
@@ -191,11 +173,7 @@ describe('StudyTasksView', () => {
     await wrapper.get('.status-button').trigger('click')
     await flushPromises()
 
-    expect(updateStatusMock).toHaveBeenCalledWith(
-      moduleId,
-      openTask.id,
-      'Completed',
-    )
+    expect(updateStatusMock).toHaveBeenCalledWith(moduleId, openTask.id, 'Completed')
     expect(wrapper.get('.status-label').text()).toBe('Erledigt')
     expect(wrapper.text()).toContain('als erledigt markiert')
   })
@@ -204,18 +182,14 @@ describe('StudyTasksView', () => {
     const task = createTask()
     mockPageLoad([task])
 
-    const deleteMock = vi
-      .spyOn(taskService, 'delete')
-      .mockResolvedValue()
+    const deleteMock = vi.spyOn(taskService, 'delete').mockResolvedValue()
 
     const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.delete-task-button').trigger('click')
 
-    expect(wrapper.get('[role="dialog"]').text()).toContain(
-      task.title,
-    )
+    expect(wrapper.get('[role="dialog"]').text()).toContain(task.title)
 
     await wrapper.get('.confirm-delete-button').trigger('click')
     await flushPromises()
@@ -223,5 +197,17 @@ describe('StudyTasksView', () => {
     expect(deleteMock).toHaveBeenCalledWith(moduleId, task.id)
     expect(wrapper.find('.task-card').exists()).toBe(false)
     expect(wrapper.text()).toContain('erfolgreich gelöscht')
+  })
+
+  it('shows the task page in English', async () => {
+    setLocale('en')
+    mockPageLoad()
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Back to study modules')
+    expect(wrapper.text()).toContain('New task')
+    expect(wrapper.text()).toContain('No tasks yet')
   })
 })
