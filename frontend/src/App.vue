@@ -35,9 +35,9 @@ async function logout(): Promise<void> {
             Lernmodule
           </RouterLink>
 
-          <span class="user-email">
-            {{ authStore.userEmail }}
-          </span>
+          <RouterLink to="/profile">
+            Profil
+          </RouterLink>
 
           <button
             class="logout-button"
@@ -89,18 +89,6 @@ nav {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.user-email {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid #d8dee8;
-  border-radius: 0.65rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f3f6fa 100%);
-  color: #626f86;
-  font-size: 0.9rem;
-  box-shadow:
-    0 0.3rem 0.65rem rgb(9 30 66 / 7%),
-    inset 0 1px rgb(255 255 255 / 90%);
 }
 
 .logout-button {

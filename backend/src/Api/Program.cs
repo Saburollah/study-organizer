@@ -17,6 +17,9 @@ using Microsoft.OpenApi.Models;
 using StudyOrganizer.Application.Tasks;
 using StudyOrganizer.Infrastructure.Tasks;
 using StudyOrganizer.Api.Tasks;
+using StudyOrganizer.Application.Profiles;
+using StudyOrganizer.Infrastructure.Profiles;
+using StudyOrganizer.Api.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +82,10 @@ builder.Services.AddSingleton<
 builder.Services.AddScoped<
     IUserHandler,
     UserHandler>();
+
+builder.Services.AddScoped<
+    IProfileHandler,
+    ProfileHandler>();
 
 builder.Services.AddScoped<
     IModuleHandler,
@@ -178,6 +185,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapUserEndpoints();
+app.MapProfileEndpoints();
 app.MapModuleEndpoints();
 app.MapStudyTaskEndpoints();
 app.MapHealthChecks("/health");
