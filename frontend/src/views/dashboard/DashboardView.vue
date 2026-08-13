@@ -1,39 +1,35 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { dashboardService } from '@/features/dashboard/dashboardService'
 
 import type { DashboardData } from '@/features/dashboard/dashboardModels'
 
+const { locale, t } = useI18n()
+
 const dashboard = ref<DashboardData | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
-const openTasks = computed(() =>
-  dashboard.value?.tasks.filter(
-    (task) => task.status === 'Open',
-  ) ?? [],
+const openTasks = computed(
+  () => dashboard.value?.tasks.filter((task) => task.status === 'Open') ?? [],
 )
 
-const completedTasks = computed(() =>
-  dashboard.value?.tasks.filter(
-    (task) => task.status === 'Completed',
-  ) ?? [],
+const completedTasks = computed(
+  () => dashboard.value?.tasks.filter((task) => task.status === 'Completed') ?? [],
 )
 
 const overdueTasks = computed(() =>
-  openTasks.value.filter(
-    (task) => new Date(task.dueDateUtc) < new Date(),
-  ),
+  openTasks.value.filter((task) => new Date(task.dueDateUtc) < new Date()),
 )
 
 const nextTasks = computed(() =>
   [...openTasks.value]
     .sort(
       (first, second) =>
-        new Date(first.dueDateUtc).getTime()
-        - new Date(second.dueDateUtc).getTime(),
+        new Date(first.dueDateUtc).getTime() - new Date(second.dueDateUtc).getTime(),
     )
     .slice(0, 5),
 )
@@ -43,18 +39,18 @@ async function loadDashboard(): Promise<void> {
   errorMessage.value = ''
 
   try {
-    dashboard.value =
-      await dashboardService.getDashboard()
+    dashboard.value = await dashboardService.getDashboard()
   } catch {
-    errorMessage.value =
-      'Das Dashboard konnte nicht geladen werden.'
+    errorMessage.value = t('dashboard.loadError')
   } finally {
     isLoading.value = false
   }
 }
 
 function formatDate(dateUtc: string): string {
-  return new Intl.DateTimeFormat('de-DE', {
+  const dateLocale = locale.value === 'en' ? 'en-GB' : 'de-DE'
+
+  return new Intl.DateTimeFormat(dateLocale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(dateUtc))
@@ -71,52 +67,48 @@ onMounted(loadDashboard)
   <section class="dashboard-page">
     <header class="dashboard-header">
       <div>
-        <p class="eyebrow">DEIN ÜBERBLICK</p>
-        <h1>Dashboard</h1>
+        <p class="eyebrow">{{ t('dashboard.eyebrow') }}</p>
+        <h1>{{ t('dashboard.title') }}</h1>
         <p class="subtitle">
-          Behalte deine Lernmodule und Aufgaben im Blick.
+          {{ t('dashboard.description') }}
         </p>
       </div>
 
       <RouterLink class="modules-link" to="/modules">
-        Lernmodule verwalten
+        {{ t('dashboard.manageModules') }}
       </RouterLink>
     </header>
 
     <p v-if="isLoading" class="state-message">
-      Dashboard wird geladen …
+      {{ t('dashboard.loading') }}
     </p>
 
-    <div
-      v-else-if="errorMessage"
-      class="error-state"
-      role="alert"
-    >
+    <div v-else-if="errorMessage" class="error-state" role="alert">
       <p>{{ errorMessage }}</p>
       <button type="button" @click="loadDashboard">
-        Erneut versuchen
+        {{ t('dashboard.retry') }}
       </button>
     </div>
 
     <template v-else-if="dashboard">
       <div class="summary-grid">
         <article class="summary-card">
-          <span>Lernmodule</span>
+          <span>{{ t('dashboard.summary.modules') }}</span>
           <strong>{{ dashboard.moduleCount }}</strong>
         </article>
 
         <article class="summary-card open">
-          <span>Offene Aufgaben</span>
+          <span>{{ t('dashboard.summary.openTasks') }}</span>
           <strong>{{ openTasks.length }}</strong>
         </article>
 
         <article class="summary-card overdue">
-          <span>Überfällig</span>
+          <span>{{ t('dashboard.summary.overdue') }}</span>
           <strong>{{ overdueTasks.length }}</strong>
         </article>
 
         <article class="summary-card completed">
-          <span>Erledigt</span>
+          <span>{{ t('dashboard.summary.completed') }}</span>
           <strong>{{ completedTasks.length }}</strong>
         </article>
       </div>
@@ -124,21 +116,20 @@ onMounted(loadDashboard)
       <section class="next-section">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">ALS NÄCHSTES</p>
-            <h2>Nächste Aufgaben</h2>
+            <p class="eyebrow">
+              {{ t('dashboard.next.eyebrow') }}
+            </p>
+            <h2>{{ t('dashboard.next.title') }}</h2>
           </div>
         </div>
 
-        <div
-          v-if="nextTasks.length === 0"
-          class="empty-state"
-        >
-          <h3>Keine offenen Aufgaben</h3>
+        <div v-if="nextTasks.length === 0" class="empty-state">
+          <h3>{{ t('dashboard.next.emptyTitle') }}</h3>
           <p>
-            Aktuell stehen keine offenen Aufgaben an.
+            {{ t('dashboard.next.emptyDescription') }}
           </p>
           <RouterLink to="/modules">
-            Zu den Lernmodulen
+            {{ t('dashboard.next.openModules') }}
           </RouterLink>
         </div>
 
@@ -163,7 +154,7 @@ onMounted(loadDashboard)
 
             <div class="due-date">
               <span v-if="isOverdue(task.dueDateUtc)">
-                Überfällig
+                {{ t('dashboard.next.overdue') }}
               </span>
               <time :datetime="task.dueDateUtc">
                 {{ formatDate(task.dueDateUtc) }}
@@ -224,17 +215,8 @@ h2 {
   border: 1px solid #0755c7;
   border-radius: 0.5rem;
   background:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 24%) 0%,
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      #2781f5 0%,
-      #0c66e4 55%,
-      #0754bd 100%
-    );
+    linear-gradient(180deg, rgb(255 255 255 / 24%) 0%, transparent 42%),
+    linear-gradient(145deg, #2781f5 0%, #0c66e4 55%, #0754bd 100%);
   color: white;
   font-weight: 700;
   box-shadow:
@@ -283,12 +265,7 @@ h2 {
   border: 1px solid #dfe1e6;
   border-top: 0.65rem solid #0c66e4;
   border-radius: 0.75rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 55%,
-    #f4f7fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 55%, #f4f7fb 100%);
   box-shadow:
     0 0.7rem 1.4rem rgb(9 30 66 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 95%);
@@ -304,12 +281,7 @@ h2 {
   width: 70%;
   height: 7rem;
   transform: rotate(-12deg);
-  background: linear-gradient(
-    110deg,
-    transparent 10%,
-    rgb(255 255 255 / 75%) 50%,
-    transparent 90%
-  );
+  background: linear-gradient(110deg, transparent 10%, rgb(255 255 255 / 75%) 50%, transparent 90%);
   content: '';
   pointer-events: none;
 }
@@ -369,12 +341,7 @@ h2 {
   border: 1px solid #dfe1e6;
   border-left: 0.55rem solid #0c66e4;
   border-radius: 0.75rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 62%,
-    #f4f7fb 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 62%, #f4f7fb 100%);
   color: #172b4d;
   box-shadow:
     0 0.55rem 1.2rem rgb(9 30 66 / 10%),
@@ -393,12 +360,7 @@ h2 {
   width: 38%;
   height: 8rem;
   transform: rotate(-10deg);
-  background: linear-gradient(
-    110deg,
-    transparent 10%,
-    rgb(255 255 255 / 72%) 50%,
-    transparent 90%
-  );
+  background: linear-gradient(110deg, transparent 10%, rgb(255 255 255 / 72%) 50%, transparent 90%);
   content: '';
   pointer-events: none;
 }

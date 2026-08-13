@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import type { SaveModuleRequest } from './moduleModels'
 
@@ -13,8 +14,8 @@ const props = withDefaults(
   {
     initialValues: () => ({ name: '' }),
     isSubmitting: false,
-    title: 'Neues Lernmodul',
-    submitLabel: 'Lernmodul speichern',
+    title: '',
+    submitLabel: '',
   },
 )
 
@@ -22,6 +23,11 @@ const emit = defineEmits<{
   save: [request: SaveModuleRequest]
   cancel: []
 }>()
+
+const { t } = useI18n()
+
+const displayedTitle = computed(() => props.title || t('modules.form.newTitle'))
+const displayedSubmitLabel = computed(() => props.submitLabel || t('modules.form.create'))
 
 const name = ref('')
 const code = ref('')
@@ -57,36 +63,24 @@ function submit(): void {
   const normalizedColor = color.value.trim()
 
   if (!normalizedName) {
-    nameError.value = 'Bitte gib einen Namen ein.'
+    nameError.value = t('modules.form.validation.nameRequired')
   } else if (normalizedName.length > 100) {
-    nameError.value =
-      'Der Name darf höchstens 100 Zeichen enthalten.'
+    nameError.value = t('modules.form.validation.nameMax')
   }
 
   if (normalizedCode.length > 30) {
-    codeError.value =
-      'Das Kürzel darf höchstens 30 Zeichen enthalten.'
+    codeError.value = t('modules.form.validation.codeMax')
   }
 
   if (normalizedDescription.length > 1000) {
-    descriptionError.value =
-      'Die Beschreibung darf höchstens 1000 Zeichen enthalten.'
+    descriptionError.value = t('modules.form.validation.descriptionMax')
   }
 
-  if (
-    normalizedColor
-    && !/^#[0-9A-Fa-f]{6}$/.test(normalizedColor)
-  ) {
-    colorError.value =
-      'Die Farbe muss das Format #RRGGBB verwenden.'
+  if (normalizedColor && !/^#[0-9A-Fa-f]{6}$/.test(normalizedColor)) {
+    colorError.value = t('modules.form.validation.colorFormat')
   }
 
-  if (
-    nameError.value
-    || codeError.value
-    || descriptionError.value
-    || colorError.value
-  ) {
+  if (nameError.value || codeError.value || descriptionError.value || colorError.value) {
     return
   }
 
@@ -110,14 +104,14 @@ function clearErrors(): void {
   <form class="module-form" novalidate @submit.prevent="submit">
     <div class="form-heading">
       <div>
-        <p class="form-eyebrow">LERNMODUL</p>
-        <h2>{{ title }}</h2>
+        <p class="form-eyebrow">{{ t('modules.form.eyebrow') }}</p>
+        <h2>{{ displayedTitle }}</h2>
       </div>
 
       <button
         class="close-button"
         type="button"
-        aria-label="Formular schließen"
+        :aria-label="t('modules.form.close')"
         :disabled="isSubmitting"
         @click="emit('cancel')"
       >
@@ -127,13 +121,13 @@ function clearErrors(): void {
 
     <div class="form-grid">
       <div class="form-field name-field">
-        <label for="module-name">Name *</label>
+        <label for="module-name">{{ t('modules.form.fields.name') }}</label>
         <input
           id="module-name"
           v-model="name"
           maxlength="100"
           autocomplete="off"
-          placeholder="z. B. Sichere Systeme"
+          :placeholder="t('modules.form.placeholders.name')"
           :aria-invalid="Boolean(nameError)"
           :aria-describedby="nameError ? 'module-name-error' : undefined"
         />
@@ -143,13 +137,13 @@ function clearErrors(): void {
       </div>
 
       <div class="form-field code-field">
-        <label for="module-code">Kürzel</label>
+        <label for="module-code">{{ t('modules.form.fields.code') }}</label>
         <input
           id="module-code"
           v-model="code"
           maxlength="30"
           autocomplete="off"
-          placeholder="z. B. SIS"
+          :placeholder="t('modules.form.placeholders.code')"
           :aria-invalid="Boolean(codeError)"
           :aria-describedby="codeError ? 'module-code-error' : undefined"
         />
@@ -159,31 +153,25 @@ function clearErrors(): void {
       </div>
 
       <div class="form-field description-field">
-        <label for="module-description">Beschreibung</label>
+        <label for="module-description">
+          {{ t('modules.form.fields.description') }}
+        </label>
         <textarea
           id="module-description"
           v-model="description"
           maxlength="1000"
           rows="4"
-          placeholder="Worum geht es in diesem Lernmodul?"
+          :placeholder="t('modules.form.placeholders.description')"
           :aria-invalid="Boolean(descriptionError)"
-          :aria-describedby="
-            descriptionError
-              ? 'module-description-error'
-              : undefined
-          "
+          :aria-describedby="descriptionError ? 'module-description-error' : undefined"
         />
-        <p
-          v-if="descriptionError"
-          id="module-description-error"
-          class="field-error"
-        >
+        <p v-if="descriptionError" id="module-description-error" class="field-error">
           {{ descriptionError }}
         </p>
       </div>
 
       <div class="form-field color-field">
-        <label for="module-color">Farbe</label>
+        <label for="module-color">{{ t('modules.form.fields.color') }}</label>
         <div class="color-control">
           <input
             id="module-color"
@@ -208,14 +196,10 @@ function clearErrors(): void {
         :disabled="isSubmitting"
         @click="emit('cancel')"
       >
-        Abbrechen
+        {{ t('modules.form.cancel') }}
       </button>
-      <button
-        class="primary-button"
-        type="submit"
-        :disabled="isSubmitting"
-      >
-        {{ isSubmitting ? 'Wird gespeichert …' : submitLabel }}
+      <button class="primary-button" type="submit" :disabled="isSubmitting">
+        {{ isSubmitting ? t('modules.form.saving') : displayedSubmitLabel }}
       </button>
     </div>
   </form>
@@ -230,13 +214,7 @@ function clearErrors(): void {
   padding: 1.5rem;
   border: 1px solid #b6c2cf;
   border-radius: 1rem;
-  background:
-    linear-gradient(
-      145deg,
-      #ffffff 0%,
-      #ffffff 54%,
-      #f5f8fc 100%
-    );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f5f8fc 100%);
   box-shadow:
     0 1.15rem 2.4rem rgb(9 30 66 / 13%),
     0 0.25rem 0.7rem rgb(9 30 66 / 8%),
@@ -320,13 +298,7 @@ textarea {
   padding: 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background:
-    linear-gradient(
-      145deg,
-      #ffffff 0%,
-      #ffffff 58%,
-      #f3f6fa 100%
-    );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 58%, #f3f6fa 100%);
   color: #172b4d;
   box-shadow:
     0 0.3rem 0.7rem rgb(9 30 66 / 7%),
@@ -401,12 +373,7 @@ output {
 
 .primary-button {
   border: 1px solid #0c66e4;
-  background: linear-gradient(
-    145deg,
-    #1f7bf2 0%,
-    #0c66e4 58%,
-    #0754bd 100%
-  );
+  background: linear-gradient(145deg, #1f7bf2 0%, #0c66e4 58%, #0754bd 100%);
   color: #ffffff;
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import ChangePasswordForm from '@/features/profile/ChangePasswordForm.vue'
 import type {
@@ -8,6 +9,8 @@ import type {
 } from '@/features/profile/profileModels'
 import { profileService } from '@/features/profile/profileService'
 import { ApiError } from '@/services/api/apiClient'
+
+const { locale, t } = useI18n()
 
 const profile = ref<UserProfile | null>(null)
 const firstName = ref('')
@@ -22,7 +25,15 @@ const successMessage = ref('')
 const isBirthDatePickerOpen = ref(false)
 const birthCalendarMonth = ref(startOfMonth(new Date()))
 
-const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+const dateLocale = computed(() =>
+  locale.value === 'en' ? 'en-GB' : 'de-DE',
+)
+
+const weekDays = computed(() =>
+  locale.value === 'en'
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+)
 
 const today = computed(() => formatDateOnly(new Date()))
 
@@ -30,10 +41,10 @@ const displayedDateOfBirth = computed(() => {
   const date = parseDateOnly(dateOfBirth.value)
 
   if (!date) {
-    return 'Geburtsdatum auswählen'
+    return t('profile.placeholders.birthDate')
   }
 
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat(dateLocale.value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -41,7 +52,7 @@ const displayedDateOfBirth = computed(() => {
 })
 
 const birthCalendarMonthName = computed(() =>
-  new Intl.DateTimeFormat('de-DE', {
+  new Intl.DateTimeFormat(dateLocale.value, {
     month: 'long',
   }).format(birthCalendarMonth.value),
 )
@@ -90,7 +101,7 @@ async function loadProfile(): Promise<void> {
   } catch (error: unknown) {
     errorMessage.value = getErrorMessage(
       error,
-      'Dein Profil konnte nicht geladen werden.',
+      t('profile.errors.load'),
     )
   } finally {
     isLoading.value = false
@@ -105,8 +116,7 @@ async function saveProfile(): Promise<void> {
     dateOfBirth.value
     && dateOfBirth.value > today.value
   ) {
-    errorMessage.value =
-      'Das Geburtsdatum darf nicht in der Zukunft liegen.'
+    errorMessage.value = t('profile.errors.birthDateFuture')
     return
   }
 
@@ -121,12 +131,11 @@ async function saveProfile(): Promise<void> {
     })
 
     applyProfile(updatedProfile)
-    successMessage.value =
-      'Dein Profil wurde erfolgreich gespeichert.'
+    successMessage.value = t('profile.success.saved')
   } catch (error: unknown) {
     errorMessage.value = getErrorMessage(
       error,
-      'Dein Profil konnte nicht gespeichert werden.',
+      t('profile.errors.save'),
     )
   } finally {
     isSaving.value = false
@@ -272,10 +281,10 @@ function getErrorMessage(
 <template>
   <section class="profile-page">
     <div class="page-heading">
-      <p class="eyebrow">DEIN KONTO</p>
-      <h1>Profil</h1>
+      <p class="eyebrow">{{ t('profile.eyebrow') }}</p>
+      <h1>{{ t('profile.title') }}</h1>
       <p>
-        Verwalte deine persönlichen Angaben.
+        {{ t('profile.description') }}
       </p>
     </div>
 
@@ -284,7 +293,7 @@ function getErrorMessage(
       class="status-card"
       role="status"
     >
-      Profil wird geladen …
+      {{ t('profile.loading') }}
     </p>
 
     <div
@@ -294,7 +303,7 @@ function getErrorMessage(
     >
       <p>{{ errorMessage }}</p>
       <button type="button" @click="loadProfile">
-        Erneut versuchen
+        {{ t('profile.retry') }}
       </button>
     </div>
 
@@ -310,11 +319,13 @@ function getErrorMessage(
         </div>
 
         <div>
-          <p class="card-eyebrow">PERSÖNLICHE DATEN</p>
+          <p class="card-eyebrow">
+            {{ t('profile.personalData.eyebrow') }}
+          </p>
           <h2>
             {{ firstName || lastName
               ? `${firstName} ${lastName}`.trim()
-              : 'Dein Profil' }}
+              : t('profile.personalData.defaultName') }}
           </h2>
         </div>
       </div>
@@ -337,31 +348,37 @@ function getErrorMessage(
 
       <div class="form-grid">
         <div class="form-field">
-          <label for="profile-first-name">Vorname</label>
+          <label for="profile-first-name">
+            {{ t('profile.fields.firstName') }}
+          </label>
           <input
             id="profile-first-name"
             v-model="firstName"
             type="text"
             autocomplete="given-name"
             maxlength="100"
-            placeholder="Dein Vorname"
+            :placeholder="t('profile.placeholders.firstName')"
           />
         </div>
 
         <div class="form-field">
-          <label for="profile-last-name">Nachname</label>
+          <label for="profile-last-name">
+            {{ t('profile.fields.lastName') }}
+          </label>
           <input
             id="profile-last-name"
             v-model="lastName"
             type="text"
             autocomplete="family-name"
             maxlength="100"
-            placeholder="Dein Nachname"
+            :placeholder="t('profile.placeholders.lastName')"
           />
         </div>
 
         <div class="form-field form-field-wide">
-          <label for="profile-email">E-Mail-Adresse</label>
+          <label for="profile-email">
+            {{ t('profile.fields.email') }}
+          </label>
           <input
             id="profile-email"
             :value="profile.email"
@@ -371,13 +388,13 @@ function getErrorMessage(
             aria-describedby="profile-email-help"
           />
           <small id="profile-email-help">
-            Die E-Mail-Adresse kann momentan nicht geändert werden.
+            {{ t('profile.fields.emailHelp') }}
           </small>
         </div>
 
         <div class="form-field birth-date-field">
           <label for="profile-date-of-birth-display">
-            Geburtsdatum
+            {{ t('profile.fields.birthDate') }}
           </label>
           <input
             id="profile-date-of-birth"
@@ -406,14 +423,14 @@ function getErrorMessage(
             class="date-picker-popover"
             role="dialog"
             aria-modal="false"
-            aria-label="Geburtsdatum auswählen"
+            :aria-label="t('profile.calendar.label')"
             @keydown.esc="isBirthDatePickerOpen = false"
           >
             <div class="calendar-header">
               <button
                 class="month-button"
                 type="button"
-                aria-label="Vorheriger Monat"
+                :aria-label="t('profile.calendar.previousMonth')"
                 @click="changeBirthCalendarMonth(-1)"
               >
                 ‹
@@ -424,7 +441,7 @@ function getErrorMessage(
                 </strong>
                 <input
                   class="calendar-year-select"
-                  aria-label="Jahr auswählen"
+                  :aria-label="t('profile.calendar.year')"
                   type="text"
                   inputmode="numeric"
                   maxlength="4"
@@ -436,7 +453,7 @@ function getErrorMessage(
               <button
                 class="month-button"
                 type="button"
-                aria-label="Nächster Monat"
+                :aria-label="t('profile.calendar.nextMonth')"
                 @click="changeBirthCalendarMonth(1)"
               >
                 ›
@@ -464,7 +481,7 @@ function getErrorMessage(
                 }"
                 type="button"
                 :disabled="day.isDisabled"
-                :aria-label="day.date.toLocaleDateString('de-DE')"
+                :aria-label="day.date.toLocaleDateString(dateLocale)"
                 :aria-pressed="day.isSelected"
                 @click="selectBirthDate(day.date, day.isDisabled)"
               >
@@ -479,31 +496,33 @@ function getErrorMessage(
                 :disabled="!dateOfBirth"
                 @click="clearBirthDate"
               >
-                Auswahl entfernen
+                {{ t('profile.calendar.clear') }}
               </button>
               <button
                 class="close-calendar-button"
                 type="button"
                 @click="isBirthDatePickerOpen = false"
               >
-                Schließen
+                {{ t('profile.calendar.close') }}
               </button>
             </div>
           </div>
         </div>
 
         <div class="form-field gender-field">
-          <label for="profile-gender">Geschlecht</label>
+          <label for="profile-gender">
+            {{ t('profile.fields.gender') }}
+          </label>
           <select
             id="profile-gender"
             v-model="gender"
             :class="{ 'gender-placeholder': !gender }"
           >
-            <option value="">Keine Auswahl</option>
-            <option value="Female">Weiblich</option>
-            <option value="Male">Männlich</option>
+            <option value="">{{ t('profile.gender.none') }}</option>
+            <option value="Female">{{ t('profile.gender.female') }}</option>
+            <option value="Male">{{ t('profile.gender.male') }}</option>
             <option value="PreferNotToSay">
-              Keine Angabe
+              {{ t('profile.gender.preferNotToSay') }}
             </option>
           </select>
         </div>
@@ -515,7 +534,11 @@ function getErrorMessage(
           type="submit"
           :disabled="isSaving"
         >
-          {{ isSaving ? 'Wird gespeichert …' : 'Profil speichern' }}
+          {{
+            isSaving
+              ? t('profile.actions.saving')
+              : t('profile.actions.save')
+          }}
         </button>
       </div>
     </form>

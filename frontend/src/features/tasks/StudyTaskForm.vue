@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import type { SaveStudyTaskRequest } from './taskModels'
 
@@ -16,8 +17,8 @@ const props = withDefaults(
       dueDateUtc: '',
     }),
     isSubmitting: false,
-    title: 'Neue Aufgabe',
-    submitLabel: 'Aufgabe speichern',
+    title: '',
+    submitLabel: '',
   },
 )
 
@@ -25,6 +26,12 @@ const emit = defineEmits<{
   save: [request: SaveStudyTaskRequest]
   cancel: []
 }>()
+
+const { locale, t } = useI18n()
+
+const displayedTitle = computed(() => props.title || t('tasks.form.newTitle'))
+const displayedSubmitLabel = computed(() => props.submitLabel || t('tasks.form.create'))
+const dateLocale = computed(() => (locale.value === 'en' ? 'en-GB' : 'de-DE'))
 
 const taskTitle = ref('')
 const description = ref('')
@@ -35,16 +42,20 @@ const dueDateError = ref('')
 const isDatePickerOpen = ref(false)
 const calendarMonth = ref(startOfMonth(new Date()))
 
-const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+const weekDays = computed(() =>
+  locale.value === 'en'
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+)
 
 const displayedDueDate = computed(() => {
   const date = parseLocalDateTime(dueDate.value)
 
   if (!date) {
-    return 'Datum und Uhrzeit auswählen'
+    return t('tasks.form.placeholders.dueDate')
   }
 
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat(dateLocale.value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -54,7 +65,7 @@ const displayedDueDate = computed(() => {
 })
 
 const calendarTitle = computed(() =>
-  new Intl.DateTimeFormat('de-DE', {
+  new Intl.DateTimeFormat(dateLocale.value, {
     month: 'long',
     year: 'numeric',
   }).format(calendarMonth.value),
@@ -79,12 +90,8 @@ const calendarDays = computed(() => {
     return {
       date,
       key: toDateKey(date),
-      isCurrentMonth:
-        date.getMonth() === calendarMonth.value.getMonth(),
-      isSelected: isSameDay(
-        date,
-        parseLocalDateTime(dueDate.value),
-      ),
+      isCurrentMonth: date.getMonth() === calendarMonth.value.getMonth(),
+      isSelected: isSameDay(date, parseLocalDateTime(dueDate.value)),
       isToday: isSameDay(date, new Date()),
     }
   })
@@ -122,28 +129,22 @@ function submit(): void {
   const parsedDueDate = new Date(dueDate.value)
 
   if (!normalizedTitle) {
-    titleError.value = 'Bitte gib einen Titel ein.'
+    titleError.value = t('tasks.form.validation.titleRequired')
   } else if (normalizedTitle.length > 200) {
-    titleError.value =
-      'Der Titel darf höchstens 200 Zeichen enthalten.'
+    titleError.value = t('tasks.form.validation.titleMax')
   }
 
   if (normalizedDescription.length > 2000) {
-    descriptionError.value =
-      'Die Beschreibung darf höchstens 2000 Zeichen enthalten.'
+    descriptionError.value = t('tasks.form.validation.descriptionMax')
   }
 
   if (!dueDate.value) {
-    dueDateError.value = 'Bitte gib ein Fälligkeitsdatum ein.'
+    dueDateError.value = t('tasks.form.validation.dueRequired')
   } else if (Number.isNaN(parsedDueDate.getTime())) {
-    dueDateError.value = 'Das Fälligkeitsdatum ist ungültig.'
+    dueDateError.value = t('tasks.form.validation.dueInvalid')
   }
 
-  if (
-    titleError.value
-    || descriptionError.value
-    || dueDateError.value
-  ) {
+  if (titleError.value || descriptionError.value || dueDateError.value) {
     return
   }
 
@@ -232,10 +233,10 @@ function toDateKey(date: Date): string {
 
 function isSameDay(first: Date, second: Date | null): boolean {
   return Boolean(
-    second
-      && first.getFullYear() === second.getFullYear()
-      && first.getMonth() === second.getMonth()
-      && first.getDate() === second.getDate(),
+    second &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate(),
   )
 }
 
@@ -254,12 +255,9 @@ function toLocalDateTime(value: string): string {
     return ''
   }
 
-  const offsetInMilliseconds =
-    date.getTimezoneOffset() * 60_000
+  const offsetInMilliseconds = date.getTimezoneOffset() * 60_000
 
-  return new Date(date.getTime() - offsetInMilliseconds)
-    .toISOString()
-    .slice(0, 16)
+  return new Date(date.getTime() - offsetInMilliseconds).toISOString().slice(0, 16)
 }
 
 function clearErrors(): void {
@@ -273,14 +271,14 @@ function clearErrors(): void {
   <form class="task-form" novalidate @submit.prevent="submit">
     <div class="form-heading">
       <div>
-        <p class="form-eyebrow">AUFGABE</p>
-        <h2>{{ title }}</h2>
+        <p class="form-eyebrow">{{ t('tasks.form.eyebrow') }}</p>
+        <h2>{{ displayedTitle }}</h2>
       </div>
 
       <button
         class="close-button"
         type="button"
-        aria-label="Formular schließen"
+        :aria-label="t('tasks.form.close')"
         :disabled="isSubmitting"
         @click="emit('cancel')"
       >
@@ -290,13 +288,13 @@ function clearErrors(): void {
 
     <div class="form-grid">
       <div class="form-field title-field">
-        <label for="task-title">Titel *</label>
+        <label for="task-title">{{ t('tasks.form.fields.title') }}</label>
         <input
           id="task-title"
           v-model="taskTitle"
           maxlength="200"
           autocomplete="off"
-          placeholder="z. B. Kapitel 4 wiederholen"
+          :placeholder="t('tasks.form.placeholders.title')"
           :aria-invalid="Boolean(titleError)"
           :aria-describedby="titleError ? 'task-title-error' : undefined"
         />
@@ -306,15 +304,15 @@ function clearErrors(): void {
       </div>
 
       <div class="form-field due-date-field">
-        <label for="task-due-date-display">Fällig am *</label>
+        <label for="task-due-date-display">
+          {{ t('tasks.form.fields.dueDate') }}
+        </label>
         <input
           id="task-due-date"
           v-model="dueDate"
           type="hidden"
           :aria-invalid="Boolean(dueDateError)"
-          :aria-describedby="
-            dueDateError ? 'task-due-date-error' : undefined
-          "
+          :aria-describedby="dueDateError ? 'task-due-date-error' : undefined"
         />
         <button
           id="task-due-date-display"
@@ -328,9 +326,7 @@ function clearErrors(): void {
           type="button"
           aria-haspopup="dialog"
           :aria-expanded="isDatePickerOpen"
-          :aria-describedby="
-            dueDateError ? 'task-due-date-error' : undefined
-          "
+          :aria-describedby="dueDateError ? 'task-due-date-error' : undefined"
           @click="openDatePicker"
         >
           <span>{{ displayedDueDate }}</span>
@@ -342,14 +338,14 @@ function clearErrors(): void {
           class="date-picker-popover"
           role="dialog"
           aria-modal="false"
-          aria-label="Fälligkeitsdatum auswählen"
+          :aria-label="t('tasks.form.calendar.label')"
           @keydown.esc="isDatePickerOpen = false"
         >
           <div class="calendar-header">
             <button
               class="month-button"
               type="button"
-              aria-label="Vorheriger Monat"
+              :aria-label="t('tasks.form.calendar.previousMonth')"
               @click="changeMonth(-1)"
             >
               ‹
@@ -358,17 +354,14 @@ function clearErrors(): void {
             <button
               class="month-button"
               type="button"
-              aria-label="Nächster Monat"
+              :aria-label="t('tasks.form.calendar.nextMonth')"
               @click="changeMonth(1)"
             >
               ›
             </button>
           </div>
 
-          <div
-            class="calendar-grid calendar-weekdays"
-            aria-hidden="true"
-          >
+          <div class="calendar-grid calendar-weekdays" aria-hidden="true">
             <span v-for="weekDay in weekDays" :key="weekDay">
               {{ weekDay }}
             </span>
@@ -385,7 +378,7 @@ function clearErrors(): void {
                 today: day.isToday,
               }"
               type="button"
-              :aria-label="day.date.toLocaleDateString('de-DE')"
+              :aria-label="day.date.toLocaleDateString(dateLocale)"
               :aria-pressed="day.isSelected"
               @click="selectDay(day.date)"
             >
@@ -394,52 +387,39 @@ function clearErrors(): void {
           </div>
 
           <div class="calendar-footer">
-            <label for="task-due-time">Uhrzeit</label>
-            <input
-              id="task-due-time"
-              type="time"
-              :value="selectedTime"
-              @input="updateTime"
-            />
+            <label for="task-due-time">
+              {{ t('tasks.form.calendar.time') }}
+            </label>
+            <input id="task-due-time" type="time" :value="selectedTime" @input="updateTime" />
             <button
               class="date-picker-apply"
               type="button"
               :disabled="!dueDate"
               @click="isDatePickerOpen = false"
             >
-              Übernehmen
+              {{ t('tasks.form.calendar.apply') }}
             </button>
           </div>
         </div>
-        <p
-          v-if="dueDateError"
-          id="task-due-date-error"
-          class="field-error"
-        >
+        <p v-if="dueDateError" id="task-due-date-error" class="field-error">
           {{ dueDateError }}
         </p>
       </div>
 
       <div class="form-field description-field">
-        <label for="task-description">Beschreibung</label>
+        <label for="task-description">
+          {{ t('tasks.form.fields.description') }}
+        </label>
         <textarea
           id="task-description"
           v-model="description"
           maxlength="2000"
           rows="4"
-          placeholder="Was möchtest du für diese Aufgabe erledigen?"
+          :placeholder="t('tasks.form.placeholders.description')"
           :aria-invalid="Boolean(descriptionError)"
-          :aria-describedby="
-            descriptionError
-              ? 'task-description-error'
-              : undefined
-          "
+          :aria-describedby="descriptionError ? 'task-description-error' : undefined"
         />
-        <p
-          v-if="descriptionError"
-          id="task-description-error"
-          class="field-error"
-        >
+        <p v-if="descriptionError" id="task-description-error" class="field-error">
           {{ descriptionError }}
         </p>
       </div>
@@ -452,14 +432,10 @@ function clearErrors(): void {
         :disabled="isSubmitting"
         @click="emit('cancel')"
       >
-        Abbrechen
+        {{ t('tasks.form.cancel') }}
       </button>
-      <button
-        class="primary-button"
-        type="submit"
-        :disabled="isSubmitting"
-      >
-        {{ isSubmitting ? 'Wird gespeichert …' : submitLabel }}
+      <button class="primary-button" type="submit" :disabled="isSubmitting">
+        {{ isSubmitting ? t('tasks.form.saving') : displayedSubmitLabel }}
       </button>
     </div>
   </form>
@@ -474,12 +450,7 @@ function clearErrors(): void {
   padding: 1.5rem;
   border: 1px solid #b6c2cf;
   border-radius: 1rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 54%,
-    #f5f8fc 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 54%, #f5f8fc 100%);
   box-shadow:
     0 1.15rem 2.4rem rgb(9 30 66 / 13%),
     0 0.25rem 0.7rem rgb(9 30 66 / 8%);
@@ -548,12 +519,7 @@ textarea {
   padding: 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 58%,
-    #f3f6fa 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 58%, #f3f6fa 100%);
   color: #172b4d;
   font-size: 1rem;
   line-height: 1.5;
@@ -597,12 +563,7 @@ textarea::placeholder {
   padding: 0.75rem;
   border: 1px solid #b6c2cf;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    145deg,
-    #ffffff 0%,
-    #ffffff 58%,
-    #f3f6fa 100%
-  );
+  background: linear-gradient(145deg, #ffffff 0%, #ffffff 58%, #f3f6fa 100%);
   color: #44546f;
   font: inherit;
   font-size: 1rem;
@@ -856,12 +817,7 @@ textarea:focus {
 
 .primary-button {
   border: 1px solid #0c66e4;
-  background: linear-gradient(
-    145deg,
-    #1f7bf2 0%,
-    #0c66e4 58%,
-    #0754bd 100%
-  );
+  background: linear-gradient(145deg, #1f7bf2 0%, #0c66e4 58%, #0754bd 100%);
   color: #ffffff;
 }
 

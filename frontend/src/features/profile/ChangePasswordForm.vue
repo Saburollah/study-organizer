@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import {
   getPasswordRequirements,
   isPasswordValid,
+  type PasswordRequirementKey,
 } from '@/features/auth/passwordPolicy'
 import { authService } from '@/features/auth/authService'
 import { ApiError } from '@/services/api/apiClient'
+
+const { t } = useI18n()
 
 const currentPassword = ref('')
 const newPassword = ref('')
@@ -21,14 +25,27 @@ const requestError = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
 
+const passwordRequirementKeys: Record<PasswordRequirementKey, string> = {
+  length: 'length',
+  uppercase: 'uppercase',
+  lowercase: 'lowercase',
+  digit: 'digit',
+  'special-character': 'specialCharacter',
+} as const
+
 const passwordRequirements = computed(() =>
-  getPasswordRequirements(newPassword.value),
+  getPasswordRequirements(newPassword.value).map((requirement) => ({
+    ...requirement,
+    label: t(`auth.passwordRequirements.${passwordRequirementKeys[requirement.key]}`),
+  })),
 )
 
-const invalidNewPasswordMessage =
-  'Das neue Passwort erfüllt noch nicht alle Anforderungen.'
-const unchangedPasswordMessage =
-  'Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.'
+const invalidNewPasswordMessage = computed(() =>
+  t('profile.password.validation.invalid'),
+)
+const unchangedPasswordMessage = computed(() =>
+  t('profile.password.validation.unchanged'),
+)
 
 function setFieldError(
   field: string,
@@ -51,9 +68,9 @@ function refreshNewPasswordError(): void {
   }
 
   if (!isPasswordValid(newPassword.value)) {
-    setFieldError('newPassword', invalidNewPasswordMessage)
+    setFieldError('newPassword', invalidNewPasswordMessage.value)
   } else if (newPassword.value === currentPassword.value) {
-    setFieldError('newPassword', unchangedPasswordMessage)
+    setFieldError('newPassword', unchangedPasswordMessage.value)
   } else {
     setFieldError('newPassword')
   }
@@ -80,19 +97,21 @@ function validateForm(): boolean {
   const validationErrors: Record<string, string> = {}
 
   if (!currentPassword.value) {
-    validationErrors.currentPassword =
-      'Bitte gib dein aktuelles Passwort ein.'
+    validationErrors.currentPassword = t(
+      'profile.password.validation.currentRequired',
+    )
   }
 
   if (!isPasswordValid(newPassword.value)) {
-    validationErrors.newPassword = invalidNewPasswordMessage
+    validationErrors.newPassword = invalidNewPasswordMessage.value
   } else if (newPassword.value === currentPassword.value) {
-    validationErrors.newPassword = unchangedPasswordMessage
+    validationErrors.newPassword = unchangedPasswordMessage.value
   }
 
   if (newPasswordConfirmation.value !== newPassword.value) {
-    validationErrors.newPasswordConfirmation =
-      'Die neuen Passwörter stimmen nicht überein.'
+    validationErrors.newPasswordConfirmation = t(
+      'profile.password.validation.confirmationMismatch',
+    )
   }
 
   errors.value = validationErrors
@@ -119,8 +138,7 @@ async function submitPasswordChange(): Promise<void> {
     newPassword.value = ''
     newPasswordConfirmation.value = ''
     errors.value = {}
-    successMessage.value =
-      'Dein Passwort wurde erfolgreich geändert.'
+    successMessage.value = t('profile.password.success')
   } catch (error: unknown) {
     requestError.value = getErrorMessage(error)
   } finally {
@@ -130,7 +148,7 @@ async function submitPasswordChange(): Promise<void> {
 
 function getErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
-    return 'Dein Passwort konnte nicht geändert werden.'
+    return t('profile.password.error')
   }
 
   const validationMessage = Object.values(
@@ -154,10 +172,14 @@ function getErrorMessage(error: unknown): string {
       </div>
 
       <div>
-        <p class="card-eyebrow">SICHERHEIT</p>
-        <h2 id="password-heading">Passwort ändern</h2>
+        <p class="card-eyebrow">
+          {{ t('profile.password.eyebrow') }}
+        </p>
+        <h2 id="password-heading">
+          {{ t('profile.password.title') }}
+        </h2>
         <p class="introduction">
-          Verwende ein neues, einzigartiges Passwort für dein Konto.
+          {{ t('profile.password.description') }}
         </p>
       </div>
     </div>
@@ -169,14 +191,16 @@ function getErrorMessage(error: unknown): string {
     >
       <div class="password-grid">
         <div class="form-field current-password-field">
-          <label for="current-password">Aktuelles Passwort</label>
+          <label for="current-password">
+            {{ t('profile.password.fields.current') }}
+          </label>
           <div class="input-control">
             <input
               id="current-password"
               v-model="currentPassword"
               :type="showCurrentPassword ? 'text' : 'password'"
               autocomplete="current-password"
-              placeholder="Aktuelles Passwort eingeben"
+              :placeholder="t('profile.password.placeholders.current')"
               :aria-invalid="Boolean(errors.currentPassword)"
               :aria-describedby="
                 errors.currentPassword
@@ -189,8 +213,8 @@ function getErrorMessage(error: unknown): string {
               type="button"
               :aria-label="
                 showCurrentPassword
-                  ? 'Aktuelles Passwort ausblenden'
-                  : 'Aktuelles Passwort anzeigen'
+                  ? t('profile.password.visibility.hideCurrent')
+                  : t('profile.password.visibility.showCurrent')
               "
               :aria-pressed="showCurrentPassword"
               @click="showCurrentPassword = !showCurrentPassword"
@@ -212,14 +236,16 @@ function getErrorMessage(error: unknown): string {
         </div>
 
         <div class="form-field">
-          <label for="new-password">Neues Passwort</label>
+          <label for="new-password">
+            {{ t('profile.password.fields.new') }}
+          </label>
           <div class="input-control">
             <input
               id="new-password"
               v-model="newPassword"
               :type="showNewPassword ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="Neues Passwort eingeben"
+              :placeholder="t('profile.password.placeholders.new')"
               :aria-invalid="Boolean(errors.newPassword)"
               :aria-describedby="
                 errors.newPassword
@@ -232,8 +258,8 @@ function getErrorMessage(error: unknown): string {
               type="button"
               :aria-label="
                 showNewPassword
-                  ? 'Neues Passwort ausblenden'
-                  : 'Neues Passwort anzeigen'
+                  ? t('profile.password.visibility.hideNew')
+                  : t('profile.password.visibility.showNew')
               "
               :aria-pressed="showNewPassword"
               @click="showNewPassword = !showNewPassword"
@@ -248,7 +274,7 @@ function getErrorMessage(error: unknown): string {
 
           <ul
             class="password-requirements"
-            aria-label="Anforderungen an das neue Passwort"
+            :aria-label="t('profile.password.requirementsLabel')"
           >
             <li
               v-for="requirement in passwordRequirements"
@@ -276,7 +302,7 @@ function getErrorMessage(error: unknown): string {
 
         <div class="form-field">
           <label for="new-password-confirmation">
-            Neues Passwort bestätigen
+            {{ t('profile.password.fields.confirmation') }}
           </label>
           <div class="input-control">
             <input
@@ -284,7 +310,7 @@ function getErrorMessage(error: unknown): string {
               v-model="newPasswordConfirmation"
               :type="showNewPasswordConfirmation ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="Neues Passwort bestätigen"
+              :placeholder="t('profile.password.placeholders.confirmation')"
               :aria-invalid="Boolean(errors.newPasswordConfirmation)"
               :aria-describedby="
                 errors.newPasswordConfirmation
@@ -297,8 +323,8 @@ function getErrorMessage(error: unknown): string {
               type="button"
               :aria-label="
                 showNewPasswordConfirmation
-                  ? 'Passwortbestätigung ausblenden'
-                  : 'Passwortbestätigung anzeigen'
+                  ? t('profile.password.visibility.hideConfirmation')
+                  : t('profile.password.visibility.showConfirmation')
               "
               :aria-pressed="showNewPasswordConfirmation"
               @click="
@@ -347,8 +373,8 @@ function getErrorMessage(error: unknown): string {
         >
           {{
             isSubmitting
-              ? 'Passwort wird geändert …'
-              : 'Passwort ändern'
+              ? t('profile.password.actions.submitting')
+              : t('profile.password.actions.submit')
           }}
         </button>
       </div>

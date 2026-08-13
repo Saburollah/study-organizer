@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import {
   afterEach,
+  beforeEach,
   describe,
   expect,
   it,
@@ -8,6 +9,7 @@ import {
 } from 'vitest'
 
 import { profileService } from '@/features/profile/profileService'
+import { i18n, setLocale } from '@/i18n'
 
 import ProfileView from '../ProfileView.vue'
 
@@ -21,14 +23,26 @@ const profile = {
 }
 
 describe('ProfileView', () => {
+  beforeEach(() => {
+    setLocale('de')
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
+  function mountView() {
+    return mount(ProfileView, {
+      global: {
+        plugins: [i18n],
+      },
+    })
+  }
+
   it('loads and displays the current profile', async () => {
     vi.spyOn(profileService, 'get').mockResolvedValue(profile)
 
-    const wrapper = mount(ProfileView)
+    const wrapper = mountView()
     await flushPromises()
 
     expect(wrapper.get('#profile-email').attributes('readonly'))
@@ -52,7 +66,7 @@ describe('ProfileView', () => {
         gender: 'Female',
       })
 
-    const wrapper = mount(ProfileView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('#profile-first-name').setValue(' Maria ')
@@ -76,7 +90,7 @@ describe('ProfileView', () => {
   it('selects the date of birth with the custom calendar', async () => {
     vi.spyOn(profileService, 'get').mockResolvedValue(profile)
 
-    const wrapper = mount(ProfileView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('.birth-date-trigger').trigger('click')
@@ -104,7 +118,7 @@ describe('ProfileView', () => {
     vi.spyOn(profileService, 'get').mockResolvedValue(profile)
     const updateMock = vi.spyOn(profileService, 'update')
 
-    const wrapper = mount(ProfileView)
+    const wrapper = mountView()
     await flushPromises()
 
     await wrapper.get('#profile-date-of-birth')
@@ -115,5 +129,18 @@ describe('ProfileView', () => {
     expect(wrapper.get('[role="alert"]').text()).toContain(
       'nicht in der Zukunft',
     )
+  })
+
+  it('shows the profile in English after changing the locale', async () => {
+    setLocale('en')
+    vi.spyOn(profileService, 'get').mockResolvedValue(profile)
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('h1').text()).toBe('Profile')
+    expect(wrapper.text()).toContain('Manage your personal details.')
+    expect(wrapper.text()).toContain('First name')
+    expect(wrapper.text()).toContain('Change password')
   })
 })

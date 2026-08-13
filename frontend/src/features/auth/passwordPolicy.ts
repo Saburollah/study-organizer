@@ -1,12 +1,13 @@
+export type PasswordRequirementKey =
+  'length' | 'uppercase' | 'lowercase' | 'digit' | 'special-character'
+
 export interface PasswordRequirement {
-  key: string
+  key: PasswordRequirementKey
   label: string
   isMet: boolean
 }
 
-export function getPasswordRequirements(
-  password: string,
-): PasswordRequirement[] {
+export function getPasswordRequirements(password: string): PasswordRequirement[] {
   return [
     {
       key: 'length',
@@ -30,17 +31,12 @@ export function getPasswordRequirements(
     },
     {
       key: 'special-character',
-      label:
-        'mindestens ein Sonderzeichen: @ # $ % & * - _ ! + = : , . ? / " ( ) ;',
-      isMet:
-        /[@#$%&*_!+=:,.?/"'();-]/.test(password),
+      label: 'mindestens ein Sonderzeichen: @ # $ % & * - _ ! + = : , . ? / " ( ) ;',
+      isMet: /[@#$%&*_!+=:,.?/"'();-]/.test(password),
     },
   ]
 }
 
-export function isPasswordValid(
-  password: string,
-): boolean {
-  return getPasswordRequirements(password)
-    .every((requirement) => requirement.isMet)
+export function isPasswordValid(password: string): boolean {
+  return getPasswordRequirements(password).every((requirement) => requirement.isMet)
 }

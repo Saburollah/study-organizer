@@ -13,6 +13,326 @@ export default {
     english: 'Englisch',
   },
 
+  auth: {
+    common: {
+      email: 'E-Mail-Adresse',
+      emailPlaceholder: "name{'@'}beispiel.de",
+      password: 'Passwort',
+      passwordPlaceholder: 'Passwort eingeben',
+      showPassword: 'Passwort anzeigen',
+      hidePassword: 'Passwort ausblenden',
+      emailRequired: 'Bitte gib deine E-Mail-Adresse ein.',
+      emailInvalid: 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    },
+
+    login: {
+      eyebrow: 'WILLKOMMEN ZURÜCK',
+      title: 'Anmelden',
+      description: 'Melde dich an, um deine Lernmodule und Aufgaben zu verwalten.',
+      passwordRequired: 'Bitte gib dein Passwort ein.',
+      invalidCredentials: 'E-Mail-Adresse oder Passwort ist falsch.',
+      unexpectedError: 'Die Anmeldung ist unerwartet fehlgeschlagen.',
+      submitting: 'Anmeldung läuft …',
+      submit: 'Anmelden',
+    },
+
+    register: {
+      eyebrow: 'NEUES KONTO',
+      title: 'Registrieren',
+      description: 'Erstelle dein Konto und beginne damit, dein Studium zu organisieren.',
+      passwordInvalid: 'Das Passwort erfüllt noch nicht alle Anforderungen.',
+      confirmation: 'Passwort bestätigen',
+      confirmationPlaceholder: 'Passwort bestätigen',
+      confirmationMismatch: 'Die Passwörter stimmen nicht überein.',
+      showConfirmation: 'Passwortbestätigung anzeigen',
+      hideConfirmation: 'Passwortbestätigung ausblenden',
+      requirementsLabel: 'Passwortanforderungen',
+      unexpectedError: 'Die Registrierung ist unerwartet fehlgeschlagen.',
+      success: '{email} wurde erfolgreich registriert.',
+      submitting: 'Registrierung läuft …',
+      submit: 'Konto erstellen',
+    },
+
+    passwordRequirements: {
+      length: 'mindestens 15 Zeichen',
+      uppercase: 'mindestens ein Großbuchstabe (A–Z)',
+      lowercase: 'mindestens ein Kleinbuchstabe (a–z)',
+      digit: 'mindestens eine Ziffer (0–9)',
+      specialCharacter:
+        "mindestens ein Sonderzeichen: {'@'} # $ % & * - _ ! + = : , . ? / \" ( ) ;",
+    },
+  },
+
+  dashboard: {
+    eyebrow: 'DEIN ÜBERBLICK',
+    title: 'Dashboard',
+    description: 'Behalte deine Lernmodule und Aufgaben im Blick.',
+    manageModules: 'Lernmodule verwalten',
+    loading: 'Dashboard wird geladen …',
+    loadError: 'Das Dashboard konnte nicht geladen werden.',
+    retry: 'Erneut versuchen',
+    summary: {
+      modules: 'Lernmodule',
+      openTasks: 'Offene Aufgaben',
+      overdue: 'Überfällig',
+      completed: 'Erledigt',
+    },
+    next: {
+      eyebrow: 'ALS NÄCHSTES',
+      title: 'Nächste Aufgaben',
+      emptyTitle: 'Keine offenen Aufgaben',
+      emptyDescription: 'Aktuell stehen keine offenen Aufgaben an.',
+      openModules: 'Zu den Lernmodulen',
+      overdue: 'Überfällig',
+    },
+  },
+
+  modules: {
+    eyebrow: 'DEIN STUDIUM',
+    title: 'Lernmodule',
+    description: 'Verwalte hier deine persönlichen Fächer und Vorlesungen.',
+    new: 'Neues Lernmodul',
+    loading: 'Lernmodule werden geladen …',
+    retry: 'Erneut versuchen',
+    errors: {
+      load: 'Die Lernmodule konnten nicht geladen werden.',
+      save: 'Das Lernmodul konnte nicht gespeichert werden.',
+      delete: 'Das Lernmodul konnte nicht gelöscht werden.',
+    },
+    success: {
+      created: 'Das Lernmodul wurde erfolgreich erstellt.',
+      updated: 'Das Lernmodul wurde erfolgreich aktualisiert.',
+      deleted: 'Das Lernmodul wurde erfolgreich gelöscht.',
+    },
+    empty: {
+      title: 'Noch keine Lernmodule',
+      description: 'Erstelle dein erstes Lernmodul, um dein Studium zu organisieren.',
+    },
+    noDescription: 'Keine Beschreibung vorhanden.',
+    actions: {
+      tasks: 'Aufgaben',
+      edit: 'Bearbeiten',
+      delete: 'Löschen',
+      deleting: 'Wird gelöscht …',
+      editAria: '{name} bearbeiten',
+      deleteAria: '{name} löschen',
+    },
+    form: {
+      eyebrow: 'LERNMODUL',
+      newTitle: 'Neues Lernmodul',
+      editTitle: 'Lernmodul bearbeiten',
+      create: 'Lernmodul speichern',
+      saveChanges: 'Änderungen speichern',
+      saving: 'Wird gespeichert …',
+      close: 'Formular schließen',
+      cancel: 'Abbrechen',
+      fields: {
+        name: 'Name *',
+        code: 'Kürzel',
+        description: 'Beschreibung',
+        color: 'Farbe',
+      },
+      placeholders: {
+        name: 'z. B. Sichere Systeme',
+        code: 'z. B. SIS',
+        description: 'Worum geht es in diesem Lernmodul?',
+      },
+      validation: {
+        nameRequired: 'Bitte gib einen Namen ein.',
+        nameMax: 'Der Name darf höchstens 100 Zeichen enthalten.',
+        codeMax: 'Das Kürzel darf höchstens 30 Zeichen enthalten.',
+        descriptionMax: 'Die Beschreibung darf höchstens 1000 Zeichen enthalten.',
+        colorFormat: 'Die Farbe muss das Format #RRGGBB verwenden.',
+      },
+    },
+    deleteDialog: {
+      close: 'Löschdialog schließen',
+      eyebrow: 'LERNMODUL LÖSCHEN',
+      title: 'Wirklich löschen?',
+      message:
+        'Möchtest du das Lernmodul „{name}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+      cancel: 'Abbrechen',
+      confirm: 'Löschen',
+    },
+  },
+
+  tasks: {
+    back: '← Zurück zu den Lernmodulen',
+    eyebrow: 'LERNMODUL',
+    title: 'Aufgaben',
+    description: 'Plane deine Aufgaben, Fälligkeiten und deinen Bearbeitungsstand.',
+    new: 'Neue Aufgabe',
+    loading: 'Aufgaben werden geladen …',
+    retry: 'Erneut versuchen',
+    errors: {
+      moduleNotFound: 'Das ausgewählte Lernmodul wurde nicht gefunden.',
+      load: 'Die Aufgaben konnten nicht geladen werden.',
+      save: 'Die Aufgabe konnte nicht gespeichert werden.',
+      status: 'Der Aufgabenstatus konnte nicht geändert werden.',
+      delete: 'Die Aufgabe konnte nicht gelöscht werden.',
+    },
+    success: {
+      created: 'Die Aufgabe wurde erfolgreich erstellt.',
+      updated: 'Die Aufgabe wurde erfolgreich aktualisiert.',
+      completed: 'Die Aufgabe wurde als erledigt markiert.',
+      reopened: 'Die Aufgabe wurde wieder geöffnet.',
+      deleted: 'Die Aufgabe wurde erfolgreich gelöscht.',
+    },
+    empty: {
+      title: 'Noch keine Aufgaben',
+      description: 'Erstelle deine erste Aufgabe für dieses Lernmodul.',
+    },
+    noDescription: 'Keine Beschreibung vorhanden.',
+    status: {
+      open: 'Offen',
+      completed: 'Erledigt',
+    },
+    due: {
+      due: 'Fällig:',
+      overdue: 'Überfällig:',
+    },
+    actions: {
+      edit: 'Bearbeiten',
+      delete: 'Löschen',
+      deleting: 'Wird gelöscht …',
+      editAria: '{title} bearbeiten',
+      deleteAria: '{title} löschen',
+      reopenAria: '{title} wieder öffnen',
+      completeAria: '{title} als erledigt markieren',
+    },
+    form: {
+      eyebrow: 'AUFGABE',
+      newTitle: 'Neue Aufgabe',
+      editTitle: 'Aufgabe bearbeiten',
+      create: 'Aufgabe speichern',
+      saveChanges: 'Änderungen speichern',
+      saving: 'Wird gespeichert …',
+      close: 'Formular schließen',
+      cancel: 'Abbrechen',
+      fields: {
+        title: 'Titel *',
+        dueDate: 'Fällig am *',
+        description: 'Beschreibung',
+      },
+      placeholders: {
+        title: 'z. B. Kapitel 4 wiederholen',
+        dueDate: 'Datum und Uhrzeit auswählen',
+        description: 'Was möchtest du für diese Aufgabe erledigen?',
+      },
+      validation: {
+        titleRequired: 'Bitte gib einen Titel ein.',
+        titleMax: 'Der Titel darf höchstens 200 Zeichen enthalten.',
+        descriptionMax: 'Die Beschreibung darf höchstens 2000 Zeichen enthalten.',
+        dueRequired: 'Bitte gib ein Fälligkeitsdatum ein.',
+        dueInvalid: 'Das Fälligkeitsdatum ist ungültig.',
+      },
+      calendar: {
+        label: 'Fälligkeitsdatum auswählen',
+        previousMonth: 'Vorheriger Monat',
+        nextMonth: 'Nächster Monat',
+        time: 'Uhrzeit',
+        apply: 'Übernehmen',
+      },
+    },
+    deleteDialog: {
+      close: 'Löschdialog schließen',
+      eyebrow: 'AUFGABE LÖSCHEN',
+      title: 'Wirklich löschen?',
+      message:
+        'Möchtest du die Aufgabe „{title}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+      cancel: 'Abbrechen',
+      confirm: 'Löschen',
+    },
+  },
+
+  profile: {
+    eyebrow: 'DEIN KONTO',
+    title: 'Profil',
+    description: 'Verwalte deine persönlichen Angaben.',
+    loading: 'Profil wird geladen …',
+    retry: 'Erneut versuchen',
+    errors: {
+      load: 'Dein Profil konnte nicht geladen werden.',
+      save: 'Dein Profil konnte nicht gespeichert werden.',
+      birthDateFuture: 'Das Geburtsdatum darf nicht in der Zukunft liegen.',
+    },
+    success: {
+      saved: 'Dein Profil wurde erfolgreich gespeichert.',
+    },
+    personalData: {
+      eyebrow: 'PERSÖNLICHE DATEN',
+      defaultName: 'Dein Profil',
+    },
+    fields: {
+      firstName: 'Vorname',
+      lastName: 'Nachname',
+      email: 'E-Mail-Adresse',
+      emailHelp: 'Die E-Mail-Adresse kann momentan nicht geändert werden.',
+      birthDate: 'Geburtsdatum',
+      gender: 'Geschlecht',
+    },
+    placeholders: {
+      firstName: 'Dein Vorname',
+      lastName: 'Dein Nachname',
+      birthDate: 'Geburtsdatum auswählen',
+    },
+    gender: {
+      none: 'Keine Auswahl',
+      female: 'Weiblich',
+      male: 'Männlich',
+      preferNotToSay: 'Keine Angabe',
+    },
+    calendar: {
+      label: 'Geburtsdatum auswählen',
+      previousMonth: 'Vorheriger Monat',
+      nextMonth: 'Nächster Monat',
+      year: 'Jahr auswählen',
+      clear: 'Auswahl entfernen',
+      close: 'Schließen',
+      weekDays: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+    },
+    actions: {
+      saving: 'Wird gespeichert …',
+      save: 'Profil speichern',
+    },
+    password: {
+      eyebrow: 'SICHERHEIT',
+      title: 'Passwort ändern',
+      description: 'Verwende ein neues, einzigartiges Passwort für dein Konto.',
+      fields: {
+        current: 'Aktuelles Passwort',
+        new: 'Neues Passwort',
+        confirmation: 'Neues Passwort bestätigen',
+      },
+      placeholders: {
+        current: 'Aktuelles Passwort eingeben',
+        new: 'Neues Passwort eingeben',
+        confirmation: 'Neues Passwort bestätigen',
+      },
+      visibility: {
+        showCurrent: 'Aktuelles Passwort anzeigen',
+        hideCurrent: 'Aktuelles Passwort ausblenden',
+        showNew: 'Neues Passwort anzeigen',
+        hideNew: 'Neues Passwort ausblenden',
+        showConfirmation: 'Passwortbestätigung anzeigen',
+        hideConfirmation: 'Passwortbestätigung ausblenden',
+      },
+      requirementsLabel: 'Anforderungen an das neue Passwort',
+      validation: {
+        currentRequired: 'Bitte gib dein aktuelles Passwort ein.',
+        invalid: 'Das neue Passwort erfüllt noch nicht alle Anforderungen.',
+        unchanged: 'Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.',
+        confirmationMismatch: 'Die neuen Passwörter stimmen nicht überein.',
+      },
+      success: 'Dein Passwort wurde erfolgreich geändert.',
+      error: 'Dein Passwort konnte nicht geändert werden.',
+      actions: {
+        submitting: 'Passwort wird geändert …',
+        submit: 'Passwort ändern',
+      },
+    },
+  },
+
   home: {
     hero: {
       eyebrow: 'DEIN STUDIUM. DEIN PLAN.',
@@ -56,20 +376,17 @@ export default {
     features: {
       eyebrow: 'ALLES IM BLICK',
       title: 'Deine Werkzeuge für ein klares Semester',
-      description:
-        'Weniger zwischen Apps wechseln – mehr Zeit für das, was wirklich zählt.',
+      description: 'Weniger zwischen Apps wechseln – mehr Zeit für das, was wirklich zählt.',
 
       modules: {
         title: 'Lernmodule',
-        description:
-          'Bündele Vorlesungen und Fächer übersichtlich mit eigenen Farben und Kürzeln.',
+        description: 'Bündele Vorlesungen und Fächer übersichtlich mit eigenen Farben und Kürzeln.',
         detail: 'Ordnung für jedes Semester',
       },
 
       tasks: {
         title: 'Aufgaben',
-        description:
-          'Plane deine nächsten Schritte, setze Fristen und hake Erledigtes einfach ab.',
+        description: 'Plane deine nächsten Schritte, setze Fristen und hake Erledigtes einfach ab.',
         detail: 'Keine Frist mehr vergessen',
       },
 
