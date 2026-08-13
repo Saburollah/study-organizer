@@ -18,6 +18,11 @@ export interface LoginUserResponse {
   expiresAtUtc: string
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 export interface AuthSession {
   email: string
   accessToken: string

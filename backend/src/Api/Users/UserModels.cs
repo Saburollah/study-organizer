@@ -29,6 +29,17 @@ public sealed class LoginUserRequest
     public string Password { get; init; } = string.Empty;
 }
 
+public sealed class ChangePasswordRequest
+{
+    [Required]
+    [StringLength(1024)]
+    public string CurrentPassword { get; init; } = string.Empty;
+
+    [Required]
+    [StringLength(1024)]
+    public string NewPassword { get; init; } = string.Empty;
+}
+
 public sealed record LoginUserResponse(
     string AccessToken,
     DateTimeOffset ExpiresAtUtc);

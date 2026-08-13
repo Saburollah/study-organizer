@@ -74,11 +74,56 @@ public sealed class UserHandler(
             user.Email ?? email);
     }
 
+    public async Task<ChangePasswordResult> ChangePasswordAsync(
+        Guid userId,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await userManager.FindByIdAsync(
+            userId.ToString());
+
+        if (user is null)
+        {
+            return ChangePasswordFailed(
+                "The password could not be changed.");
+        }
+
+        var identityResult =
+            await userManager.ChangePasswordAsync(
+                user,
+                currentPassword,
+                newPassword);
+
+        if (!identityResult.Succeeded)
+        {
+            return new ChangePasswordResult(
+                false,
+                identityResult.Errors
+                    .Select(error => error.Description)
+                    .ToArray());
+        }
+
+        return new ChangePasswordResult(
+            true,
+            Array.Empty<string>());
+    }
+
     private static UserLoginResult LoginFailed()
     {
         return new UserLoginResult(
             false,
             null,
             null);
+    }
+
+    private static ChangePasswordResult ChangePasswordFailed(
+        string error)
+    {
+        return new ChangePasswordResult(
+            false,
+            new[] { error });
     }
 }
