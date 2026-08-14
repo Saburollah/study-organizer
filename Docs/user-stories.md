@@ -1,102 +1,153 @@
-# User Stories – Study Organizer
+# User Stories
 
-## US-01: Registrierung
+## US-01 – Konto registrieren
 
-Als Student möchte ich ein Benutzerkonto erstellen, damit meine Daten
-persönlich gespeichert werden können.
+**Als** Gast \
+**möchte ich** mich mit E-Mail-Adresse und sicherem Passwort registrieren, \
+**damit** ich meine persönlichen Studiendaten speichern kann.
 
-### Akzeptanzkriterien
+**Akzeptanzkriterien**
 
-- Der Benutzer gibt eine E-Mail-Adresse und ein Passwort ein.
-- Die E-Mail-Adresse muss gültig sein.
-- Die E-Mail-Adresse darf nur einmal registriert werden.
-- Das Passwort muss die festgelegten Sicherheitsanforderungen erfüllen.
-- Das Passwort wird niemals im Klartext gespeichert.
-- Bei ungültigen Eingaben wird eine verständliche Fehlermeldung angezeigt.
+- Die E-Mail-Adresse muss gültig und eindeutig sein.
+- Das Passwort erfüllt alle angezeigten Passwortregeln.
+- Bei Erfolg wird das Konto erstellt.
+- Fehler werden verständlich angezeigt.
 
----
+## US-02 – Anmelden und Sitzung behalten
 
-## US-02: Anmeldung
+**Als** registrierter Benutzer \
+**möchte ich** mich anmelden und nach einem Neuladen angemeldet bleiben, \
+**damit** ich ohne wiederholte Anmeldung weiterarbeiten kann.
 
-Als registrierter Student möchte ich mich anmelden, damit ich auf meine
-persönlichen Module und Aufgaben zugreifen kann.
+**Akzeptanzkriterien**
 
-### Akzeptanzkriterien
+- Gültige Zugangsdaten liefern ein JWT.
+- Ungültige Zugangsdaten liefern keine vertraulichen Details.
+- Geschützte Seiten sind ohne gültige Sitzung nicht erreichbar.
+- Eine noch gültige lokale Sitzung wird beim App-Start wiederhergestellt.
 
-- Der Benutzer kann sich mit E-Mail-Adresse und Passwort anmelden.
-- Falsche Anmeldedaten führen nicht zur Anmeldung.
-- Nach erfolgreicher Anmeldung erhält der Benutzer Zugriff auf seine Daten.
-- Der Benutzer kann sich wieder abmelden.
+## US-03 – Abmelden
 
----
+**Als** angemeldeter Benutzer \
+**möchte ich** mich abmelden, \
+**damit** meine Sitzung auf dem Gerät beendet wird.
 
-## US-03: Modul erstellen
+**Akzeptanzkriterien**
 
-Als Student möchte ich ein Modul erstellen, damit ich meine Aufgaben einem
-Studienmodul zuordnen kann.
+- Token und lokale Sitzungsdaten werden entfernt.
+- Geschützte Seiten sind danach nicht mehr erreichbar.
 
-### Akzeptanzkriterien
+## US-04 – Profil verwalten
 
-- Ein angemeldeter Benutzer kann ein Modul erstellen.
-- Ein Modul benötigt einen Namen.
-- Modulcode, Beschreibung und Farbe sind optional.
-- Das Modul wird dem angemeldeten Benutzer zugeordnet.
+**Als** angemeldeter Benutzer \
+**möchte ich** meine persönlichen Profildaten anzeigen und bearbeiten, \
+**damit** mein Konto meine aktuellen Angaben enthält.
+
+**Akzeptanzkriterien**
+
+- E-Mail-Adresse, Vorname, Nachname, Geburtsdatum und Geschlecht werden angezeigt.
+- Die E-Mail-Adresse ist nicht änderbar.
+- Ein zukünftiges Geburtsdatum wird abgelehnt.
+- Gespeicherte Änderungen sind nach einem Neuladen weiterhin vorhanden.
+
+## US-05 – Passwort ändern
+
+**Als** angemeldeter Benutzer \
+**möchte ich** mein Passwort ändern, \
+**damit** ich die Sicherheit meines Kontos kontrollieren kann.
+
+**Akzeptanzkriterien**
+
+- Das aktuelle Passwort muss korrekt sein.
+- Das neue Passwort erfüllt dieselben Sicherheitsregeln wie bei der Registrierung.
+- Das neue Passwort wird bestätigt.
+- Nach Erfolg ist eine Anmeldung mit dem neuen Passwort möglich.
+
+## US-06 – Lernmodul erstellen
+
+**Als** angemeldeter Benutzer \
+**möchte ich** ein Lernmodul anlegen, \
+**damit** ich Aufgaben einem Fach oder einer Vorlesung zuordnen kann.
+
+**Akzeptanzkriterien**
+
+- Ein Name ist erforderlich.
+- Kürzel, Beschreibung und Farbe sind optional.
+- Das neue Modul erscheint in meiner Modulliste.
 - Andere Benutzer können das Modul nicht sehen.
 
----
+## US-07 – Lernmodule verwalten
 
-## US-04: Module verwalten
+**Als** angemeldeter Benutzer \
+**möchte ich** eigene Lernmodule anzeigen, bearbeiten und löschen, \
+**damit** meine Studienstruktur aktuell bleibt.
 
-Als Student möchte ich meine Module anzeigen, bearbeiten und löschen, damit
-meine Modulliste aktuell bleibt.
+**Akzeptanzkriterien**
 
-### Akzeptanzkriterien
+- Es werden nur eigene Module angezeigt.
+- Änderungen werden dauerhaft gespeichert.
+- Vor dem Löschen wird eine Bestätigung angezeigt.
+- Beim Löschen werden zugehörige Aufgaben ebenfalls entfernt.
 
-- Der Benutzer sieht ausschließlich seine eigenen Module.
-- Der Name und die optionalen Angaben können bearbeitet werden.
-- Vor dem Löschen wird eine Bestätigung verlangt.
-- Der Benutzer kann keine Module anderer Benutzer verändern.
+## US-08 – Aufgabe erstellen
 
----
+**Als** angemeldeter Benutzer \
+**möchte ich** einem Lernmodul eine Aufgabe mit Fälligkeit hinzufügen, \
+**damit** ich meine Arbeit planen kann.
 
-## US-05: Aufgabe erstellen
+**Akzeptanzkriterien**
 
-Als Student möchte ich einem Modul eine Aufgabe zuordnen, damit ich meine
-Arbeit organisieren kann.
-
-### Akzeptanzkriterien
-
-- Ein angemeldeter Benutzer kann eine Aufgabe erstellen.
-- Die Aufgabe benötigt einen Titel und eine Frist.
+- Titel und Fälligkeitszeitpunkt sind erforderlich.
 - Eine Beschreibung ist optional.
-- Die Aufgabe wird einem eigenen Modul zugeordnet.
-- Der anfängliche Status ist `Offen`.
+- Die Aufgabe gehört genau zu einem eigenen Lernmodul.
+- Eine neue Aufgabe hat den Status `Open`.
 
----
+## US-09 – Aufgaben verwalten
 
-## US-06: Aufgaben verwalten
+**Als** angemeldeter Benutzer \
+**möchte ich** eigene Aufgaben anzeigen, bearbeiten und löschen, \
+**damit** meine Planung aktuell bleibt.
 
-Als Student möchte ich meine Aufgaben anzeigen, bearbeiten und löschen, damit
-meine Aufgabenliste aktuell bleibt.
+**Akzeptanzkriterien**
 
-### Akzeptanzkriterien
+- Aufgaben sind über das zugehörige Lernmodul erreichbar.
+- Änderungen an Titel, Beschreibung und Fälligkeit werden gespeichert.
+- Vor dem Löschen wird eine Bestätigung angezeigt.
+- Fremde Aufgaben sind nicht erreichbar.
 
-- Der Benutzer sieht ausschließlich seine eigenen Aufgaben.
-- Aufgaben können nach Status angezeigt werden.
-- Titel, Beschreibung und Frist können bearbeitet werden.
-- Vor dem Löschen wird eine Bestätigung verlangt.
-- Aufgaben anderer Benutzer können nicht verändert werden.
+## US-10 – Aufgabenstatus pflegen
 
----
+**Als** angemeldeter Benutzer \
+**möchte ich** Aufgaben als erledigt oder wieder offen markieren, \
+**damit** ich meinen tatsächlichen Arbeitsstand sehe.
 
-## US-07: Aufgabe abschließen
+**Akzeptanzkriterien**
 
-Als Student möchte ich eine erledigte Aufgabe als abgeschlossen markieren,
-damit ich meinen aktuellen Fortschritt erkennen kann.
+- Der Status kann zwischen `Open` und `Completed` wechseln.
+- Eine offene Aufgabe mit vergangener Fälligkeit wird als überfällig markiert.
+- Der geänderte Status wird im Dashboard berücksichtigt.
 
-### Akzeptanzkriterien
+## US-11 – Dashboard verwenden
 
-- Eine offene Aufgabe kann als erledigt markiert werden.
-- Eine erledigte Aufgabe kann wieder geöffnet werden.
-- Der neue Status wird dauerhaft gespeichert.
-- Die Änderung wird in der Benutzeroberfläche angezeigt.
+**Als** angemeldeter Benutzer \
+**möchte ich** eine Zusammenfassung und meine nächsten Aufgaben sehen, \
+**damit** ich schnell erkenne, was als Nächstes wichtig ist.
+
+**Akzeptanzkriterien**
+
+- Das Dashboard zeigt die Anzahl der Module.
+- Offene, überfällige und erledigte Aufgaben werden zusammengefasst.
+- Die nächsten offenen Aufgaben werden nach Fälligkeit sortiert.
+- Es werden ausschließlich eigene Daten verwendet.
+
+## US-12 – Sprache wechseln
+
+**Als** Benutzer \
+**möchte ich** die Oberfläche auf Deutsch oder Englisch verwenden, \
+**damit** ich die Anwendung in meiner bevorzugten Sprache bedienen kann.
+
+**Akzeptanzkriterien**
+
+- Die Sprache kann über die Flaggenauswahl gewechselt werden.
+- Navigation, Formulare, Meldungen und Seiteninhalte werden übersetzt.
+- Die Auswahl bleibt beim nächsten Besuch erhalten.

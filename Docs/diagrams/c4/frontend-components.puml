@@ -1,0 +1,31 @@
+@startuml StudyOrganizerFrontendComponents
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Study Organizer – Frontend-Komponenten (C4 Level 3)
+
+Person(student, "Studierender", "Bedient die Webanwendung.")
+Container_Ext(api, "Backend-API", "ASP.NET Core 8", "Stellt Authentifizierung, Profile, Module und Aufgaben bereit.")
+Container_Ext(browserStorage, "Browser Storage", "Web Storage", "Bewahrt Sprache und gültige Auth-Sitzung lokal auf.")
+
+Container_Boundary(web, "Vue-Webfrontend") {
+  Component(router, "Vue Router", "Vue Router", "Navigiert zwischen öffentlichen und geschützten Seiten und prüft die Anmeldung.")
+  Component(views, "Views und UI-Komponenten", "Vue 3", "Home, Login, Registrierung, Dashboard, Module, Aufgaben und Profil.")
+  Component(authStore, "Auth Store", "Pinia", "Verwaltet Token, Ablaufzeit, Benutzerzustand und Sitzungswiederherstellung.")
+  Component(featureServices, "Feature Services", "TypeScript, Fetch API", "Kapseln HTTP-Aufrufe für Auth, Dashboard, Module, Aufgaben und Profil.")
+  Component(i18n, "Internationalisierung", "Vue I18n", "Liefert deutsche und englische Texte.")
+}
+
+Rel(student, views, "Bedient", "Browser")
+Rel(router, views, "Lädt passende Seite")
+Rel(router, authStore, "Prüft Authentifizierungszustand")
+Rel(views, authStore, "Liest und verändert Sitzungszustand")
+Rel(views, featureServices, "Ruft Anwendungsfunktionen auf")
+Rel(views, i18n, "Verwendet übersetzte Texte")
+Rel(featureServices, authStore, "Liest JWT für Authorization-Header")
+Rel(featureServices, api, "Sendet REST-Anfragen", "JSON/HTTPS")
+Rel(authStore, browserStorage, "Speichert und lädt Sitzung")
+Rel(i18n, browserStorage, "Speichert und lädt Sprachauswahl")
+
+SHOW_LEGEND()
+@enduml
+
