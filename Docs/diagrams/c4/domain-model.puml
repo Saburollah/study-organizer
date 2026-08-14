@@ -1,58 +1,74 @@
 @startuml StudyOrganizerDomainModel
+title Study Organizer – Domänen- und Persistenzmodell (Level 4)
 
-title Study Organizer - Domain Model
-
+hide empty methods
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 
-class ApplicationUser {
-    +Id: UUID
-    +Email: string
+class "IdentityUser<Guid>" as IdentityUser <<ASP.NET Core Identity>> {
+  + Id: Guid
+  + UserName: string?
+  + Email: string?
+  + PasswordHash: string?
 }
 
-class StudyModule {
-    +Id: UUID
-    +Name: string
-    +Code: string?
-    +Description: string?
-    +Color: string?
-    +OwnerId: UUID
-    +CreatedAt: DateTimeOffset
+class ApplicationUser <<Infrastructure.Identity>> {
+  + FirstName: string?
+  + LastName: string?
+  + DateOfBirth: DateOnly?
+  + Gender: ProfileGender?
 }
 
-class StudyTask {
-    +Id: UUID
-    +Title: string
-    +Description: string?
-    +DueDate: DateTimeOffset
-    +Status: StudyTaskStatus
-    +ModuleId: UUID
-    +CreatedAt: DateTimeOffset
-    +UpdatedAt: DateTimeOffset?
+enum ProfileGender {
+  Female
+  Male
+  PreferNotToSay
+}
+
+class StudyModule <<Domain>> {
+  + Id: Guid
+  + OwnerId: Guid
+  + Name: string
+  + Code: string?
+  + Description: string?
+  + Color: string?
+  + CreatedAt: DateTimeOffset
+  + Update(name, code, description, color): void
+}
+
+class StudyTask <<Domain>> {
+  + Id: Guid
+  + ModuleId: Guid
+  + Title: string
+  + Description: string?
+  + DueDate: DateTimeOffset
+  + Status: StudyTaskStatus
+  + CreatedAt: DateTimeOffset
+  + UpdatedAt: DateTimeOffset?
+  + Update(title, dueDate, description): void
+  + Complete(): void
+  + Reopen(): void
 }
 
 enum StudyTaskStatus {
-    Open
-    Completed
+  Open
+  Completed
 }
 
-ApplicationUser "1" -- "0..*" StudyModule : owns >
-StudyModule "1" *-- "0..*" StudyTask : contains >
-StudyTask --> StudyTaskStatus : has
+IdentityUser <|-- ApplicationUser
+ApplicationUser --> ProfileGender : optional
+ApplicationUser "1" -- "0..*" StudyModule : owns via OwnerId
+StudyModule "1" *-- "0..*" StudyTask : contains via ModuleId
+StudyTask --> StudyTaskStatus
 
-note right of ApplicationUser
-Passwords are managed securely
-by ASP.NET Core Identity.
+note right of StudyModule
+  Name is required.
+  Optional strings are trimmed.
 end note
 
-note bottom of StudyModule
-A module always belongs
-to exactly one user.
+note right of StudyTask
+  New tasks start as Open.
+  Deleting a module cascades
+  to its tasks in the database.
 end note
-
-note bottom of StudyTask
-A task always belongs
-to exactly one module.
-end note
-
 @enduml

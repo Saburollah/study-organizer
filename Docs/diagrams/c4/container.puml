@@ -1,29 +1,22 @@
 @startuml StudyOrganizerContainer
-
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title Study Organizer - Container Diagram (C4 Level 2)
+title Study Organizer – Container (C4 Level 2)
 
-Person(student, "Student", "Verwaltet persönliche Module, Aufgaben und Fristen.")
+Person(student, "Studierender", "Verwendet Study Organizer im Browser und künftig auf iOS.")
 
 System_Boundary(studyOrganizer, "Study Organizer") {
-    Container(webApp, "Webanwendung", "Vue 3, TypeScript", "Stellt die Benutzeroberfläche im Webbrowser bereit.")
-
-    Container(iosApp, "iOS-App", "SwiftUI, Swift", "Stellt die native Benutzeroberfläche auf iOS-Geräten bereit.")
-
-    Container(api, "Backend API", "ASP.NET Core, C#", "Verarbeitet Geschäftslogik, Authentifizierung und Datenzugriffe.")
-
-    ContainerDb(database, "Datenbank", "PostgreSQL", "Speichert Benutzer, Module und Aufgaben.")
+  Container(web, "Webfrontend", "Vue 3, TypeScript, Vite", "Single-Page-Application mit Dashboard, Profil, Modulen, Aufgaben und Deutsch/Englisch.")
+  Container(ios, "iOS-App", "Swift, SwiftUI", "Geplanter nativer Client; noch nicht implementiert.")
+  Container(api, "Backend-API", "ASP.NET Core 8, C#, Minimal APIs", "Stellt REST-Endpunkte, Validierung, JWT-Authentifizierung und Geschäftsabläufe bereit.")
+  ContainerDb(database, "Datenbank", "PostgreSQL 16", "Speichert Identity-Daten, Profile, Lernmodule, Aufgaben und Migrationen.")
 }
 
-Rel(student, webApp, "Verwendet", "HTTPS")
-Rel(student, iosApp, "Verwendet", "iOS")
-
-Rel(webApp, api, "Sendet API-Anfragen", "JSON/HTTPS")
-Rel(iosApp, api, "Sendet API-Anfragen", "JSON/HTTPS")
-
-Rel(api, database, "Liest und schreibt Daten", "Entity Framework Core / SQL")
+Rel(student, web, "Verwendet", "HTTPS")
+Rel(student, ios, "Wird künftig verwenden", "iOS")
+Rel(web, api, "Ruft geschützte REST-Endpunkte auf", "JSON/HTTPS")
+Rel(ios, api, "Wird dieselben REST-Endpunkte aufrufen", "JSON/HTTPS, geplant")
+Rel(api, database, "Liest und schreibt", "EF Core/Npgsql")
 
 SHOW_LEGEND()
-
 @enduml

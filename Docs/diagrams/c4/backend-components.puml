@@ -1,39 +1,30 @@
 @startuml StudyOrganizerBackendComponents
-
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Study Organizer - Backend Components (C4 Level 3)
+title Study Organizer – Backend-Komponenten (C4 Level 3)
 
-Container(webApp, "Webanwendung", "Vue 3, TypeScript", "Webbasierte Benutzeroberfläche.")
+Person(student, "Studierender", "Verwendet die Anwendung.")
+Container_Ext(web, "Webfrontend", "Vue 3, TypeScript", "Sendet HTTP-Anfragen mit JWT.")
+ContainerDb_Ext(postgres, "PostgreSQL", "PostgreSQL 16", "Persistente Anwendungs- und Identity-Daten.")
 
-Container(iosApp, "iOS-App", "SwiftUI, Swift", "Native iOS-Benutzeroberfläche.")
-
-Container_Boundary(api, "Backend API") {
-    Component(apiControllers, "API Controllers", "ASP.NET Core MVC", "Nehmen HTTP-Anfragen entgegen, validieren Eingaben und liefern HTTP-Antworten.")
-
-    Component(auth, "Authentifizierung und Autorisierung", "ASP.NET Core Identity", "Verwaltet Benutzerkonten, Passwörter, Anmeldung und Zugriffsregeln.")
-
-    Component(applicationServices, "Application Services", "C#", "Führen die Anwendungsfälle für Module und Aufgaben aus.")
-
-    Component(domainModel, "Domain Model", "C#", "Enthält fachliche Entitäten und Geschäftsregeln.")
-
-    Component(persistence, "Persistence", "Entity Framework Core", "Speichert und lädt Benutzer, Module und Aufgaben.")
+Container_Boundary(api, "ASP.NET Core Backend-API") {
+  Component(endpoints, "Minimal API Endpoints", "UserEndpoints, ProfileEndpoints, ModuleEndpoints, StudyTaskEndpoints", "Definieren Routen, HTTP-Statuscodes, Eingabevalidierung und Response-Modelle.")
+  Component(auth, "Authentifizierung und Autorisierung", "ASP.NET Core Identity, JWT Bearer", "Registriert Benutzer, prüft Passwörter und JWTs und ermittelt die Benutzer-ID.")
+  Component(application, "Application Interfaces", "IUserHandler, IProfileHandler, IModuleHandler, IStudyTaskHandler", "Definieren die Anwendungsfälle unabhängig von der Infrastruktur.")
+  Component(handlers, "Infrastructure Handlers", "C#, EF Core", "Implementieren Benutzer-, Profil-, Modul- und Aufgabenoperationen.")
+  Component(domain, "Domänenmodell", "C#", "Enthält StudyModule, StudyTask, Status und Geschäftsregeln.")
+  ComponentDb(dbContext, "ApplicationDbContext", "Entity Framework Core", "Mappt Identity, Profile, Module und Aufgaben auf PostgreSQL.")
 }
 
-ContainerDb(database, "Datenbank", "PostgreSQL", "Speichert die Anwendungsdaten dauerhaft.")
-
-Rel(webApp, apiControllers, "Verwendet", "JSON/HTTPS")
-Rel(iosApp, apiControllers, "Verwendet", "JSON/HTTPS")
-
-Rel(apiControllers, auth, "Prüft Identität und Berechtigungen")
-Rel(apiControllers, applicationServices, "Ruft Anwendungsfälle auf")
-
-Rel(applicationServices, domainModel, "Verwendet Entitäten und Geschäftsregeln")
-Rel(applicationServices, persistence, "Liest und speichert Daten")
-
-Rel(auth, persistence, "Speichert und lädt Benutzerdaten")
-Rel(persistence, database, "Liest und schreibt", "SQL")
+Rel(student, web, "Bedient")
+Rel(web, endpoints, "Sendet API-Anfragen", "JSON/HTTPS")
+Rel(endpoints, auth, "Verlangt bzw. erzeugt Authentifizierung")
+Rel(endpoints, application, "Verwendet Handler-Schnittstellen")
+Rel(application, handlers, "Wird implementiert durch")
+Rel(handlers, domain, "Erzeugt und verändert Domänenobjekte")
+Rel(handlers, dbContext, "Liest und schreibt")
+Rel(auth, dbContext, "Speichert und liest Identity-Daten")
+Rel(dbContext, postgres, "Persistiert Daten", "Npgsql")
 
 SHOW_LEGEND()
-
 @enduml

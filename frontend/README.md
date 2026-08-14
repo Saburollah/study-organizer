@@ -1,54 +1,51 @@
-# frontend
+# Study Organizer Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Das Frontend ist eine Vue-3-Single-Page-Application mit TypeScript. Es verwendet die ASP.NET-Core-API im Verzeichnis `backend`.
 
-## Recommended IDE Setup
+## Wichtige Bausteine
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Vue Router für Seiten und Zugriffsschutz
+- Pinia für den Authentifizierungszustand
+- Vue I18n für Deutsch und Englisch
+- Feature-Services für Authentifizierung, Dashboard, Module, Aufgaben und Profil
+- Vitest und Vue Test Utils für automatisierte Tests
 
-## Recommended Browser Setup
+## Konfiguration
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+Die API-Adresse kann in `frontend/.env` gesetzt werden:
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-pnpm install
+```env
+VITE_API_BASE_URL=http://localhost:5101
 ```
 
-### Compile and Hot-Reload for Development
+Ohne diese Variable wird lokal ebenfalls `http://localhost:5101` verwendet.
 
-```sh
+## Entwicklung
+
+```bash
+pnpm install
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Das Frontend läuft standardmäßig unter `http://localhost:5173`.
 
-```sh
+## Prüfungen
+
+```bash
+pnpm type-check
+pnpm lint
+pnpm exec vitest run
 pnpm build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## Struktur
 
-```sh
-pnpm test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
+```text
+src/
+├── components/   # wiederverwendbare UI-Komponenten
+├── config/       # Laufzeitkonfiguration
+├── features/     # Models, Stores und API-Services je Funktion
+├── i18n/         # deutsche und englische Übersetzungen
+├── router/       # Routen und Authentifizierungs-Guard
+└── views/        # Seiten der Anwendung
 ```
