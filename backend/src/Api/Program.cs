@@ -170,22 +170,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("========== UNHANDLED EXCEPTION ==========");
-        Console.WriteLine(ex.ToString());
-        Console.WriteLine("=========================================");
-
-        throw;
-    }
-});
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
