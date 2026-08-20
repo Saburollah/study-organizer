@@ -17,7 +17,7 @@ Die gemeinsame Darstellung eines Kurses aus einer externen Lernplattform, den me
 _Avoid_: Study Module, User Course
 
 **Course Subscription**:
-Die persönliche Zuordnung eines Benutzers zu einem External Course.
+Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course. Ein Study Module besitzt höchstens ein Abonnement, und ein Benutzer kann denselben External Course nur einmal abonnieren.
 _Avoid_: Course Copy
 
 **External Learning Content**:

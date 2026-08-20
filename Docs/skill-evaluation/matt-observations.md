@@ -53,6 +53,22 @@ Grenzen und Aufwand:
 - Für ein kleines Feature könnte die Zahl der Issues zu groß wirken.
 - Wayfinder trifft fachliche Entscheidungen nicht selbst, sondern benötigt Antworten eines Menschen.
 
+#### Erster Entscheidungsdurchlauf
+
+Die Landkarte wurde erneut mit Wayfinder geöffnet. Das erste freie Ticket „Persönliches Study Module für ein Kursabonnement festlegen“ wurde vor der Bearbeitung einem Bearbeiter zugewiesen.
+
+Grilling klärte schrittweise:
+
+- Ein Kursabonnement verwendet ein vorhandenes persönliches Study Module.
+- Pro Study Module ist höchstens ein Abonnement erlaubt.
+- Ein Benutzer kann denselben External Course nur einmal abonnieren.
+- Persönliche Moduldaten werden nicht durch externe Kursdaten überschrieben.
+- Ein Kurswechsel benötigt ein bewusstes Beenden des alten Abonnements.
+
+Die Entscheidung wurde als Kommentar dokumentiert, das Ticket geschlossen und in der Landkarte verlinkt. Die neu entdeckte Frage zum External Course ohne Abonnenten wurde als eigenes Unter-Issue angelegt.
+
+Positiv war die klare Konzentration auf genau eine Entscheidung. Nachteilig war der hohe Verwaltungsaufwand durch Zuweisung, Kommentar, Schließen, Aktualisieren der Landkarte und Erstellen eines Folgetickets.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -78,7 +94,17 @@ Viele Fragen hintereinander können anstrengend sein. Empfehlungen des Agents he
 
 ### Weitere verwendete Skills
 
-Noch nicht durchgeführt.
+#### Domain Modeling
+
+Domain Modeling trennte das persönliche Study Module klar vom gemeinsam gespeicherten External Course. Geklärte Begriffe und Beziehungen wurden sofort in `CONTEXT.md` festgehalten.
+
+Stärke:
+
+Die Sprache bleibt zwischen Dokumentation, Issues und späterem Code konsistent.
+
+Schwäche:
+
+Das sofortige Aktualisieren des Glossars unterbricht den Gesprächsfluss und erzeugt zusätzlichen Dokumentationsaufwand.
 
 ### Implementierung
 
