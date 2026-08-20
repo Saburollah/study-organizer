@@ -1,0 +1,3 @@
+# Interne und externe Identitäten trennen
+
+External Course und External Learning Content erhalten jeweils eine interne Guid sowie eine davon getrennte stabile externe Identität, weil Namen, Links und Positionen veränderlich sind und externe IDs zwischen verschiedenen Quellen mehrfach vorkommen können. Die External Course Identity kombiniert Quellentyp, Quelleninstanz und externen Kursschlüssel; ein External Content Key ist nur innerhalb seines External Course eindeutig, und beide Regeln werden zusätzlich durch die Datenbank erzwungen. Dadurch bleiben wiederholte und parallele Scans idempotent, während jeder Adapter die Verantwortung trägt, kanonische und dauerhaft stabile Schlüssel zu liefern; fehlt diese Garantie, wird der Scan abgelehnt.

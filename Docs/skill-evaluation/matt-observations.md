@@ -69,6 +69,26 @@ Die Entscheidung wurde als Kommentar dokumentiert, das Ticket geschlossen und in
 
 Positiv war die klare Konzentration auf genau eine Entscheidung. Nachteilig war der hohe Verwaltungsaufwand durch Zuweisung, Kommentar, Schließen, Aktualisieren der Landkarte und Erstellen eines Folgetickets.
 
+#### Zweiter Entscheidungsdurchlauf
+
+Das Ticket „Stabile Identität für externe Kurse und Inhalte festlegen“ wurde mit Wayfinder, Grilling und Domain Modeling bearbeitet.
+
+Eine lesende Code-Erkundung stellte zuerst fest, dass das Projekt interne Guids verwendet, aber noch keine externen Schlüssel, Unique Constraints oder Datenbanktests für parallele Deduplizierung besitzt.
+
+Grilling trennte anschließend:
+
+- interne Study-Organizer-Identität,
+- externe Kursidentität,
+- externe Inhaltsidentität,
+- veränderliche Metadaten,
+- und eine getrennte Änderungssignatur.
+
+Fehlende oder doppelte externe Schlüssel wurden als Fehler des gesamten Scans festgelegt. Datenbank-Eindeutigkeit wurde zusätzlich zur Prüfung im Programm verlangt.
+
+Positiv war, dass konkrete Fälle wie Umbenennung, verschiedene Kurslinks und parallele Scans die abstrakte Identitätsfrage verständlich machten. Nachteilig war, dass die technischen Empfehlungen sehr überzeugend wirken und deshalb leicht übernommen werden können, ohne alle Alternativen selbst ausreichend zu prüfen.
+
+Die Entscheidung wurde in einem Auflösungskommentar, im Domain-Glossar und zusätzlich in einem ADR dokumentiert.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -97,6 +117,8 @@ Viele Fragen hintereinander können anstrengend sein. Empfehlungen des Agents he
 #### Domain Modeling
 
 Domain Modeling trennte das persönliche Study Module klar vom gemeinsam gespeicherten External Course. Geklärte Begriffe und Beziehungen wurden sofort in `CONTEXT.md` festgehalten.
+
+Für die schwer rückgängig zu machende Trennung interner und externer Identitäten wurde zusätzlich der ADR `Docs/adr/0001-interne-und-externe-identitaeten-trennen.md` erstellt.
 
 Stärke:
 
