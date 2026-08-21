@@ -108,6 +108,25 @@ Als Ergebnis wurden persönliche Aufgaben und gemeinsame Quelldaten klar getrenn
 
 Stark war die systematische Behandlung von Randfällen, die sonst erst als Fehler während der Implementierung sichtbar geworden wären. Schwach war, dass aus einem kleinen Mock-Feature zusätzliche Zustände und Datenstrukturen entstanden. Der Skill verbessert Robustheit, kann aber den Umfang einer ersten Version deutlich vergrößern.
 
+#### Vierter Entscheidungsdurchlauf
+
+Das Ticket „Fehler-, Wiederholungs- und Parallelverhalten eines Scanlaufs festlegen“ untersuchte Atomarität, Idempotenz, gleichzeitige Aufrufe und Fehlerzustände.
+
+Die Code-Erkundung zeigte, dass das Backend bereits Cancellation Tokens weiterreicht, aber noch keine expliziten Transaktionen, Scan-Sperren, Retry-Logik, globalen Fehlerverträge oder Datenbanktests für Parallelität besitzt.
+
+Grilling entschied unter anderem:
+
+- höchstens einen aktiven Scan Run pro External Course,
+- vollständiges Abrufen und Validieren vor der Datenbanktransaktion,
+- atomare Übernahme aller fachlichen Änderungen,
+- Erhalt des letzten erfolgreichen Course Snapshot bei Fehlern,
+- keine automatische Wiederholung im Mock-Schnitt,
+- stabile Fehlerkategorien und sichere Logs,
+- ablaufende Sperren für abgestürzte Scans,
+- und echte PostgreSQL-Integrationstests.
+
+Stark war, dass der Skill nicht nur den Erfolgsfall, sondern auch Abbruch, Timeout, Serverabsturz, verlorene Antworten und Datenbankrennen untersuchte. Schwach war, dass für einen manuellen Mock-Scan bereits anspruchsvolle Betriebsmechanismen entstehen. Die Planung wird sicherer, kann aber zu einer technisch schweren ersten Version führen.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -140,6 +159,8 @@ Domain Modeling trennte das persönliche Study Module klar vom gemeinsam gespeic
 Für die schwer rückgängig zu machende Trennung interner und externer Identitäten wurde zusätzlich der ADR `Docs/adr/0001-interne-und-externe-identitaeten-trennen.md` erstellt.
 
 Die Trennung gemeinsamer Quelldaten von persönlicher Planung wurde im ADR `Docs/adr/0002-externe-quelldaten-von-persoenlicher-planung-trennen.md` festgehalten.
+
+Atomarität und Serialisierung von Kursscans wurden im ADR `Docs/adr/0003-kursscans-atomar-und-pro-kurs-serialisieren.md` dokumentiert.
 
 Stärke:
 

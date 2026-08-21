@@ -24,6 +24,14 @@ _Avoid_: Course URL, Course Name
 Ein innerhalb eines External Course stabiler Schlüssel für einen External Learning Content. Umbenennung, Verschiebung oder ein neuer Zugriffslink verändern diesen Schlüssel nicht.
 _Avoid_: Content URL, Content Title, Position
 
+**Course Snapshot**:
+Der vollständige validierte Zustand eines External Course zu einem bestimmten Beobachtungszeitpunkt. Nur ein erfolgreicher Scan Run darf den zuletzt gültigen Course Snapshot ersetzen.
+_Avoid_: Partial Response, Scan Run
+
+**Scan Run**:
+Ein einzelner Versuch, den vollständigen Zustand eines External Course abzurufen, zu validieren und zu übernehmen. Sein Ergebnis beschreibt Erfolg, Fehler oder Abbruch, ohne selbst der Kurszustand zu sein.
+_Avoid_: Course Snapshot, Polling Schedule
+
 **Course Subscription**:
 Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course. Ein Study Module besitzt höchstens ein Abonnement, und ein Benutzer kann denselben External Course nur einmal abonnieren.
 _Avoid_: Course Copy
