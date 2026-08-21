@@ -175,6 +175,18 @@ Viele Fragen hintereinander können anstrengend sein. Empfehlungen des Agents he
 
 ### Weitere verwendete Skills
 
+#### Prototype
+
+Prototype wurde verwendet, um drei unterschiedliche UI-Abläufe mit lokalem Mock-Zustand direkt in der bestehenden Modulansicht vergleichbar zu machen.
+
+Stärke:
+
+Konkrete, bedienbare Varianten erleichtern Entscheidungen stärker als reine Beschreibungen. Besonders hilfreich war, dass der Benutzer gute Teile verschiedener Varianten kombinieren konnte.
+
+Schwäche:
+
+Ein Prototyp kann trotz Wegwerfcharakter viel Code und Prüfaufwand erzeugen. Seine Komponenten besitzen bewusst keine Produktionsqualität und dürfen nicht unverändert in die eigentliche Implementierung übernommen werden.
+
 #### Domain Modeling
 
 Domain Modeling trennte das persönliche Study Module klar vom gemeinsam gespeicherten External Course. Geklärte Begriffe und Beziehungen wurden sofort in `CONTEXT.md` festgehalten.
