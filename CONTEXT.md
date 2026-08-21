@@ -29,9 +29,17 @@ Die eindeutige Verbindung eines persönlichen Study Module mit einem External Co
 _Avoid_: Course Copy
 
 **External Learning Content**:
-Ein normalisierter Inhalt eines External Course mit einer stabilen gemeinsamen Identität. Er kann beispielsweise eine PDF-Datei, ein Link oder eine andere Aufgabe sein.
+Ein normalisierter Inhalt eines External Course mit einer stabilen gemeinsamen Identität. Er kann eine PDF-Datei, ein Link oder eine andere Aufgabe sein und bleibt auch bekannt, wenn er extern nicht mehr verfügbar ist.
 _Avoid_: Study Task, File
 
 **Imported Study Task**:
-Eine persönliche Study Task, die für einen Abonnenten aus einem External Learning Content entstanden ist.
+Eine persönliche Study Task, die aus einem External Learning Content entstanden und dauerhaft mit ihm verbunden ist. Ihre persönlichen Planungsdaten und ihr Status bleiben von den gemeinsamen externen Metadaten getrennt.
 _Avoid_: External Learning Content
+
+**Dismissed Import**:
+Die persönliche Entscheidung eines Abonnenten, für einen bestimmten External Learning Content keine Imported Study Task mehr zu führen. Sie verhindert eine automatische Neuerstellung, ohne den gemeinsamen externen Inhalt zu verändern.
+_Avoid_: Deleted External Content, Shared Deletion
+
+**Source Update**:
+Ein persönlicher, noch nicht bestätigter Hinweis darauf, dass sich die externen Metadaten einer Imported Study Task geändert haben. Er überschreibt weder persönliche Planungsdaten noch den Aufgabenstatus.
+_Avoid_: Task Reopening, Automatic Overwrite

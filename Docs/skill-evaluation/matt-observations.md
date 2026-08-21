@@ -89,6 +89,25 @@ Positiv war, dass konkrete Fälle wie Umbenennung, verschiedene Kurslinks und pa
 
 Die Entscheidung wurde in einem Auflösungskommentar, im Domain-Glossar und zusätzlich in einem ADR dokumentiert.
 
+#### Dritter Entscheidungsdurchlauf
+
+Das Ticket „Lebenszyklus importierter Aufgaben festlegen“ untersuchte Konflikte zwischen gemeinsamen Moodle-Daten und persönlicher Aufgabenplanung.
+
+Die Code-Erkundung zeigte, dass normale Study Tasks heute vollständig bearbeitet, abgeschlossen, wieder geöffnet und physisch gelöscht werden können. Importherkunft, externe Links, Feldherkunft, Tombstones und Zustände für extern entfernte Inhalte fehlen noch.
+
+Grilling behandelte konkrete Fälle:
+
+- persönliche Bearbeitung einer importierten Aufgabe,
+- externe Änderungen an bereits abgeschlossenen Aufgaben,
+- persönliches Löschen und spätere Scans,
+- extern entfernte und wieder erschienene Inhalte,
+- Ende eines Kursabonnements,
+- und bewusstes Wiederherstellen eines Imports.
+
+Als Ergebnis wurden persönliche Aufgaben und gemeinsame Quelldaten klar getrennt. Source Update und Dismissed Import wurden als neue Fachbegriffe eingeführt.
+
+Stark war die systematische Behandlung von Randfällen, die sonst erst als Fehler während der Implementierung sichtbar geworden wären. Schwach war, dass aus einem kleinen Mock-Feature zusätzliche Zustände und Datenstrukturen entstanden. Der Skill verbessert Robustheit, kann aber den Umfang einer ersten Version deutlich vergrößern.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -119,6 +138,8 @@ Viele Fragen hintereinander können anstrengend sein. Empfehlungen des Agents he
 Domain Modeling trennte das persönliche Study Module klar vom gemeinsam gespeicherten External Course. Geklärte Begriffe und Beziehungen wurden sofort in `CONTEXT.md` festgehalten.
 
 Für die schwer rückgängig zu machende Trennung interner und externer Identitäten wurde zusätzlich der ADR `Docs/adr/0001-interne-und-externe-identitaeten-trennen.md` erstellt.
+
+Die Trennung gemeinsamer Quelldaten von persönlicher Planung wurde im ADR `Docs/adr/0002-externe-quelldaten-von-persoenlicher-planung-trennen.md` festgehalten.
 
 Stärke:
 

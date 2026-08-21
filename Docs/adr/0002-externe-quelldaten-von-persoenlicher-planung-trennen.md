@@ -1,0 +1,3 @@
+# Externe Quelldaten von persönlicher Planung trennen
+
+External Learning Content speichert die gemeinsamen aktuellen Quelldaten, während Imported Study Task die persönliche Planung und den persönlichen Status eines Benutzers enthält. Scans überschreiben keine persönlichen Änderungen, öffnen keine abgeschlossenen Aufgaben erneut und löschen keine Aufgaben automatisch; stattdessen machen Source Updates und der Verfügbarkeitszustand Änderungen der Quelle sichtbar. Ein Dismissed Import bewahrt eine persönliche Löschentscheidung und bildet zusammen mit der Imported Study Task eine eindeutige Entweder-oder-Beziehung pro Course Subscription und External Learning Content, was zusätzlichen Zustand erfordert, aber Duplikate und den Verlust persönlicher Arbeit verhindert.
