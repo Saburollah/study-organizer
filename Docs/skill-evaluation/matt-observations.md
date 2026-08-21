@@ -127,6 +127,29 @@ Grilling entschied unter anderem:
 
 Stark war, dass der Skill nicht nur den Erfolgsfall, sondern auch Abbruch, Timeout, Serverabsturz, verlorene Antworten und Datenbankrennen untersuchte. Schwach war, dass für einen manuellen Mock-Scan bereits anspruchsvolle Betriebsmechanismen entstehen. Die Planung wird sicherer, kann aber zu einer technisch schweren ersten Version führen.
 
+#### Fünfter Entscheidungsdurchlauf
+
+Das Ticket „Berechtigungen für gemeinsam gespeicherte externe Kurse festlegen“ untersuchte die Sicherheitsgrenze zwischen gemeinsam gespeicherten Kursdaten und persönlichen Benutzerdaten.
+
+Die Code-Erkundung zeigte, dass das Projekt Zugriffe bisher über den angemeldeten Benutzer und den Besitzer eines Study Module schützt. Study Tasks übernehmen diese Berechtigung über ihr Modul. Fremde und nicht vorhandene Ressourcen liefern einheitlich 404, aber für gemeinsam gespeicherte Kurse existieren noch keine eigenen Regeln oder Policies.
+
+Grilling entschied unter anderem:
+
+- Die aktive Course Subscription ist die Zugangsgrenze zum gemeinsamen External Course.
+- Ein External Course besitzt keinen Benutzer als Eigentümer.
+- Nur der Eigentümer eines Study Module darf dessen Subscription verwalten.
+- Jeder Abonnent muss seinen externen Kurszugriff selbst nachweisen.
+- Externe Zugangsdaten bleiben persönlich und werden nicht geteilt.
+- Jeder aktive Abonnent darf einen gemeinsamen Scan Run auslösen.
+- Ein validierter Scan wird einmal für alle aktiven Subscriptions verarbeitet.
+- Andere Abonnenten, ihre Anzahl, Module, Aufgaben und der Scan-Auslöser bleiben verborgen.
+- Fremde und unbekannte Kursressourcen liefern einheitlich 404.
+- Es gibt weder ein globales Kursverzeichnis noch eine Administrator-Ausnahme im MVP.
+
+Stark war, dass der Skill Datenschutz- und IDOR-Risiken sichtbar machte, die durch gemeinsam gespeicherte Daten entstehen. Die Entscheidungen konnten außerdem an das bereits vorhandene Owner-Prüfungsmuster des Projekts angelehnt werden. Schwach war erneut der hohe Umfang der Fragerunden: Für einen Mock-Prototyp wurden bereits Regeln für eine spätere echte Moodle-Autorisierung diskutiert.
+
+Die Entscheidung wurde im GitHub-Ticket, im Domain-Glossar und im ADR `Docs/adr/0004-gemeinsame-kurse-durch-subscriptions-autorisieren.md` dokumentiert.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -161,6 +184,8 @@ Für die schwer rückgängig zu machende Trennung interner und externer Identit�
 Die Trennung gemeinsamer Quelldaten von persönlicher Planung wurde im ADR `Docs/adr/0002-externe-quelldaten-von-persoenlicher-planung-trennen.md` festgehalten.
 
 Atomarität und Serialisierung von Kursscans wurden im ADR `Docs/adr/0003-kursscans-atomar-und-pro-kurs-serialisieren.md` dokumentiert.
+
+Die Berechtigungsgrenze für gemeinsam gespeicherte Kurse wurde im ADR `Docs/adr/0004-gemeinsame-kurse-durch-subscriptions-autorisieren.md` festgehalten.
 
 Stärke:
 

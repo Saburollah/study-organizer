@@ -33,8 +33,8 @@ Ein einzelner Versuch, den vollständigen Zustand eines External Course abzurufe
 _Avoid_: Course Snapshot, Polling Schedule
 
 **Course Subscription**:
-Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course. Ein Study Module besitzt höchstens ein Abonnement, und ein Benutzer kann denselben External Course nur einmal abonnieren.
-_Avoid_: Course Copy
+Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course und zugleich die Zugangsgrenze für diesen gemeinsamen Kurs. Ein Study Module besitzt höchstens eine Course Subscription, und ein Benutzer kann denselben External Course nur einmal abonnieren.
+_Avoid_: Course Copy, Course Ownership
 
 **External Learning Content**:
 Ein normalisierter Inhalt eines External Course mit einer stabilen gemeinsamen Identität. Er kann eine PDF-Datei, ein Link oder eine andere Aufgabe sein und bleibt auch bekannt, wenn er extern nicht mehr verfügbar ist.
