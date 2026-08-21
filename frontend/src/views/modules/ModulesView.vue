@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import ModuleForm from '@/features/modules/ModuleForm.vue'
 import type { SaveModuleRequest, StudyModule } from '@/features/modules/moduleModels'
 import { moduleService } from '@/features/modules/moduleService'
 import { ApiError } from '@/services/api/apiClient'
+import CourseRegistrationPrototype from './prototype/CourseRegistrationPrototype.vue'
 
 const { t } = useI18n()
+const route = useRoute()
+
+const isCourseRegistrationPrototype = computed(
+  () => import.meta.env.DEV && route.query.prototype === 'course-registration',
+)
 
 const modules = ref<StudyModule[]>([])
 const isLoading = ref(true)
@@ -221,6 +227,8 @@ function getDeleteErrorMessage(error: unknown): string {
         {{ t('modules.new') }}
       </button>
     </header>
+
+    <CourseRegistrationPrototype v-if="isCourseRegistrationPrototype" :modules="modules" />
 
     <p v-if="successMessage" class="feedback-message success-message" role="status">
       {{ successMessage }}
