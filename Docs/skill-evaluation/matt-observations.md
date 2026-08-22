@@ -192,6 +192,31 @@ Nach dieser Entscheidung wurde der vorherige Nebel konkret. Für Datenmodell, AP
 
 Die Entscheidung wurde im GitHub-Ticket, im Domain-Glossar und im ADR `Docs/adr/0005-inaktive-externe-kurse-befristet-aufbewahren.md` dokumentiert.
 
+#### Achter Entscheidungsdurchlauf
+
+Das Ticket „Datenmodell und Persistenzregeln des Moodle-Vertikalschnitts festlegen“ übersetzte die zuvor getroffenen fachlichen Entscheidungen in ein relationales PostgreSQL-Modell.
+
+Grilling entschied unter anderem:
+
+- External Course, Course Subscription, Scan Run, Course Snapshot und External Learning Content werden getrennt gespeichert.
+- Course Subscriptions besitzen die Zustände `Pending`, `Active` und `Ended`.
+- Ein aktiver Kurs kann seinen aktuellen Snapshot für weitere Abonnenten wiederverwenden.
+- Normalisierte Snapshot Items bewahren den vollständigen historischen Kurszustand.
+- Ein gemeinsamer persönlicher Importzustand bildet `Imported` und `Dismissed` gegenseitig ausschließend ab.
+- Source Updates überschreiben keine persönlichen Task-Daten.
+- Zusammengesetzte Fremdschlüssel verhindern Verbindungen zwischen unterschiedlichen Kursen.
+- Partielle Unique Indizes erlauben höchstens einen laufenden Scan und einen aktuellen Snapshot pro Kurs.
+- PDF wird über Inhaltstyp und Medientyp erkannt, nicht durch eine eigene PDF-Tabelle.
+- Externe Signaturen werden zentral und versioniert aus normalisierten Daten berechnet.
+- Private Tokens und benutzerspezifische URLs dürfen nicht in gemeinsamen Tabellen gespeichert werden.
+- Nach der Aufbewahrungsfrist bleiben bei persönlich referenzierten Inhalten nur stabile Identitäten erhalten.
+
+Stark war, dass Grilling mehrere Widersprüche zwischen UI-Ablauf, Autorisierung und Reaktivierung sichtbar machte. Besonders wichtig war der neue Zustand `Pending`: Ohne ihn müsste eine fehlgeschlagene Registrierung entweder gelöscht oder ein noch nicht bestätigter Kurs vorzeitig freigegeben werden. Die Fragen führten außerdem zu Datenbankregeln, die Idempotenz und Mandantentrennung nicht nur der Anwendung überlassen.
+
+Schwach war der sehr große Umfang von 35 Fragen. Einige Entscheidungen wie zusammengesetzte Fremdschlüssel, partielle Indizes und Signaturformat liegen bereits nahe an der Implementierung und können den ersten Mock-Schnitt komplizierter machen. Die Empfehlungen des Agents haben die Auswahl außerdem stark in Richtung eines robusten, aber aufwendigeren Modells gelenkt.
+
+Die Entscheidung wurde im Domain-Glossar und im ADR `Docs/adr/0006-relationales-modell-fuer-kursimporte.md` dokumentiert. Die ADRs zur Autorisierung und Reaktivierung wurden wegen des neuen Zustands `Pending` präzisiert.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -242,6 +267,8 @@ Atomarität und Serialisierung von Kursscans wurden im ADR `Docs/adr/0003-kurssc
 Die Berechtigungsgrenze für gemeinsam gespeicherte Kurse wurde im ADR `Docs/adr/0004-gemeinsame-kurse-durch-subscriptions-autorisieren.md` festgehalten.
 
 Die befristete Aufbewahrung und sichere Reaktivierung inaktiver Kurse wurde im ADR `Docs/adr/0005-inaktive-externe-kurse-befristet-aufbewahren.md` festgehalten.
+
+Das relationale Modell für gemeinsame Kursdaten und persönliche Importzustände wurde im ADR `Docs/adr/0006-relationales-modell-fuer-kursimporte.md` dokumentiert.
 
 Stärke:
 
