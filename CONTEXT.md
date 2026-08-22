@@ -16,6 +16,10 @@ _Avoid_: External Learning Content
 Die gemeinsame Darstellung eines Kurses aus einer externen Lernplattform, den mehrere Benutzer abonnieren können.
 _Avoid_: Study Module, User Course
 
+**Inactive External Course**:
+Der Lebenszykluszustand eines External Course ohne aktive Course Subscription. Er gewährt keinen Kurszugriff und erlaubt keinen Scan, bewahrt aber die noch benötigte Identitäts- und Referenzhistorie.
+_Avoid_: Archived Course, Deleted Course
+
 **External Course Identity**:
 Die kanonische Kombination aus Quellentyp, Quelleninstanz und stabilem externen Kursschlüssel, durch die derselbe External Course wiedererkannt wird. Kursname und Zugriffslink gehören nicht zu dieser Identität.
 _Avoid_: Course URL, Course Name
@@ -33,7 +37,7 @@ Ein einzelner Versuch, den vollständigen Zustand eines External Course abzurufe
 _Avoid_: Course Snapshot, Polling Schedule
 
 **Course Subscription**:
-Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course und zugleich die Zugangsgrenze für diesen gemeinsamen Kurs. Ein Study Module besitzt höchstens eine Course Subscription, und ein Benutzer kann denselben External Course nur einmal abonnieren.
+Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course; ein Study Module besitzt höchstens eine, und ein Benutzer kann denselben External Course nur einmal abonnieren. Nur eine aktive Course Subscription gewährt Kurszugriff; eine beendete kann persönliche Importhistorie bewahren, ohne Zugriff zu gewähren.
 _Avoid_: Course Copy, Course Ownership
 
 **External Learning Content**:

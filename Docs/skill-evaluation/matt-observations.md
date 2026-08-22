@@ -150,6 +150,48 @@ Stark war, dass der Skill Datenschutz- und IDOR-Risiken sichtbar machte, die dur
 
 Die Entscheidung wurde im GitHub-Ticket, im Domain-Glossar und im ADR `Docs/adr/0004-gemeinsame-kurse-durch-subscriptions-autorisieren.md` dokumentiert.
 
+#### Sechster Entscheidungsdurchlauf
+
+Das Ticket „Registrierung und manuellen Scan als UI-Ablauf prototypisieren“ untersuchte, welcher kleinste Benutzerablauf Kursregistrierung, Modulzuordnung, ersten Scan sowie Erfolgs- und Fehlerzustände verständlich macht.
+
+Der Prototype-Skill erzeugte drei strukturell unterschiedliche Varianten innerhalb der vorhandenen Modulansicht:
+
+- einen geführten Drei-Schritte-Assistenten,
+- eine modulzentrierte Verbindung direkt auf Modulkarten,
+- und eine zweigeteilte Kurszentrale mit Kennzahlen und Scan-Verlauf.
+
+Alle Varianten verwendeten ausschließlich lokalen Mock-Zustand. Der vollständige Prototyp wurde auf dem Wegwerf-Branch `codex/prototype-course-registration-flow` im Commit `2ee108b` gesichert.
+
+Nach dem praktischen Test wurde ein geführter Ablauf mit Kurslink zuerst, anschließender Modulwahl und einer Ergebnisübersicht mit Kennzahlen und Scan-Verlauf gewählt.
+
+Positiv war, dass konkrete Varianten verglichen und gute Teile verschiedener Entwürfe kombiniert werden konnten. Nachteilig war der hohe Aufwand für Wegwerfcode, Prüfungen und einen separaten Branch.
+
+#### Siebter Entscheidungsdurchlauf
+
+Das Ticket „Lebenszyklus eines External Course ohne Abonnenten festlegen“ untersuchte die Aufbewahrung gemeinsam gespeicherter Kursdaten nach dem Ende der letzten Subscription.
+
+Die Code-Erkundung zeigte, dass Module und Aufgaben bisher hart gelöscht werden, Module ihre Aufgaben per Cascade entfernen und noch keine Soft-Delete-, Archivierungs-, Retention- oder Cleanup-Infrastruktur existiert. Gleichzeitig verlangen die bisherigen Domain-Entscheidungen stabile externe Identitäten und dauerhafte Verbindungen zwischen persönlichen Imported Study Tasks und gemeinsamen External Learning Contents.
+
+Grilling entschied unter anderem:
+
+- Nach Ende der letzten aktiven Course Subscription wird der External Course inaktiv.
+- Inaktive Kurse sind weder sichtbar noch scanbar.
+- Persönliche externe Zugangsdaten werden sofort entfernt.
+- Notwendige Identitäts- und Referenzhistorie bleibt erhalten.
+- Vorübergehende Quelldaten erhalten eine konfigurierbare Schonfrist von zunächst 30 Tagen.
+- Ein lokaler periodischer Cleanup setzt die Frist durch.
+- Vollständige Löschung ist nur ohne aktive Subscription, laufenden Scan und persönliche Referenz erlaubt.
+- Cleanup und Reaktivierung prüfen den Zustand atomar; eine neue gültige Subscription verhindert die Löschung.
+- Cleanup ist pro Kurs atomar und idempotent.
+- Reaktivierung benötigt einen neuen Zugriffsnachweis und einen frischen Scan.
+- Beendete Subscriptions bleiben erhalten, solange persönliche Importhistorie sie benötigt.
+
+Stark war, dass der Skill den Konflikt zwischen Datensparsamkeit, Deduplizierung und persönlicher Historie sichtbar machte. Schwach war, dass aus einem kleinen Mock-Feature zusätzliche Zustände, ein Cleanup-Job und Parallelitätsregeln entstanden. Die 30 Tage sind außerdem nur ein technischer Ausgangswert und keine rechtlich geprüfte Aufbewahrungsfrist.
+
+Nach dieser Entscheidung wurde der vorherige Nebel konkret. Für Datenmodell, API-Vertrag sowie Akzeptanzkriterien und Testmatrix wurden drei neue, voneinander abhängige Wayfinder-Tickets erstellt.
+
+Die Entscheidung wurde im GitHub-Ticket, im Domain-Glossar und im ADR `Docs/adr/0005-inaktive-externe-kurse-befristet-aufbewahren.md` dokumentiert.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -198,6 +240,8 @@ Die Trennung gemeinsamer Quelldaten von persönlicher Planung wurde im ADR `Docs
 Atomarität und Serialisierung von Kursscans wurden im ADR `Docs/adr/0003-kursscans-atomar-und-pro-kurs-serialisieren.md` dokumentiert.
 
 Die Berechtigungsgrenze für gemeinsam gespeicherte Kurse wurde im ADR `Docs/adr/0004-gemeinsame-kurse-durch-subscriptions-autorisieren.md` festgehalten.
+
+Die befristete Aufbewahrung und sichere Reaktivierung inaktiver Kurse wurde im ADR `Docs/adr/0005-inaktive-externe-kurse-befristet-aufbewahren.md` festgehalten.
 
 Stärke:
 
