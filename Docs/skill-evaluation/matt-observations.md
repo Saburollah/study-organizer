@@ -217,6 +217,31 @@ Schwach war der sehr große Umfang von 35 Fragen. Einige Entscheidungen wie zusa
 
 Die Entscheidung wurde im Domain-Glossar und im ADR `Docs/adr/0006-relationales-modell-fuer-kursimporte.md` dokumentiert. Die ADRs zur Autorisierung und Reaktivierung wurden wegen des neuen Zustands `Pending` präzisiert.
 
+#### Neunter Entscheidungsdurchlauf
+
+Das Ticket „API-Vertrag für Kursregistrierung und manuelle Scans festlegen“ übersetzte das Domain-Modell und den ausgewählten UI-Prototyp in einen minimalen, authentifizierten HTTP-Vertrag.
+
+Grilling entschied unter anderem:
+
+- Kursregistrierung und Scans werden ausschließlich über das persönliche Study Module angesprochen.
+- Es gibt kein öffentliches Kursverzeichnis und keine API über frei eingebbare External-Course-IDs.
+- Registrierung, Wiederverwendung und Reaktivierung erfolgen über einen idempotenten `PUT`-Endpunkt.
+- Ein gemeinsamer laufender Scan wird wiederverwendet und mit `202 Accepted`, `Location` und `Retry-After` zurückgegeben.
+- Nach seiner Erstellung gehört der Lebenszyklus eines Scan Runs dem Server und nicht mehr dem auslösenden HTTP-Request.
+- Adapterfehler werden als sichere, persistierte Scan-Ergebnisse dargestellt.
+- Technische Request- und Zustandsfehler verwenden stabile maschinenlesbare Fehlercodes.
+- Fremde und unbekannte Ressourcen liefern einheitlich `404`, damit keine fremden Kursdaten offengelegt werden.
+- Die Kursübersicht enthält nur persönliche Informationen, den letzten erfolgreichen Snapshot und höchstens zehn Scans seit der eigenen Aktivierung.
+- Gemeinsame Inhaltszähler und persönliche Auswirkungen eines Scans werden getrennt dargestellt.
+- Importierte Study Tasks erhalten optionale Quelleninformationen; persönliche Titel, Beschreibungen und Fälligkeiten werden nicht automatisch überschrieben.
+- Für den Mock-Schnitt werden noch kein zusätzliches Rate Limit und kein `Idempotency-Key` eingeführt.
+
+Stark war, dass der Skill Widersprüche zwischen gemeinsamem Scan, persönlicher Autorisierung, HTTP-Abbruch und UI-Polling sichtbar machte. Besonders wichtig war die Erkenntnis, dass das Schließen eines Browsers keinen Scan beenden darf, den auch andere Abonnenten verwenden.
+
+Schwach war erneut der große Umfang von 36 Fragen. Einige Regeln wie stabile Fehlercodes, Retry-Header und Scan-Historiengrenzen liegen bereits nahe an der technischen Implementierung. Die ausführliche Spezifikation verbessert die Testbarkeit, erhöht aber den Aufwand des zunächst kleinen Mock-Vertikalschnitts.
+
+Die Entkopplung gemeinsamer Scans vom auslösenden HTTP-Request wurde im ADR `Docs/adr/0007-gemeinsame-scans-vom-http-request-entkoppeln.md` dokumentiert.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -269,6 +294,8 @@ Die Berechtigungsgrenze für gemeinsam gespeicherte Kurse wurde im ADR `Docs/adr
 Die befristete Aufbewahrung und sichere Reaktivierung inaktiver Kurse wurde im ADR `Docs/adr/0005-inaktive-externe-kurse-befristet-aufbewahren.md` festgehalten.
 
 Das relationale Modell für gemeinsame Kursdaten und persönliche Importzustände wurde im ADR `Docs/adr/0006-relationales-modell-fuer-kursimporte.md` dokumentiert.
+
+Die Entkopplung gemeinsamer Scans vom auslösenden HTTP-Request wurde im ADR `Docs/adr/0007-gemeinsame-scans-vom-http-request-entkoppeln.md` festgehalten.
 
 Stärke:
 
