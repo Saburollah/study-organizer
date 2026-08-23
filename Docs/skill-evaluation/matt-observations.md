@@ -7,7 +7,7 @@
 - Startdatum: 20.08.2026
 - Unveränderter Vergleichspunkt: `e7d8b5e`
 - Matt-Konfiguration: `05d2609`
-- Untersuchte Funktion: Moodle-Kurse erkennen und neue Übungsaufgaben als Tickets anlegen
+- Untersuchte Funktion: Einen External Course aus einer Mock-Moodle-Quelle registrieren und neue External Learning Contents als Imported Study Tasks bereitstellen
 
 ## Baseline vor der Feature-Implementierung
 
@@ -59,13 +59,13 @@ Die Landkarte wurde erneut mit Wayfinder geöffnet. Das erste freie Ticket „Pe
 
 Grilling klärte schrittweise:
 
-- Ein Kursabonnement verwendet ein vorhandenes persönliches Study Module.
-- Pro Study Module ist höchstens ein Abonnement erlaubt.
+- Eine Course Subscription verwendet ein vorhandenes persönliches Study Module.
+- Pro Study Module ist höchstens eine Course Subscription erlaubt.
 - Ein Benutzer kann denselben External Course nur einmal abonnieren.
 - Persönliche Moduldaten werden nicht durch externe Kursdaten überschrieben.
-- Ein Kurswechsel benötigt ein bewusstes Beenden des alten Abonnements.
+- Ein Kurswechsel benötigt ein bewusstes Beenden der bestehenden Course Subscription.
 
-Die Entscheidung wurde als Kommentar dokumentiert, das Ticket geschlossen und in der Landkarte verlinkt. Die neu entdeckte Frage zum External Course ohne Abonnenten wurde als eigenes Unter-Issue angelegt.
+Die Entscheidung wurde als Kommentar dokumentiert, das Ticket geschlossen und in der Landkarte verlinkt. Die neu entdeckte Frage zum Lebenszyklus eines External Course ohne aktive Course Subscription wurde als eigenes Unter-Issue angelegt.
 
 Positiv war die klare Konzentration auf genau eine Entscheidung. Nachteilig war der hohe Verwaltungsaufwand durch Zuweisung, Kommentar, Schließen, Aktualisieren der Landkarte und Erstellen eines Folgetickets.
 
@@ -78,8 +78,8 @@ Eine lesende Code-Erkundung stellte zuerst fest, dass das Projekt interne Guids 
 Grilling trennte anschließend:
 
 - interne Study-Organizer-Identität,
-- externe Kursidentität,
-- externe Inhaltsidentität,
+- External Course Identity,
+- External Content Key,
 - veränderliche Metadaten,
 - und eine getrennte Änderungssignatur.
 
@@ -101,7 +101,7 @@ Grilling behandelte konkrete Fälle:
 - externe Änderungen an bereits abgeschlossenen Aufgaben,
 - persönliches Löschen und spätere Scans,
 - extern entfernte und wieder erschienene Inhalte,
-- Ende eines Kursabonnements,
+- Ende einer Course Subscription,
 - und bewusstes Wiederherstellen eines Imports.
 
 Als Ergebnis wurden persönliche Aufgaben und gemeinsame Quelldaten klar getrennt. Source Update und Dismissed Import wurden als neue Fachbegriffe eingeführt.
@@ -137,12 +137,12 @@ Grilling entschied unter anderem:
 
 - Die aktive Course Subscription ist die Zugangsgrenze zum gemeinsamen External Course.
 - Ein External Course besitzt keinen Benutzer als Eigentümer.
-- Nur der Eigentümer eines Study Module darf dessen Subscription verwalten.
-- Jeder Abonnent muss seinen externen Kurszugriff selbst nachweisen.
+- Nur der Eigentümer eines Study Module darf dessen Course Subscription verwalten.
+- Jeder Benutzer mit Course Subscription muss seinen externen Kurszugriff selbst nachweisen.
 - Externe Zugangsdaten bleiben persönlich und werden nicht geteilt.
-- Jeder aktive Abonnent darf einen gemeinsamen Scan Run auslösen.
-- Ein validierter Scan wird einmal für alle aktiven Subscriptions verarbeitet.
-- Andere Abonnenten, ihre Anzahl, Module, Aufgaben und der Scan-Auslöser bleiben verborgen.
+- Jeder Benutzer mit aktiver Course Subscription darf einen gemeinsamen Scan Run auslösen.
+- Ein validierter Scan Run wird einmal für alle aktiven Course Subscriptions verarbeitet.
+- Andere Benutzer mit Course Subscription, ihre Anzahl, Module, Aufgaben und der Scan-Auslöser bleiben verborgen.
 - Fremde und unbekannte Kursressourcen liefern einheitlich 404.
 - Es gibt weder ein globales Kursverzeichnis noch eine Administrator-Ausnahme im MVP.
 
@@ -168,7 +168,7 @@ Positiv war, dass konkrete Varianten verglichen und gute Teile verschiedener Ent
 
 #### Siebter Entscheidungsdurchlauf
 
-Das Ticket „Lebenszyklus eines External Course ohne Abonnenten festlegen“ untersuchte die Aufbewahrung gemeinsam gespeicherter Kursdaten nach dem Ende der letzten Subscription.
+Das Ticket „Lebenszyklus eines External Course ohne Abonnenten festlegen“ untersuchte die Aufbewahrung gemeinsam gespeicherter Kursdaten nach dem Ende der letzten Course Subscription.
 
 Die Code-Erkundung zeigte, dass Module und Aufgaben bisher hart gelöscht werden, Module ihre Aufgaben per Cascade entfernen und noch keine Soft-Delete-, Archivierungs-, Retention- oder Cleanup-Infrastruktur existiert. Gleichzeitig verlangen die bisherigen Domain-Entscheidungen stabile externe Identitäten und dauerhafte Verbindungen zwischen persönlichen Imported Study Tasks und gemeinsamen External Learning Contents.
 
@@ -180,11 +180,11 @@ Grilling entschied unter anderem:
 - Notwendige Identitäts- und Referenzhistorie bleibt erhalten.
 - Vorübergehende Quelldaten erhalten eine konfigurierbare Schonfrist von zunächst 30 Tagen.
 - Ein lokaler periodischer Cleanup setzt die Frist durch.
-- Vollständige Löschung ist nur ohne aktive Subscription, laufenden Scan und persönliche Referenz erlaubt.
-- Cleanup und Reaktivierung prüfen den Zustand atomar; eine neue gültige Subscription verhindert die Löschung.
+- Vollständige Löschung ist nur ohne aktive Course Subscription, laufenden Scan Run und persönliche Referenz erlaubt.
+- Cleanup und Reaktivierung prüfen den Zustand atomar; eine neue gültige Course Subscription verhindert die Löschung.
 - Cleanup ist pro Kurs atomar und idempotent.
 - Reaktivierung benötigt einen neuen Zugriffsnachweis und einen frischen Scan.
-- Beendete Subscriptions bleiben erhalten, solange persönliche Importhistorie sie benötigt.
+- Beendete Course Subscriptions bleiben erhalten, solange persönliche Importhistorie sie benötigt.
 
 Stark war, dass der Skill den Konflikt zwischen Datensparsamkeit, Deduplizierung und persönlicher Historie sichtbar machte. Schwach war, dass aus einem kleinen Mock-Feature zusätzliche Zustände, ein Cleanup-Job und Parallelitätsregeln entstanden. Die 30 Tage sind außerdem nur ein technischer Ausgangswert und keine rechtlich geprüfte Aufbewahrungsfrist.
 
@@ -200,7 +200,7 @@ Grilling entschied unter anderem:
 
 - External Course, Course Subscription, Scan Run, Course Snapshot und External Learning Content werden getrennt gespeichert.
 - Course Subscriptions besitzen die Zustände `Pending`, `Active` und `Ended`.
-- Ein aktiver Kurs kann seinen aktuellen Snapshot für weitere Abonnenten wiederverwenden.
+- Ein aktiver External Course kann seinen aktuellen Course Snapshot für weitere Benutzer mit neuer Course Subscription wiederverwenden.
 - Normalisierte Snapshot Items bewahren den vollständigen historischen Kurszustand.
 - Ein gemeinsamer persönlicher Importzustand bildet `Imported` und `Dismissed` gegenseitig ausschließend ab.
 - Source Updates überschreiben keine persönlichen Task-Daten.
@@ -236,7 +236,7 @@ Grilling entschied unter anderem:
 - Importierte Study Tasks erhalten optionale Quelleninformationen; persönliche Titel, Beschreibungen und Fälligkeiten werden nicht automatisch überschrieben.
 - Für den Mock-Schnitt werden noch kein zusätzliches Rate Limit und kein `Idempotency-Key` eingeführt.
 
-Stark war, dass der Skill Widersprüche zwischen gemeinsamem Scan, persönlicher Autorisierung, HTTP-Abbruch und UI-Polling sichtbar machte. Besonders wichtig war die Erkenntnis, dass das Schließen eines Browsers keinen Scan beenden darf, den auch andere Abonnenten verwenden.
+Stark war, dass der Skill Widersprüche zwischen gemeinsamem Scan, persönlicher Autorisierung, HTTP-Abbruch und UI-Polling sichtbar machte. Besonders wichtig war die Erkenntnis, dass das Schließen eines Browsers keinen Scan Run beenden darf, den auch andere Benutzer mit aktiver Course Subscription verwenden.
 
 Schwach war erneut der große Umfang von 36 Fragen. Einige Regeln wie stabile Fehlercodes, Retry-Header und Scan-Historiengrenzen liegen bereits nahe an der technischen Implementierung. Die ausführliche Spezifikation verbessert die Testbarkeit, erhöht aber den Aufwand des zunächst kleinen Mock-Vertikalschnitts.
 
@@ -251,7 +251,7 @@ Entschieden wurde:
 - Nur eine kontrollierte Mock-Moodle-Quelle wird verwendet.
 - Der Scan wird zunächst manuell gestartet.
 - PDF- und Nicht-PDF-Inhalte werden berücksichtigt.
-- Ein externer Kurs wird einmal gescannt und von mehreren Benutzern abonniert.
+- Ein External Course wird durch einen gemeinsamen Scan Run verarbeitet und von mehreren Benutzern über eigene Course Subscriptions abonniert.
 - Aufgaben bleiben persönlich.
 - Fälligkeitsdaten dürfen fehlen.
 - Eine kleine Benutzeroberfläche gehört zum vertikalen Schnitt.

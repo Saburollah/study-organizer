@@ -8,9 +8,9 @@ Diese Notiz beschreibt die Architekturfragen einer möglichen Moodle-Integration
 
 Studierende sollen einen externen Moodle-Kurs im Study Organizer registrieren können. Dafür hinterlegen sie zunächst den Link zum Kurs. Der Study Organizer untersucht anschließend, über welchen technischen Zugang die Kursinhalte gelesen werden können und welche Struktur der Kurs besitzt.
 
-Nach erfolgreicher Einrichtung soll der Kurs regelmäßig, zunächst beispielsweise einmal pro Tag, auf neue oder geänderte Inhalte geprüft werden. Neue Übungsblätter, Aufgaben, Dateien oder relevante Abgabefristen sollen als Lerninhalte erkannt werden. Aus ihnen können Lernaufgaben im Study Organizer entstehen und betroffene Benutzer können benachrichtigt werden.
+Nach erfolgreicher Einrichtung soll der External Course regelmäßig, zunächst beispielsweise einmal pro Tag, auf neue oder geänderte Inhalte geprüft werden. Neue Übungsblätter, Aufgaben, Dateien oder relevante Abgabefristen sollen als External Learning Contents erkannt werden. Aus ihnen können Imported Study Tasks entstehen und betroffene Benutzer können benachrichtigt werden.
 
-Mehrere Benutzer können denselben externen Kurs abonnieren. In diesem Fall soll der Study Organizer den Kurs nicht für jeden Benutzer separat abrufen. Ein gemeinsamer Scan soll neue Inhalte einmal erkennen und danach alle registrierten Benutzer informieren. Damit werden unnötige Anfragen an Moodle vermieden und dieselben externen Inhalte nicht mehrfach gespeichert.
+Mehrere Benutzer können denselben External Course über eigene Course Subscriptions abonnieren. In diesem Fall soll der Study Organizer den External Course nicht für jeden Benutzer separat abrufen. Ein gemeinsamer Scan Run soll neue Inhalte einmal erkennen und danach alle Benutzer mit aktiver Course Subscription informieren. Damit werden unnötige Anfragen an Moodle vermieden und dieselben External Learning Contents nicht mehrfach gespeichert.
 
 ## Warum die Moodle-Struktur dynamisch ist
 
@@ -51,13 +51,13 @@ Die interne Domänensicht sollte nicht die Moodle-HTML-Struktur kopieren. Sie so
 
 Eine vorläufige normalisierte Sicht könnte folgende Konzepte enthalten:
 
-- **Externer Kurs:** Der einmalig identifizierte Kurs einer externen Lernplattform.
-- **Kursabonnement:** Die Zuordnung eines Benutzers zu einem externen Kurs.
-- **Externer Lerninhalt:** Eine Datei, Aufgabe, ein Link oder ein anderer relevanter Inhalt.
-- **Kurs-Snapshot:** Der bei einem Scan beobachtete Zustand eines Kurses.
-- **Scanlauf:** Zeitpunkt, Ergebnis und Fehler eines Abrufs.
-- **Inhaltsänderung:** Ein neuer, geänderter oder nicht mehr sichtbarer Lerninhalt.
-- **Lernaufgabe:** Eine aus einem externen Inhalt abgeleitete Aufgabe im Study Organizer.
+- **External Course:** Der einmalig identifizierte Kurs einer externen Lernplattform.
+- **Course Subscription:** Die eindeutige Verbindung eines persönlichen Study Module mit einem External Course.
+- **External Learning Content:** Eine Datei, Aufgabe, ein Link oder ein anderer relevanter Inhalt.
+- **Course Snapshot:** Der bei einem Scan beobachtete Zustand eines Kurses.
+- **Scan Run:** Zeitpunkt, Ergebnis und Fehler eines Abrufs.
+- **Source Update:** Ein persönlicher, noch nicht bestätigter Hinweis darauf, dass sich die externen Metadaten einer Imported Study Task geändert haben.
+- **Imported Study Task:** Eine persönliche Study Task, die aus einem External Learning Content entstanden und dauerhaft mit ihm verbunden ist.
 
 Diese Begriffe sind Arbeitshypothesen. Sie müssen später mit dem vorhandenen Domain-Modell abgeglichen und in `CONTEXT.md` präzisiert werden.
 
@@ -67,27 +67,27 @@ Diese Begriffe sind Arbeitshypothesen. Sie müssen später mit dem vorhandenen D
 
 Der Kern des Study Organizers soll über ein kleines Interface mit einer externen Lernplattform kommunizieren. Konkrete Zugänge werden als Adapter implementiert. Denkbare Adapter sind ein Moodle-Web-Service-Adapter, ein HTML-Adapter und ein deterministischer Mock-Adapter.
 
-Das Interface ist gleichzeitig die Testoberfläche. Fachliche Tests sollen Kurs-Snapshots und Änderungen prüfen können, ohne eine echte Moodle-Installation aufzurufen.
+Das Interface ist gleichzeitig die Testoberfläche. Fachliche Tests sollen Course Snapshots und Änderungen prüfen können, ohne eine echte Moodle-Installation aufzurufen.
 
 ### Discovery und Fähigkeiten
 
 Beim Registrieren eines Kurses soll eine Discovery feststellen, welche Integrationsmöglichkeit verfügbar ist. Sie könnte beispielsweise prüfen, ob ein unterstützter Web Service erreichbar ist oder ob für die Moodle-Installation ein bekannter HTML-Adapter existiert.
 
-Discovery bedeutet nicht, bei jedem Scan erneut eine vollständige Analyse durchzuführen. Das Ergebnis kann als Integrationsprofil gespeichert und später validiert werden. Wenn das Profil nicht mehr funktioniert, wechselt die Registrierung in einen Zustand wie `discovery-required`, statt falsche Lernaufgaben anzulegen.
+Discovery bedeutet nicht, bei jedem Scan erneut eine vollständige Analyse durchzuführen. Das Ergebnis kann als Integrationsprofil gespeichert und später validiert werden. Wenn das Profil nicht mehr funktioniert, wechselt die Registrierung in einen Zustand wie `discovery-required`, statt falsche Imported Study Tasks anzulegen.
 
 ### Snapshot und Diff
 
-Ein Scan erzeugt einen normalisierten Kurs-Snapshot. Dieser wird mit dem zuletzt erfolgreichen Snapshot verglichen. Erst der Vergleich entscheidet, ob ein Inhalt neu, geändert oder unverändert ist.
+Ein Scan Run erzeugt einen normalisierten Course Snapshot. Dieser wird mit dem zuletzt erfolgreichen Course Snapshot verglichen. Erst der Vergleich entscheidet, ob ein External Learning Content neu, geändert oder unverändert ist.
 
 Dabei wird eine stabile externe Identität benötigt. Nur Titel oder Position reichen nicht aus, weil ein umbenannter oder verschobener Inhalt sonst fälschlich als neu erkannt werden könnte. Falls Moodle keine stabile ID liefert, muss eine Ersatzidentität aus belastbaren Merkmalen abgeleitet werden. Diese Ableitung ist eine wichtige offene Entscheidung.
 
 ### Idempotenz
 
-Das wiederholte Verarbeiten desselben Snapshots muss dasselbe Ergebnis erzeugen. Ein Inhalt darf nicht bei jedem täglichen Scan erneut als Lernaufgabe angelegt werden. Idempotenz gilt auch bei Wiederholungen nach Timeouts oder teilweise fehlgeschlagenen Scanläufen.
+Das wiederholte Verarbeiten desselben Course Snapshot muss dasselbe Ergebnis erzeugen. Ein External Learning Content darf nicht bei jedem täglichen Scan erneut als Imported Study Task angelegt werden. Idempotenz gilt auch bei Wiederholungen nach Timeouts oder teilweise fehlgeschlagenen Scan Runs.
 
 ### Multi-Tenancy und Deduplizierung
 
-Ein externer Kurs wird unabhängig von seinen Benutzern gespeichert. Benutzer abonnieren diesen Kurs über separate Kursabonnements. Der Scheduler plant einen Scan pro externem Kurs und nicht pro Benutzer. Nach der Änderungserkennung werden die betroffenen Abonnenten bestimmt und benachrichtigt.
+Ein External Course wird unabhängig von seinen Benutzern gespeichert. Benutzer abonnieren diesen External Course über separate Course Subscriptions. Der Scheduler plant einen Scan Run pro External Course und nicht pro Benutzer. Nach der Änderungserkennung werden die Benutzer mit aktiver Course Subscription bestimmt und benachrichtigt.
 
 Die kanonische Identität eines Kurses darf nicht allein aus dem eingegebenen Link abgeleitet werden, weil verschiedene Links auf denselben Kurs zeigen können. Auch diese Normalisierung ist eine offene Entscheidung.
 
@@ -186,10 +186,10 @@ Dieser Ansatz bietet Flexibilität, erhöht jedoch die Anzahl der Zustände, Ada
 Für einen ersten vertikalen Schnitt erscheint eine kleine, deterministische Lösung sinnvoll:
 
 - Ein lokaler Mock-Moodle-Adapter stellt mehrere Kursstrukturen bereit.
-- Ein gemeinsames Interface liefert normalisierte Kurs-Snapshots.
-- Ein Diff erkennt neue Lerninhalte idempotent.
-- Mehrere Benutzer können denselben externen Kurs abonnieren.
-- Ein manueller Scanlauf beweist zunächst die fachliche Logik; zeitgesteuertes Polling folgt später.
+- Ein gemeinsames Interface liefert normalisierte Course Snapshots.
+- Ein Diff erkennt neue External Learning Contents idempotent.
+- Mehrere Benutzer können denselben External Course über eigene Course Subscriptions abonnieren.
+- Ein manueller Scan Run beweist zunächst die fachliche Logik; zeitgesteuertes Polling folgt später.
 
 Dieser Schnitt testet die risikoreichen fachlichen Annahmen, ohne bereits Authentifizierung, fremde Moodle-Installationen oder LLM-Aufrufe zu benötigen. Erst nach diesem Beweis soll entschieden werden, welcher reale Moodle-Zugang als erster Adapter implementiert wird.
 
@@ -206,12 +206,12 @@ Da während der Semesterferien möglicherweise keine echten neuen Inhalte veröf
 
 Mindestens folgende Verhaltensweisen sollen überprüft werden:
 
-- Ein neuer Inhalt wird genau einmal erkannt.
-- Ein unveränderter Inhalt erzeugt keine weitere Lernaufgabe.
-- Eine Umbenennung erzeugt kein Duplikat, sofern die Identität erhalten bleibt.
-- Drei Abonnenten führen zu einem Scan und drei gezielten Benachrichtigungen.
-- Ein fehlgeschlagener Scan überschreibt den letzten erfolgreichen Snapshot nicht.
-- Eine Login- oder Fehlerseite wird nicht als Kursinhalt interpretiert.
+- Ein neuer External Learning Content wird genau einmal erkannt.
+- Ein unveränderter External Learning Content erzeugt keine weitere Imported Study Task.
+- Eine Umbenennung erzeugt kein Duplikat, sofern der External Content Key erhalten bleibt.
+- Drei Benutzer mit aktiver Course Subscription führen zu einem gemeinsamen Scan Run und drei gezielten Benachrichtigungen.
+- Ein fehlgeschlagener Scan Run überschreibt den letzten erfolgreichen Course Snapshot nicht.
+- Eine Login- oder Fehlerseite wird nicht als External Learning Content interpretiert.
 - Ein ungültiges Integrationsprofil führt kontrolliert zu erneuter Discovery.
 - Tests können Scheduler und Uhr deterministisch steuern, ohne einen echten Tag zu warten.
 
@@ -231,10 +231,10 @@ Vor einer realen Moodle-Anbindung müssen mindestens folgende Themen geklärt we
 
 1. Welche konkreten Moodle-Installationen sollen zuerst unterstützt werden?
 2. Stehen dort offizielle Web Services für Studierende zur Verfügung?
-3. Wie wird ein externer Kurs kanonisch identifiziert?
-4. Wie wird ein externer Lerninhalt über Umbenennungen und Verschiebungen hinweg identifiziert?
+3. Wie wird eine External Course Identity kanonisch gebildet?
+4. Wie bleibt ein External Content Key über Umbenennungen und Verschiebungen hinweg stabil?
 5. Welche Inhaltstypen gehören zur ersten Version?
-6. Entsteht aus jedem neuen Inhalt automatisch eine Lernaufgabe oder muss der Benutzer bestätigen?
+6. Entsteht aus jedem neuen External Learning Content automatisch eine Imported Study Task oder muss der Benutzer bestätigen?
 7. Wie werden geänderte und entfernte Inhalte behandelt?
 8. Wie authentifiziert sich der Study Organizer, ohne Moodle-Passwörter zu speichern?
 9. Wie oft darf eine Moodle-Installation abgefragt werden?

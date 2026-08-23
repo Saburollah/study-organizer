@@ -13,7 +13,7 @@ Das Ergebnis des Experiments ist die Tatsachengrundlage für ein deutschsprachig
 
 ## Test-Feature
 
-Studierende registrieren einen externen Moodle-Kurs im Study Organizer. Das System erkennt neue oder geänderte Kursinhalte, verhindert Duplikate und stellt erkannte Lerninhalte den Abonnenten des Kurses bereit.
+Studierende registrieren einen External Course im Study Organizer. Das System erkennt neue oder geänderte External Learning Contents, verhindert Duplikate und stellt sie Benutzern mit aktiver Course Subscription als Imported Study Tasks bereit.
 
 Die Architekturfragen sind in [`../moodle-architecture-notes.md`](../moodle-architecture-notes.md) dokumentiert. Diese Notiz ist eine neutrale fachliche Eingabe für beide Skill-Suites und keine fertige Spezifikation.
 
