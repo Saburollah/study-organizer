@@ -1,0 +1,3 @@
+# Kursscans atomar und pro Kurs serialisieren
+
+Ein Scan Run ruft die externe Quelle außerhalb einer Datenbanktransaktion vollständig ab und validiert sie, bevor Snapshot, Inhalte und persönliche Auswirkungen gemeinsam in einer kurzen atomaren Transaktion gespeichert werden. Pro External Course darf nur ein Scan Run aktiv sein; parallele Aufrufe verweisen auf denselben Lauf, abgelaufene Sperren werden freigegeben und wiederholte Verarbeitung bleibt idempotent. Fehler, Timeouts und Abbrüche erhalten den letzten erfolgreichen Course Snapshot, werden als stabile Ergebnisarten protokolliert und müssen zusammen mit Unique Constraints und Parallelität durch echte PostgreSQL-Integrationstests abgesichert werden.

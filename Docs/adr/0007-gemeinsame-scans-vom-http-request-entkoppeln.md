@@ -1,0 +1,3 @@
+# Gemeinsame Scans vom auslösenden HTTP-Request entkoppeln
+
+Nachdem ein Scan Run erstellt wurde, übernimmt der Server seinen Lebenszyklus; das Schließen des Browsers oder der Abbruch der auslösenden HTTP-Verbindung darf den gemeinsamen Scan nicht beenden. Ein laufender Scan wird als persistierte Ressource mit `202 Accepted`, `Location` und `Retry-After` zurückgegeben und kann über einen eigenen Status-Endpunkt abgefragt werden, während serverseitige Timeouts und Leases seine Laufzeit begrenzen. Diese zusätzliche Trennung wird bewusst akzeptiert, weil ein einzelner Benutzer keine gemeinsam genutzte Verarbeitung für andere Abonnenten abbrechen darf.
