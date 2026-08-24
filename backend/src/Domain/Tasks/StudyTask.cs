@@ -10,7 +10,7 @@ public sealed class StudyTask
 
     public string? Description { get; private set; }
 
-    public DateTimeOffset DueDate { get; private set; }
+    public DateTimeOffset? DueDate { get; private set; }
 
     public StudyTaskStatus Status { get; private set; }
 
@@ -25,7 +25,7 @@ public sealed class StudyTask
     public StudyTask(
         Guid moduleId,
         string title,
-        DateTimeOffset dueDate,
+        DateTimeOffset? dueDate,
         string? description = null)
     {
         if (moduleId == Guid.Empty)
@@ -60,7 +60,7 @@ public sealed class StudyTask
 
     public void Update(
         string title,
-        DateTimeOffset dueDate,
+        DateTimeOffset? dueDate,
         string? description = null)
     {
         if (string.IsNullOrWhiteSpace(title))

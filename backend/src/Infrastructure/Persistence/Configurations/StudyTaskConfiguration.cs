@@ -33,8 +33,7 @@ public sealed class StudyTaskConfiguration
 
         builder.Property(task => task.DueDate)
             .HasColumnName("due_date")
-            .HasColumnType("timestamp with time zone")
-            .IsRequired();
+            .HasColumnType("timestamp with time zone");
 
         builder.Property(task => task.Status)
             .HasColumnName("status")

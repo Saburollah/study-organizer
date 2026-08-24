@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StudyOrganizer.Domain.Modules;
+using StudyOrganizer.Infrastructure.Identity;
 
 namespace StudyOrganizer.Infrastructure.Tests;
 
@@ -29,11 +30,13 @@ public sealed class ApplicationDbContextPostgreSqlTests
     {
         // Arrange
         await using var context = _fixture.CreateDbContext();
+        var user = CreateUser();
         var studyModule = new StudyModule(
-            Guid.NewGuid(),
+            user.Id,
             "PostgreSQL smoke test");
 
         // Act
+        context.Users.Add(user);
         context.Modules.Add(studyModule);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
@@ -51,9 +54,11 @@ public sealed class ApplicationDbContextPostgreSqlTests
         // Arrange
         await using (var context = _fixture.CreateDbContext())
         {
+            var user = CreateUser();
+            context.Users.Add(user);
             context.Modules.Add(
                 new StudyModule(
-                    Guid.NewGuid(),
+                    user.Id,
                     "Must be removed"));
 
             await context.SaveChangesAsync();
@@ -65,5 +70,16 @@ public sealed class ApplicationDbContextPostgreSqlTests
         // Assert
         await using var cleanContext = _fixture.CreateDbContext();
         Assert.Empty(await cleanContext.Modules.ToListAsync());
+    }
+
+    private static ApplicationUser CreateUser()
+    {
+        return new ApplicationUser
+        {
+            Email = $"{Guid.NewGuid()}@example.test",
+            NormalizedEmail = $"{Guid.NewGuid()}@EXAMPLE.TEST",
+            UserName = $"student-{Guid.NewGuid()}",
+            NormalizedUserName = $"STUDENT-{Guid.NewGuid()}"
+        };
     }
 }
