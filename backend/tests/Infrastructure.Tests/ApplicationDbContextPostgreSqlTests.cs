@@ -25,28 +25,28 @@ public sealed class ApplicationDbContextPostgreSqlTests
     }
 
     [Fact]
-    public async Task SaveChangesAsync_PersistsModule_InPostgreSql()
+    public async Task SaveChangesAsync_PersistsStudyModule_InPostgreSql()
     {
         // Arrange
         await using var context = _fixture.CreateDbContext();
-        var module = new StudyModule(
+        var studyModule = new StudyModule(
             Guid.NewGuid(),
             "PostgreSQL smoke test");
 
         // Act
-        context.Modules.Add(module);
+        context.Modules.Add(studyModule);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
         // Assert
-        var savedModule = await context.Modules
-            .SingleAsync(candidate => candidate.Id == module.Id);
+        var savedStudyModule = await context.Modules
+            .SingleAsync(candidate => candidate.Id == studyModule.Id);
 
-        Assert.Equal(module.Name, savedModule.Name);
+        Assert.Equal(studyModule.Name, savedStudyModule.Name);
     }
 
     [Fact]
-    public async Task ResetDatabaseAsync_RemovesPersistedModules()
+    public async Task ResetDatabaseAsync_RemovesPersistedStudyModules()
     {
         // Arrange
         await using (var context = _fixture.CreateDbContext())
