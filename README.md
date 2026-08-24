@@ -128,6 +128,12 @@ dotnet build backend/StudyOrganizer.sln
 dotnet test backend/StudyOrganizer.sln
 ```
 
+Die Infrastructure-Integrationstests starten über Testcontainers
+automatisch einen flüchtigen PostgreSQL-16-Container. Dafür muss Docker
+Desktop laufen. Eine lokale `.env`-Datei oder eine zuvor gestartete
+Entwicklungsdatenbank ist für die Tests nicht erforderlich. Der
+Testcontainer wird nach dem Testlauf automatisch entfernt.
+
 Frontend:
 
 ```bash
