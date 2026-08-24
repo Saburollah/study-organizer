@@ -54,6 +54,15 @@ public sealed class ExternalLearningContentTests
         Assert.Equal(
             ExternalLearningContentAvailability.Available,
             content.Availability);
+        Assert.Equal(
+            ContentSignature.Compute(
+                ExternalLearningContentType.File,
+                "Exercise sheet 1",
+                dueDate,
+                "application/pdf",
+                "https://mock-moodle.test/file-17",
+                ExternalLearningContentAvailability.Available),
+            content.Signature);
         Assert.Equal(createdAt, content.CreatedAt);
         Assert.Null(content.UpdatedAt);
     }
@@ -166,6 +175,7 @@ public sealed class ExternalLearningContentTests
             "https://mock-moodle.test/old");
 
         var originalId = content.Id;
+        var originalSignature = content.Signature;
         var updatedAt =
             DateTimeOffset.UnixEpoch.AddHours(1);
 
@@ -199,6 +209,18 @@ public sealed class ExternalLearningContentTests
         Assert.Equal(
             ExternalLearningContentAvailability.Available,
             content.Availability);
+        Assert.NotEqual(
+            originalSignature,
+            content.Signature);
+        Assert.Equal(
+            ContentSignature.Compute(
+                ExternalLearningContentType.Link,
+                "New title",
+                null,
+                "text/html",
+                "https://mock-moodle.test/new",
+                ExternalLearningContentAvailability.Available),
+            content.Signature);
     }
 
     [Fact]
@@ -215,6 +237,7 @@ public sealed class ExternalLearningContentTests
             null,
             null);
 
+        var originalSignature = content.Signature;
         var updatedAt =
             DateTimeOffset.UnixEpoch.AddHours(1);
 
@@ -226,6 +249,18 @@ public sealed class ExternalLearningContentTests
             ExternalLearningContentAvailability.Unavailable,
             content.Availability);
         Assert.Equal(updatedAt, content.UpdatedAt);
+        Assert.NotEqual(
+            originalSignature,
+            content.Signature);
+        Assert.Equal(
+            ContentSignature.Compute(
+                ExternalLearningContentType.Activity,
+                "Forum discussion",
+                null,
+                null,
+                null,
+                ExternalLearningContentAvailability.Unavailable),
+            content.Signature);
     }
 
     [Fact]
@@ -275,6 +310,8 @@ public sealed class ExternalLearningContentTests
         content.MarkUnavailable(
             DateTimeOffset.UnixEpoch.AddHours(1));
 
+        var unavailableSignature = content.Signature;
+
         var updatedAt =
             DateTimeOffset.UnixEpoch.AddHours(2);
 
@@ -286,6 +323,18 @@ public sealed class ExternalLearningContentTests
             ExternalLearningContentAvailability.Available,
             content.Availability);
         Assert.Equal(updatedAt, content.UpdatedAt);
+        Assert.NotEqual(
+            unavailableSignature,
+            content.Signature);
+        Assert.Equal(
+            ContentSignature.Compute(
+                ExternalLearningContentType.Activity,
+                "Forum discussion",
+                null,
+                null,
+                null,
+                ExternalLearningContentAvailability.Available),
+            content.Signature);
     }
 
     [Fact]

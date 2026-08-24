@@ -20,6 +20,8 @@ public sealed class ExternalLearningContent
 
     public ExternalLearningContentAvailability Availability { get; private set; }
 
+    public ContentSignature Signature { get; private set; }
+
     public DateTimeOffset CreatedAt { get; }
 
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -60,6 +62,13 @@ public sealed class ExternalLearningContent
             NormalizeOptionalValue(sourceReference);
         Availability =
             ExternalLearningContentAvailability.Available;
+        Signature = ContentSignature.Compute(
+            Type,
+            Title,
+            DueDate,
+            MediaType,
+            SourceReference,
+            Availability);
     }
 
     public void UpdateMetadata(
@@ -83,6 +92,13 @@ public sealed class ExternalLearningContent
         MediaType = NormalizeOptionalValue(mediaType);
         SourceReference =
             NormalizeOptionalValue(sourceReference);
+        Signature = ContentSignature.Compute(
+            Type,
+            Title,
+            DueDate,
+            MediaType,
+            SourceReference,
+            Availability);
         UpdatedAt = updatedAt;
     }
 
@@ -96,6 +112,13 @@ public sealed class ExternalLearningContent
 
         Availability =
             ExternalLearningContentAvailability.Available;
+        Signature = ContentSignature.Compute(
+            Type,
+            Title,
+            DueDate,
+            MediaType,
+            SourceReference,
+            Availability);
         UpdatedAt = updatedAt;
     }
 
@@ -109,6 +132,13 @@ public sealed class ExternalLearningContent
 
         Availability =
             ExternalLearningContentAvailability.Unavailable;
+        Signature = ContentSignature.Compute(
+            Type,
+            Title,
+            DueDate,
+            MediaType,
+            SourceReference,
+            Availability);
         UpdatedAt = updatedAt;
     }
 
