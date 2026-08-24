@@ -10,6 +10,10 @@ public sealed record ScanRunCounts
 
     public int Unavailable { get; }
 
+    private ScanRunCounts()
+    {
+    }
+
     public ScanRunCounts(
         int newCount,
         int updatedCount,

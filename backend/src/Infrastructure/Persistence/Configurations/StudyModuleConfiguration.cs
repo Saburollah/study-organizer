@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using StudyOrganizer.Domain.Modules;
+using StudyOrganizer.Infrastructure.Identity;
 
 namespace StudyOrganizer.Infrastructure.Persistence.Configurations;
 
@@ -46,5 +47,10 @@ public sealed class StudyModuleConfiguration
 
         builder.HasIndex(module => module.OwnerId)
             .HasDatabaseName("ix_modules_owner_id");
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(module => module.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -12,6 +12,10 @@ public sealed class CourseSnapshot
 
     public bool IsCurrent { get; private set; }
 
+    private CourseSnapshot()
+    {
+    }
+
     public CourseSnapshot(
         Guid externalCourseId,
         Guid scanRunId,

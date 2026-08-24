@@ -8,11 +8,11 @@ public sealed class CourseSnapshotItem
 
     public Guid ExternalLearningContentId { get; }
 
-    public ExternalContentKey ExternalContentKey { get; }
+    public ExternalContentKey ExternalContentKey { get; } = null!;
 
     public ExternalLearningContentType Type { get; }
 
-    public string Title { get; }
+    public string Title { get; } = null!;
 
     public DateTimeOffset? DueDate { get; }
 
@@ -20,7 +20,11 @@ public sealed class CourseSnapshotItem
 
     public string? SourceReference { get; }
 
-    public ContentSignature Signature { get; }
+    public ContentSignature Signature { get; } = null!;
+
+    private CourseSnapshotItem()
+    {
+    }
 
     public CourseSnapshotItem(
         Guid courseSnapshotId,

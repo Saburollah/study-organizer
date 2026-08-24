@@ -6,11 +6,11 @@ public sealed class ExternalLearningContent
 
     public Guid ExternalCourseId { get; }
 
-    public ExternalContentKey ExternalContentKey { get; }
+    public ExternalContentKey ExternalContentKey { get; } = null!;
 
     public ExternalLearningContentType Type { get; private set; }
 
-    public string Title { get; private set; }
+    public string Title { get; private set; } = null!;
 
     public DateTimeOffset? DueDate { get; private set; }
 
@@ -20,11 +20,15 @@ public sealed class ExternalLearningContent
 
     public ExternalLearningContentAvailability Availability { get; private set; }
 
-    public ContentSignature Signature { get; private set; }
+    public ContentSignature Signature { get; private set; } = null!;
 
     public DateTimeOffset CreatedAt { get; }
 
     public DateTimeOffset? UpdatedAt { get; private set; }
+
+    private ExternalLearningContent()
+    {
+    }
 
     public ExternalLearningContent(
         Guid externalCourseId,

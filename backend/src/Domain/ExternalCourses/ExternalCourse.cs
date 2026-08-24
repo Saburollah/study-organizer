@@ -4,15 +4,19 @@ public sealed class ExternalCourse
 {
     public Guid Id { get; }
 
-    public ExternalCourseIdentity Identity { get; }
+    public ExternalCourseIdentity Identity { get; } = null!;
 
-    public string Name { get; }
+    public string Name { get; } = null!;
 
     public ExternalCourseState State { get; private set; }
 
     public DateTimeOffset CreatedAt { get; }
 
     public DateTimeOffset? InactiveSince { get; private set; }
+
+    private ExternalCourse()
+    {
+    }
 
     public ExternalCourse(
         ExternalCourseIdentity identity,
@@ -22,12 +26,14 @@ public sealed class ExternalCourse
         Id = Guid.NewGuid();
         Identity = identity
             ?? throw new ArgumentNullException(nameof(identity));
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(
-                    "External Course name must not be empty.",
-                    nameof(name));
-            }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                "External Course name must not be empty.",
+                nameof(name));
+        }
+
         Name = name.Trim();
         State = ExternalCourseState.Inactive;
         CreatedAt = createdAt;

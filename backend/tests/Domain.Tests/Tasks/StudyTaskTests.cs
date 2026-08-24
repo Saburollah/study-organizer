@@ -26,6 +26,20 @@ public sealed class StudyTaskTests
     }
 
     [Fact]
+    public void Constructor_WithoutDueDate_CreatesOpenTask()
+    {
+        // Act
+        var task = new StudyTask(
+            Guid.NewGuid(),
+            "Read course announcement",
+            null);
+
+        // Assert
+        Assert.Null(task.DueDate);
+        Assert.Equal(StudyTaskStatus.Open, task.Status);
+    }
+
+    [Fact]
     public void Constructor_WithEmptyModuleId_ThrowsArgumentException()
     {
         // Act

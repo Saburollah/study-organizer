@@ -18,6 +18,10 @@ public sealed class CourseSubscription
 
     public DateTimeOffset? EndedAt { get; private set; }
 
+    private CourseSubscription()
+    {
+    }
+
     public CourseSubscription(
         Guid studyModuleId,
         Guid ownerId,

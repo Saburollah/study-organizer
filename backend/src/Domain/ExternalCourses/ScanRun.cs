@@ -18,7 +18,11 @@ public sealed class ScanRun
 
     public ScanRunErrorCode? ErrorCode { get; private set; }
 
-    public ScanRunCounts Counts { get; private set; }
+    public ScanRunCounts Counts { get; private set; } = null!;
+
+    private ScanRun()
+    {
+    }
 
     public ScanRun(
         Guid externalCourseId,

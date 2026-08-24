@@ -39,7 +39,7 @@ public sealed record StudyTaskResponse(
     Guid ModuleId,
     string Title,
     string? Description,
-    DateTimeOffset DueDateUtc,
+    DateTimeOffset? DueDateUtc,
     string Status,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);

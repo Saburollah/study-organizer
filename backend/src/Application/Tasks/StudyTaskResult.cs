@@ -7,7 +7,7 @@ public sealed record StudyTaskResult(
     Guid ModuleId,
     string Title,
     string? Description,
-    DateTimeOffset DueDateUtc,
+    DateTimeOffset? DueDateUtc,
     StudyTaskStatus Status,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);
