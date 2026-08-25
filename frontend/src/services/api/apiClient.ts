@@ -1,14 +1,10 @@
 import { environment } from '@/config/environment'
 
-export type AccessTokenProvider =
-  () => string | null
+export type AccessTokenProvider = () => string | null
 
-let accessTokenProvider: AccessTokenProvider =
-  () => null
+let accessTokenProvider: AccessTokenProvider = () => null
 
-export function configureAccessTokenProvider(
-  provider: AccessTokenProvider,
-): void {
+export function configureAccessTokenProvider(provider: AccessTokenProvider): void {
   accessTokenProvider = provider
 }
 
@@ -16,6 +12,13 @@ export interface ApiProblem {
   title?: string
   detail?: string
   errors?: Record<string, string[]>
+  code?: string
+}
+
+export interface ApiResponse<T> {
+  data: T
+  status: number
+  headers: Headers
 }
 
 export class ApiError extends Error {
@@ -23,78 +26,71 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly problem?: ApiProblem,
   ) {
-    super(
-      problem?.detail
-        ?? problem?.title
-        ?? `Die Anfrage ist fehlgeschlagen (${status}).`,
-    )
+    super(problem?.detail ?? problem?.title ?? `Die Anfrage ist fehlgeschlagen (${status}).`)
 
     this.name = 'ApiError'
   }
 }
 
-export async function apiRequest<T>(
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await apiResponse<T>(path, options)
+
+  return response.data
+}
+
+export async function apiResponse<T>(
   path: string,
   options: RequestInit = {},
-): Promise<T> {
-  const baseUrl =
-    environment.apiBaseUrl.replace(/\/+$/, '')
+): Promise<ApiResponse<T>> {
+  const baseUrl = environment.apiBaseUrl.replace(/\/+$/, '')
 
-  const normalizedPath =
-    path.startsWith('/') ? path : `/${path}`
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
   const headers = new Headers(options.headers)
 
   const accessToken = accessTokenProvider()
 
-if (
-  accessToken
-  && !headers.has('Authorization')
-) {
-  headers.set(
-    'Authorization',
-    `Bearer ${accessToken}`,
-  )
-}
+  if (accessToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
 
   if (options.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
-  const response = await fetch(
-    `${baseUrl}${normalizedPath}`,
-    {
-      ...options,
-      headers,
-    },
-  )
+  const response = await fetch(`${baseUrl}${normalizedPath}`, {
+    ...options,
+    headers,
+  })
 
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      await readProblem(response),
-    )
+    throw new ApiError(response.status, await readProblem(response))
   }
 
   if (response.status === 204) {
-    return undefined as T
+    return {
+      data: undefined as T,
+      status: response.status,
+      headers: response.headers,
+    }
   }
 
-  return response.json() as Promise<T>
+  return {
+    data: (await response.json()) as T,
+    status: response.status,
+    headers: response.headers,
+  }
 }
 
-async function readProblem(
-  response: Response,
-): Promise<ApiProblem | undefined> {
-  const contentType =
-    response.headers.get('Content-Type')
+async function readProblem(response: Response): Promise<ApiProblem | undefined> {
+  const contentType = response.headers.get('Content-Type')
 
   if (!contentType?.includes('json')) {
     return undefined
   }
 
   try {
-    return await response.json() as ApiProblem
+    return (await response.json()) as ApiProblem
   } catch {
     return undefined
   }

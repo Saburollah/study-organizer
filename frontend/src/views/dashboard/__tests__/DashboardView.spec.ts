@@ -93,6 +93,29 @@ describe('DashboardView', () => {
     expect(wrapper.text()).toContain('Keine offenen Aufgaben')
   })
 
+  it('shows an open task without a due date using a translated label', async () => {
+    vi.spyOn(dashboardService, 'getDashboard').mockResolvedValue({
+      moduleCount: 1,
+      tasks: [
+        {
+          id: 'task-without-due-date',
+          moduleId: 'module-1',
+          moduleName: 'Dashboard Diagnose',
+          moduleCode: null,
+          title: 'Aufgabe ohne Fälligkeit',
+          dueDateUtc: null,
+          status: 'Open',
+        },
+      ],
+    })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Ohne Fälligkeit')
+    expect(wrapper.text()).not.toContain('dashboard.next.noDueDate')
+  })
+
   it('shows an error and retries loading', async () => {
     const getDashboardMock = vi
       .spyOn(dashboardService, 'getDashboard')

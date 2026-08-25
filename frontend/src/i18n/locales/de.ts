@@ -84,6 +84,7 @@ export default {
       emptyDescription: 'Aktuell stehen keine offenen Aufgaben an.',
       openModules: 'Zu den Lernmodulen',
       overdue: 'Überfällig',
+      noDueDate: 'Ohne Fälligkeit',
     },
   },
 
@@ -156,6 +157,119 @@ export default {
     },
   },
 
+  courseImports: {
+    registration: {
+      eyebrow: 'MOCK-MOODLE',
+      title: 'Kurs verbinden',
+      open: 'Mock-Kurs verbinden',
+      description: 'Übernimm Kursinhalte als persönliche Aufgaben in ein Lernmodul.',
+      cancel: 'Schließen',
+      back: 'Zurück',
+      progressLabel: 'Fortschritt der Kursregistrierung',
+      steps: { link: 'Kurslink', module: 'Lernmodul', summary: 'Bestätigung' },
+      link: {
+        title: 'Mock-Kurslink eingeben',
+        description: 'Trage den Link zu dem Kurs ein, dessen Inhalte geprüft werden sollen.',
+        label: 'Kurslink',
+        placeholder: 'https://example.test/mock-moodle/course/…',
+        privacy: 'Deine persönlichen Zugriffsdaten werden nicht mit anderen Abonnenten geteilt.',
+        continue: 'Link prüfen',
+      },
+      module: {
+        title: 'Persönliches Lernmodul auswählen',
+        description: 'Neue Aufgaben aus dem Kurs werden diesem Lernmodul zugeordnet.',
+        legend: 'Zielmodul',
+        noCode: 'Ohne Kürzel',
+        continue: 'Weiter',
+      },
+      summary: {
+        title: 'Verbindung prüfen',
+        description: 'Prüfe Kurs und Zielmodul, bevor der erste Scan gestartet wird.',
+        course: 'Mock-Kurs',
+        module: 'Persönliches Lernmodul',
+        scan: 'Erster Scan',
+        scanValue: 'Sofort nach der Bestätigung',
+        confirm: 'Verbinden und Scan starten',
+        submitting: 'Verbindung wird hergestellt …',
+      },
+      validation: {
+        urlRequired: 'Bitte gib einen Kurslink ein.',
+        urlInvalid: 'Bitte gib einen vollständigen Kurslink ein.',
+        urlMax: 'Der Kurslink darf höchstens 2048 Zeichen enthalten.',
+        moduleRequired: 'Bitte wähle ein Lernmodul aus.',
+      },
+      errors: {
+        validation: 'Bitte prüfe den Kurslink und versuche es erneut.',
+        unsupportedCourseUrl: 'Dieser Kurslink wird nicht unterstützt.',
+        moduleAlreadySubscribed: 'Dieses Lernmodul ist bereits mit einem Kurs verbunden.',
+        courseAlreadySubscribed: 'Dieser Kurs ist bereits in einem anderen Lernmodul abonniert.',
+        unexpected: 'Der Kurs konnte nicht verbunden werden.',
+      },
+    },
+    overview: {
+      loading: 'Kursverbindung wird geladen …',
+      retryLoad: 'Erneut versuchen',
+      eyebrow: 'VERBUNDENER MOCK-KURS',
+      openSource: 'Kursquelle öffnen ↗',
+      subscriptionStatus: { Pending: 'Ausstehend', Active: 'Aktiv' },
+      metrics: {
+        knownContents: 'Bekannte Kursinhalte',
+        latestScan: 'Letzter Scan',
+        personalTasks: 'Neue persönliche Aufgaben',
+      },
+      latestScan: 'Letztes Scanergebnis',
+      scanFailed: 'Scan fehlgeschlagen',
+      scanRunning: 'Scan läuft. Die Kursübersicht wird automatisch aktualisiert.',
+      scanSummary:
+        '{tasks} neue Aufgaben · {newContents} neue Inhalte · {updatedContents} aktualisiert',
+      history: 'Scan-Verlauf',
+      noHistory: 'Noch keine Scans vorhanden.',
+      historyNew: '{count} neu',
+      scanStatus: {
+        Running: 'Läuft',
+        Succeeded: 'Erfolgreich',
+        Failed: 'Fehlgeschlagen',
+        Cancelled: 'Abgebrochen',
+        Expired: 'Abgelaufen',
+      },
+      scanControl: {
+        title: 'Kurs auf neue Inhalte prüfen',
+        description:
+          'Der gemeinsame Kurs wird einmal gescannt; angezeigt wird nur dein persönliches Ergebnis.',
+        start: 'Scan starten',
+        retry: 'Erneut versuchen',
+        starting: 'Scan wird gestartet …',
+      },
+      scanErrors: {
+        sourceUnreachable:
+          'Die Kursquelle ist nicht erreichbar. Der letzte gültige Kursstand bleibt erhalten.',
+        accessDenied: 'Der Zugriff auf die Kursquelle wurde abgelehnt.',
+        timeout: 'Die Kursquelle hat nicht rechtzeitig geantwortet.',
+        invalidSourceData: 'Die Kursquelle hat ungültige Daten geliefert.',
+        persistenceConflict:
+          'Der Scan konnte wegen eines Speicherkonflikts nicht übernommen werden.',
+        cancelled: 'Der Scan wurde serverseitig abgebrochen.',
+        expired: 'Der Scan ist abgelaufen und kann erneut gestartet werden.',
+        unexpected: 'Der Scan ist unerwartet fehlgeschlagen.',
+      },
+      end: {
+        action: 'Kursverbindung beenden',
+        title: 'Kursverbindung wirklich beenden?',
+        description: 'Möchtest du die Verbindung zu „{course}“ beenden?',
+        tasksRemain: 'Bereits importierte Aufgaben bleiben in diesem Lernmodul erhalten.',
+        cancel: 'Abbrechen',
+        confirm: 'Verbindung beenden',
+        ending: 'Verbindung wird beendet …',
+      },
+      errors: {
+        load: 'Die Kursverbindung konnte nicht geladen werden.',
+        poll: 'Der Scanstatus konnte nicht aktualisiert werden.',
+        start: 'Der Scan konnte nicht gestartet werden.',
+        end: 'Die Kursverbindung konnte nicht beendet werden.',
+      },
+    },
+  },
+
   tasks: {
     back: '← Zurück zu den Lernmodulen',
     eyebrow: 'LERNMODUL',
@@ -170,6 +284,7 @@ export default {
       save: 'Die Aufgabe konnte nicht gespeichert werden.',
       status: 'Der Aufgabenstatus konnte nicht geändert werden.',
       delete: 'Die Aufgabe konnte nicht gelöscht werden.',
+      loadAfterScan: 'Die importierten Aufgaben konnten nicht aktualisiert werden.',
     },
     success: {
       created: 'Die Aufgabe wurde erfolgreich erstellt.',
@@ -177,6 +292,9 @@ export default {
       completed: 'Die Aufgabe wurde als erledigt markiert.',
       reopened: 'Die Aufgabe wurde wieder geöffnet.',
       deleted: 'Die Aufgabe wurde erfolgreich gelöscht.',
+      courseScanCompleted: 'Der Kursscan wurde abgeschlossen und die Aufgaben wurden aktualisiert.',
+      courseSubscriptionEnded:
+        'Die Kursverbindung wurde beendet. Importierte Aufgaben bleiben erhalten.',
     },
     empty: {
       title: 'Noch keine Aufgaben',
@@ -190,6 +308,7 @@ export default {
     due: {
       due: 'Fällig:',
       overdue: 'Überfällig:',
+      none: 'Kein Fälligkeitsdatum',
     },
     actions: {
       edit: 'Bearbeiten',
@@ -211,7 +330,7 @@ export default {
       cancel: 'Abbrechen',
       fields: {
         title: 'Titel *',
-        dueDate: 'Fällig am *',
+        dueDate: 'Fällig am',
         description: 'Beschreibung',
       },
       placeholders: {
@@ -232,6 +351,7 @@ export default {
         nextMonth: 'Nächster Monat',
         time: 'Uhrzeit',
         apply: 'Übernehmen',
+        clear: 'Fälligkeit entfernen',
       },
     },
     deleteDialog: {
