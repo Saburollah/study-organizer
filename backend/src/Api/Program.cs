@@ -22,6 +22,7 @@ using StudyOrganizer.Infrastructure.Profiles;
 using StudyOrganizer.Api.Profiles;
 using StudyOrganizer.Application.ExternalCourses;
 using StudyOrganizer.Infrastructure.ExternalCourses;
+using StudyOrganizer.Api.ExternalCourses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,9 +63,15 @@ builder.Services.AddSingleton(courseScanOptions);
 builder.Services.AddSingleton<MockExternalCourseSource>();
 builder.Services.AddSingleton<IExternalCourseSource>(services =>
     services.GetRequiredService<MockExternalCourseSource>());
+builder.Services.AddSingleton<
+    IExternalCourseUrlResolver,
+    MockMoodleCourseUrlResolver>();
 builder.Services.AddScoped<
     ICourseScanOrchestrator,
     CourseScanOrchestrator>();
+builder.Services.AddScoped<
+    ICourseSubscriptionHandler,
+    CourseSubscriptionHandler>();
 
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
@@ -205,6 +212,7 @@ app.MapUserEndpoints();
 app.MapProfileEndpoints();
 app.MapModuleEndpoints();
 app.MapStudyTaskEndpoints();
+app.MapCourseSubscriptionEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();

@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using StudyOrganizer.Application.Modules;
+using StudyOrganizer.Domain.ExternalCourses;
 using StudyOrganizer.Domain.Modules;
 using StudyOrganizer.Infrastructure.Persistence;
 
 namespace StudyOrganizer.Infrastructure.Modules;
 
 public sealed class ModuleHandler(
-    ApplicationDbContext dbContext)
+    ApplicationDbContext dbContext,
+    TimeProvider timeProvider)
     : IModuleHandler
 {
     public async Task<ModuleResult> CreateAsync(
@@ -103,10 +105,70 @@ public sealed class ModuleHandler(
             return false;
         }
 
+        await using var transaction =
+            await dbContext.Database.BeginTransactionAsync(
+                cancellationToken);
+
+        var subscription = await dbContext.CourseSubscriptions
+            .SingleOrDefaultAsync(
+                candidate => candidate.StudyModuleId == moduleId,
+                cancellationToken);
+        if (subscription is not null)
+        {
+            var now = timeProvider.GetUtcNow();
+            var runningActivationScans = await dbContext.ScanRuns
+                .Where(scan =>
+                    scan.ActivationSubscriptionId == subscription.Id
+                    && scan.Status == ScanRunStatus.Running)
+                .ToListAsync(cancellationToken);
+            foreach (var scan in runningActivationScans)
+            {
+                scan.Cancel(now);
+            }
+
+            var states = await dbContext.SubscriptionContentStates
+                .Where(state =>
+                    state.CourseSubscriptionId == subscription.Id)
+                .ToListAsync(cancellationToken);
+            var stateIds = states.Select(state => state.Id).ToList();
+            var sourceUpdates = await dbContext.SourceUpdates
+                .Where(update =>
+                    stateIds.Contains(
+                        update.SubscriptionContentStateId))
+                .ToListAsync(cancellationToken);
+
+            dbContext.SourceUpdates.RemoveRange(sourceUpdates);
+            dbContext.SubscriptionContentStates.RemoveRange(states);
+            dbContext.CourseSubscriptions.Remove(subscription);
+
+            var hasOtherActiveSubscription =
+                await dbContext.CourseSubscriptions.AnyAsync(
+                    candidate =>
+                        candidate.ExternalCourseId ==
+                            subscription.ExternalCourseId
+                        && candidate.Id != subscription.Id
+                        && candidate.State ==
+                            CourseSubscriptionState.Active,
+                    cancellationToken);
+            if (!hasOtherActiveSubscription
+                && subscription.State == CourseSubscriptionState.Active)
+            {
+                var course = await dbContext.ExternalCourses
+                    .SingleAsync(
+                        candidate =>
+                            candidate.Id == subscription.ExternalCourseId,
+                        cancellationToken);
+                course.Deactivate(now);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         dbContext.Modules.Remove(module);
 
         await dbContext.SaveChangesAsync(
             cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return true;
     }

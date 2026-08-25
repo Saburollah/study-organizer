@@ -168,6 +168,17 @@ public sealed class CourseScanOrchestrator(
                 subscription.ExternalCourseId == externalCourseId)
             .ToListAsync(cancellationToken);
 
+        if (!activationSubscriptionId.HasValue
+            && persistenceCourse.State == ExternalCourseState.Inactive
+            && !courseSubscriptions.Any(subscription =>
+                subscription.State == CourseSubscriptionState.Active))
+        {
+            scanRun.Cancel(completedAt);
+            await persistenceContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return ToResult(scanRun, false);
+        }
+
         if (activationSubscriptionId.HasValue)
         {
             var activationSubscription = courseSubscriptions.Single(
