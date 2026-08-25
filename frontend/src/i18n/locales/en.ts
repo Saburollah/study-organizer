@@ -75,7 +75,6 @@ export default {
       modules: 'Study modules',
       openTasks: 'Open tasks',
       overdue: 'Overdue',
-      noDueDate: 'No due date',
       completed: 'Completed',
     },
     next: {
@@ -85,6 +84,7 @@ export default {
       emptyDescription: 'There are currently no open tasks.',
       openModules: 'Go to study modules',
       overdue: 'Overdue',
+      noDueDate: 'No due date',
     },
   },
 

@@ -75,7 +75,6 @@ export default {
       modules: 'Lernmodule',
       openTasks: 'Offene Aufgaben',
       overdue: 'Überfällig',
-      noDueDate: 'Ohne Fälligkeit',
       completed: 'Erledigt',
     },
     next: {
@@ -85,6 +84,7 @@ export default {
       emptyDescription: 'Aktuell stehen keine offenen Aufgaben an.',
       openModules: 'Zu den Lernmodulen',
       overdue: 'Überfällig',
+      noDueDate: 'Ohne Fälligkeit',
     },
   },
 
