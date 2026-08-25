@@ -70,6 +70,16 @@ public static class StudyTaskEndpoints
             .Produces(
                 StatusCodes.Status404NotFound);
 
+        group.MapPost(
+                "/{taskId:guid}/source-update/acknowledge",
+                AcknowledgeSourceUpdateAsync)
+            .WithName("AcknowledgeStudyTaskSourceUpdate")
+            .Produces<StudyTaskResponse>(
+                StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return group;
     }
 
@@ -98,7 +108,7 @@ public static class StudyTaskEndpoints
             ownerId,
             moduleId,
             request.Title,
-            request.DueDateUtc!.Value,
+            request.DueDateUtc,
             request.Description,
             cancellationToken);
 
@@ -165,7 +175,7 @@ public static class StudyTaskEndpoints
             moduleId,
             taskId,
             request.Title,
-            request.DueDateUtc!.Value,
+            request.DueDateUtc,
             request.Description,
             cancellationToken);
 
@@ -249,6 +259,45 @@ public static class StudyTaskEndpoints
             : Results.NotFound();
     }
 
+    private static async Task<IResult> AcknowledgeSourceUpdateAsync(
+        Guid moduleId,
+        Guid taskId,
+        ClaimsPrincipal user,
+        IStudyTaskHandler taskHandler,
+        CancellationToken cancellationToken)
+    {
+        if (!user.TryGetUserId(out var ownerId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await taskHandler.AcknowledgeSourceUpdateAsync(
+            ownerId,
+            moduleId,
+            taskId,
+            cancellationToken);
+
+        return result.Outcome switch
+        {
+            AcknowledgeSourceUpdateOutcome.NotFound =>
+                Results.NotFound(),
+            AcknowledgeSourceUpdateOutcome.TaskNotImported =>
+                Results.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "The Study Task is not imported.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = "task-not-imported"
+                    }),
+            AcknowledgeSourceUpdateOutcome.Succeeded =>
+                Results.Ok(ToResponse(
+                    result.Task
+                    ?? throw new InvalidOperationException(
+                        "A successful acknowledgement must return a Study Task."))),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
     private static StudyTaskResponse ToResponse(
         StudyTaskResult task)
     {
@@ -260,6 +309,14 @@ public static class StudyTaskEndpoints
             task.DueDateUtc,
             task.Status.ToString(),
             task.CreatedAtUtc,
-            task.UpdatedAtUtc);
+            task.UpdatedAtUtc,
+            task.ImportSource is null
+                ? null
+                : new StudyTaskImportSourceResponse(
+                    task.ImportSource.Status.ToString(),
+                    task.ImportSource.ContentType?.ToString(),
+                    task.ImportSource.MediaType,
+                    task.ImportSource.SourceUrl,
+                    task.ImportSource.HasSourceUpdate));
     }
 }

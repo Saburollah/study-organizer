@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using StudyOrganizer.Api.Authentication;
 using StudyOrganizer.Api.Tasks;
 using StudyOrganizer.Application.Tasks;
+using StudyOrganizer.Domain.ExternalCourses;
 using StudyOrganizer.Domain.Tasks;
 
 namespace StudyOrganizer.Api.Tests.Tasks;
@@ -37,6 +38,7 @@ public sealed class StudyTaskEndpointsTests
     [InlineData("PUT", "")]
     [InlineData("PATCH", "/status")]
     [InlineData("DELETE", "")]
+    [InlineData("POST", "/source-update/acknowledge")]
     public async Task ManageTask_WithoutToken_ReturnsUnauthorized(
         string method,
         string routeSuffix)
@@ -118,6 +120,40 @@ public sealed class StudyTaskEndpointsTests
         Assert.Equal(
             moduleId,
             handler.ReceivedCreateModuleId);
+    }
+
+    [Fact]
+    public async Task CreateTask_WithoutDueDate_ReturnsCreated()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var task = new StudyTaskResult(
+            Guid.NewGuid(),
+            moduleId,
+            "Literatur recherchieren",
+            null,
+            null,
+            StudyTaskStatus.Open,
+            DateTimeOffset.UtcNow,
+            null);
+        var handler = new StubStudyTaskHandler(task);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/",
+            new
+            {
+                title = "Literatur recherchieren"
+            });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<
+            StudyTaskResponse>();
+        Assert.NotNull(body);
+        Assert.Null(body.DueDateUtc);
     }
     [Fact]
     public async Task CreateTask_WithInvalidData_ReturnsBadRequest()
@@ -502,6 +538,54 @@ public sealed class StudyTaskEndpointsTests
         Assert.Equal(ownerId, handler.ReceivedDeleteOwnerId);
     }
 
+    [Fact]
+    public async Task AcknowledgeSourceUpdate_ForImportedTask_ReturnsUpdatedTask()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var importedTask = new StudyTaskResult(
+            taskId,
+            moduleId,
+            "Architektur lesen",
+            null,
+            null,
+            StudyTaskStatus.Open,
+            DateTimeOffset.UtcNow,
+            null,
+            new StudyTaskImportSourceResult(
+                StudyTaskImportSourceStatus.Available,
+                ExternalLearningContentType.File,
+                "application/pdf",
+                "https://example.test/mock-moodle/content/reading.pdf",
+                HasSourceUpdate: false));
+        var handler = new StubStudyTaskHandler(
+            acknowledgeResult:
+                new AcknowledgeSourceUpdateResult(
+                    AcknowledgeSourceUpdateOutcome.Succeeded,
+                    importedTask));
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PostAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}/source-update/acknowledge",
+            content: null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<
+            StudyTaskResponse>();
+        Assert.NotNull(body?.ImportSource);
+        Assert.False(body.ImportSource.HasSourceUpdate);
+        Assert.Equal(
+            "https://example.test/mock-moodle/content/reading.pdf",
+            body.ImportSource.SourceUrl);
+        Assert.Equal(ownerId, handler.ReceivedAcknowledgeOwnerId);
+        Assert.Equal(moduleId, handler.ReceivedAcknowledgeModuleId);
+        Assert.Equal(taskId, handler.ReceivedAcknowledgeTaskId);
+    }
+
     private static void AddAuthorization(
         HttpClient client,
         Guid userId)
@@ -578,7 +662,8 @@ public sealed class StudyTaskEndpointsTests
             tasksByOwnerAndModule = null,
         StudyTaskResult? updateResult = null,
         StudyTaskResult? statusResult = null,
-        bool deleteResult = false)
+        bool deleteResult = false,
+        AcknowledgeSourceUpdateResult? acknowledgeResult = null)
         : IStudyTaskHandler
     {
         public Guid? ReceivedCreateOwnerId
@@ -619,14 +704,21 @@ public sealed class StudyTaskEndpointsTests
 
         public Guid? ReceivedDeleteTaskId { get; private set; }
 
+        public Guid? ReceivedAcknowledgeOwnerId { get; private set; }
+
+        public Guid? ReceivedAcknowledgeModuleId { get; private set; }
+
+        public Guid? ReceivedAcknowledgeTaskId { get; private set; }
+
         public List<(Guid OwnerId, Guid ModuleId)>
-        ReceivedGetRequests { get; } = [];
+            ReceivedGetRequests
+        { get; } = [];
 
         public Task<StudyTaskResult?> CreateAsync(
             Guid ownerId,
             Guid moduleId,
             string title,
-            DateTimeOffset dueDateUtc,
+            DateTimeOffset? dueDateUtc,
             string? description,
             CancellationToken cancellationToken = default)
         {
@@ -668,7 +760,7 @@ public sealed class StudyTaskEndpointsTests
             Guid moduleId,
             Guid taskId,
             string title,
-            DateTimeOffset dueDateUtc,
+            DateTimeOffset? dueDateUtc,
             string? description,
             CancellationToken cancellationToken = default)
         {
@@ -713,6 +805,24 @@ public sealed class StudyTaskEndpointsTests
             ReceivedDeleteTaskId = taskId;
 
             return Task.FromResult(deleteResult);
+        }
+
+        public Task<AcknowledgeSourceUpdateResult>
+            AcknowledgeSourceUpdateAsync(
+                Guid ownerId,
+                Guid moduleId,
+                Guid taskId,
+                CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ReceivedAcknowledgeOwnerId = ownerId;
+            ReceivedAcknowledgeModuleId = moduleId;
+            ReceivedAcknowledgeTaskId = taskId;
+
+            return Task.FromResult(
+                acknowledgeResult
+                ?? new AcknowledgeSourceUpdateResult(
+                    AcknowledgeSourceUpdateOutcome.NotFound));
         }
     }
 }

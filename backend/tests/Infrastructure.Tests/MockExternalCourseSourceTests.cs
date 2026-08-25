@@ -7,6 +7,24 @@ namespace StudyOrganizer.Infrastructure.Tests;
 public sealed class MockExternalCourseSourceTests
 {
     [Fact]
+    public async Task FetchSnapshotAsync_ForSupportedMockIdentity_ReturnsDefaultCourse()
+    {
+        var identity = new ExternalCourseIdentity(
+            MockMoodleCourseUrlResolver.SourceType,
+            MockMoodleCourseUrlResolver.SourceInstance,
+            "software-engineering");
+        var source = new MockExternalCourseSource();
+
+        var snapshot = await source.FetchSnapshotAsync(identity);
+
+        Assert.Equal(3, snapshot.Items.Count);
+        Assert.Single(snapshot.Items.Where(item =>
+            item.Type == ExternalLearningContentType.File
+            && item.MediaType == "application/pdf"));
+        Assert.Equal(1, source.GetFetchCount(identity));
+    }
+
+    [Fact]
     public async Task FetchSnapshotAsync_AfterVersionChange_ReturnsSelectedVersion()
     {
         // Arrange

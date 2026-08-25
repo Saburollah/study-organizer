@@ -122,10 +122,66 @@ public sealed class MockExternalCourseSource
     private CourseScenario GetScenario(
         ExternalCourseIdentity identity)
     {
-        return _courses.TryGetValue(identity, out var scenario)
-            ? scenario
-            : throw new KeyNotFoundException(
-                "Mock course is not registered.");
+        if (_courses.TryGetValue(identity, out var scenario))
+        {
+            return scenario;
+        }
+
+        if (string.Equals(
+                identity.SourceType,
+                MockMoodleCourseUrlResolver.SourceType,
+                StringComparison.Ordinal)
+            && string.Equals(
+                identity.SourceInstance,
+                MockMoodleCourseUrlResolver.SourceInstance,
+                StringComparison.Ordinal))
+        {
+            scenario = CreateDefaultScenario(identity.ExternalCourseKey);
+            _courses.Add(identity, scenario);
+            return scenario;
+        }
+
+        throw new KeyNotFoundException(
+            "Mock course is not registered.");
+    }
+
+    private static CourseScenario CreateDefaultScenario(string courseKey)
+    {
+        var title = courseKey
+            .Replace('-', ' ')
+            .Replace('_', ' ');
+
+        var snapshot = new CourseSourceSnapshot(
+        [
+            new CourseSourceItem(
+                new ExternalContentKey("reading-pdf"),
+                ExternalLearningContentType.File,
+                $"{title} PDF",
+                null,
+                "application/pdf",
+                $"/mock-moodle/content/{Uri.EscapeDataString(courseKey)}/reading.pdf"),
+            new CourseSourceItem(
+                new ExternalContentKey("reference-link"),
+                ExternalLearningContentType.Link,
+                $"{title} reference",
+                null,
+                null,
+                $"/mock-moodle/content/{Uri.EscapeDataString(courseKey)}/reference"),
+            new CourseSourceItem(
+                new ExternalContentKey("practice-activity"),
+                ExternalLearningContentType.Activity,
+                $"{title} activity",
+                null,
+                null,
+                null)
+        ]);
+
+        return new CourseScenario(
+            "initial",
+            new Dictionary<string, CourseSourceSnapshot>
+            {
+                ["initial"] = snapshot
+            });
     }
 
     private sealed class CourseScenario(
