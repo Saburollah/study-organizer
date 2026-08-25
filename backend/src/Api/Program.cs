@@ -20,6 +20,8 @@ using StudyOrganizer.Api.Tasks;
 using StudyOrganizer.Application.Profiles;
 using StudyOrganizer.Infrastructure.Profiles;
 using StudyOrganizer.Api.Profiles;
+using StudyOrganizer.Application.ExternalCourses;
+using StudyOrganizer.Infrastructure.ExternalCourses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,8 +48,23 @@ var connectionString =
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' was not found.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+var courseScanOptions = new CourseScanOptions(
+    builder.Configuration.GetValue<TimeSpan>(
+        "CourseScan:LeaseDuration"),
+    builder.Configuration.GetValue<TimeSpan>(
+        "CourseScan:Timeout"));
+
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+builder.Services.AddSingleton(courseScanOptions);
+
+builder.Services.AddSingleton<MockExternalCourseSource>();
+builder.Services.AddSingleton<IExternalCourseSource>(services =>
+    services.GetRequiredService<MockExternalCourseSource>());
+builder.Services.AddScoped<
+    ICourseScanOrchestrator,
+    CourseScanOrchestrator>();
 
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>

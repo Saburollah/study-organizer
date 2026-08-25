@@ -27,6 +27,21 @@ public sealed class StudyTask
         string title,
         DateTimeOffset? dueDate,
         string? description = null)
+        : this(
+            moduleId,
+            title,
+            dueDate,
+            description,
+            DateTimeOffset.UtcNow)
+    {
+    }
+
+    public StudyTask(
+        Guid moduleId,
+        string title,
+        DateTimeOffset? dueDate,
+        string? description,
+        DateTimeOffset createdAt)
     {
         if (moduleId == Guid.Empty)
         {
@@ -48,7 +63,7 @@ public sealed class StudyTask
         Description = NormalizeOptionalValue(description);
         DueDate = dueDate;
         Status = StudyTaskStatus.Open;
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = createdAt;
         UpdatedAt = null;
     }
 
