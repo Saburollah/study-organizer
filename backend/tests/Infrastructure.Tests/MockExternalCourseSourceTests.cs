@@ -25,6 +25,30 @@ public sealed class MockExternalCourseSourceTests
     }
 
     [Fact]
+    public async Task FetchSnapshotAsync_ForDefaultCourse_AdvancesOnceAndThenStaysStable()
+    {
+        var identity = new ExternalCourseIdentity(
+            MockMoodleCourseUrlResolver.SourceType,
+            MockMoodleCourseUrlResolver.SourceInstance,
+            "software-engineering");
+        var source = new MockExternalCourseSource();
+
+        var initial = await source.FetchSnapshotAsync(identity);
+        var updated = await source.FetchSnapshotAsync(identity);
+        var repeated = await source.FetchSnapshotAsync(identity);
+
+        Assert.Equal(3, initial.Items.Count);
+        Assert.Equal(4, updated.Items.Count);
+        Assert.Equal(
+            ["reading-pdf", "reference-link", "practice-activity", "project-brief"],
+            updated.Items.Select(item => item.ExternalContentKey.Value));
+        Assert.Equal(
+            updated.Items.Select(item => item.ExternalContentKey.Value),
+            repeated.Items.Select(item => item.ExternalContentKey.Value));
+        Assert.Equal(3, source.GetFetchCount(identity));
+    }
+
+    [Fact]
     public async Task FetchSnapshotAsync_AfterVersionChange_ReturnsSelectedVersion()
     {
         // Arrange

@@ -1,0 +1,60 @@
+name: Playwright E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  course-import-golden-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Frontend-Abhängigkeiten installieren
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Chromium installieren
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Lokale Testkonfiguration anlegen
+        run: cp .env.example .env
+
+      - name: Course-Import-Golden-Path ausführen
+        working-directory: frontend
+        run: pnpm test:e2e
+
+      - name: Playwright-Artefakte hochladen
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
