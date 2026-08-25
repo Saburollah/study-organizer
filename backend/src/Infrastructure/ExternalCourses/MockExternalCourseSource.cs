@@ -114,8 +114,14 @@ public sealed class MockExternalCourseSource
                     scenario.Failure.Value);
             }
 
-            return Task.FromResult(
-                scenario.Versions[scenario.CurrentVersion]);
+            var snapshot = scenario.Versions[scenario.CurrentVersion];
+            if (scenario.NextVersion is not null)
+            {
+                scenario.CurrentVersion = scenario.NextVersion;
+                scenario.NextVersion = null;
+            }
+
+            return Task.FromResult(snapshot);
         }
     }
 
@@ -176,17 +182,32 @@ public sealed class MockExternalCourseSource
                 null)
         ]);
 
+        var updatedSnapshot = new CourseSourceSnapshot(
+        [
+            .. snapshot.Items,
+            new CourseSourceItem(
+                new ExternalContentKey("project-brief"),
+                ExternalLearningContentType.Activity,
+                $"{title} project brief",
+                null,
+                null,
+                null)
+        ]);
+
         return new CourseScenario(
             "initial",
             new Dictionary<string, CourseSourceSnapshot>
             {
-                ["initial"] = snapshot
-            });
+                ["initial"] = snapshot,
+                ["updated"] = updatedSnapshot
+            },
+            "updated");
     }
 
     private sealed class CourseScenario(
         string currentVersion,
-        IReadOnlyDictionary<string, CourseSourceSnapshot> versions)
+        IReadOnlyDictionary<string, CourseSourceSnapshot> versions,
+        string? nextVersion = null)
     {
         public string CurrentVersion { get; set; } = currentVersion;
 
@@ -198,5 +219,7 @@ public sealed class MockExternalCourseSource
         public int FetchCount { get; set; }
 
         public ScanRunErrorCode? Failure { get; set; }
+
+        public string? NextVersion { get; set; } = nextVersion;
     }
 }

@@ -22,16 +22,16 @@ Die native iOS-App ist der nächste geplante Ausbauschritt und noch nicht Bestan
 
 ## Technologie
 
-| Bereich | Technologie |
-| --- | --- |
-| Backend | ASP.NET Core 8, C#, Minimal APIs |
-| Authentifizierung | ASP.NET Core Identity, JWT Bearer |
-| Persistenz | Entity Framework Core, PostgreSQL 16 |
-| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router |
-| Internationalisierung | Vue I18n, Deutsch und Englisch |
-| Tests | xUnit, ASP.NET Core Integration Tests, Vitest |
-| Lokale Infrastruktur | Docker Compose |
-| Geplant | native iOS-App mit Swift/SwiftUI und Xcode |
+| Bereich               | Technologie                                               |
+| --------------------- | --------------------------------------------------------- |
+| Backend               | ASP.NET Core 8, C#, Minimal APIs                          |
+| Authentifizierung     | ASP.NET Core Identity, JWT Bearer                         |
+| Persistenz            | Entity Framework Core, PostgreSQL 16                      |
+| Frontend              | Vue 3, TypeScript, Vite, Pinia, Vue Router                |
+| Internationalisierung | Vue I18n, Deutsch und Englisch                            |
+| Tests                 | xUnit, ASP.NET Core Integration Tests, Vitest, Playwright |
+| Lokale Infrastruktur  | Docker Compose                                            |
+| Geplant               | native iOS-App mit Swift/SwiftUI und Xcode                |
 
 ## Projektstruktur
 
@@ -143,6 +143,30 @@ pnpm lint
 pnpm exec vitest run
 pnpm build
 ```
+
+Browser-Golden-Path für den Kursimport:
+
+```bash
+cd frontend
+pnpm test:e2e
+```
+
+Der Befehl startet PostgreSQL per Docker Compose, erstellt eine isolierte
+`*_e2e`-Datenbank, wendet alle Migrationen an und startet API sowie Vue-App auf
+separaten Testports. Playwright führt den Test standardmäßig headless mit
+Chromium aus. Die E2E-Datenbank wird auch nach einem fehlgeschlagenen Lauf
+entfernt; die normale Entwicklungsdatenbank bleibt unverändert. Vor dem ersten
+Lauf müssen `.env` vorhanden, die Frontend-Abhängigkeiten installiert und der
+Chromium-Browser einmalig mit folgendem Befehl eingerichtet sein:
+
+```bash
+cd frontend
+pnpm exec playwright install chromium
+```
+
+Bei einem Fehler bleiben Trace und Screenshot unter `frontend/test-results/`
+erhalten. Derselbe headless Lauf wird durch
+`.github/workflows/playwright-e2e.yml` für Pull Requests ausgeführt.
 
 ## Dokumentation
 

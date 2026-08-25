@@ -9,6 +9,7 @@ Das Frontend ist eine Vue-3-Single-Page-Application mit TypeScript. Es verwendet
 - Vue I18n für Deutsch und Englisch
 - Feature-Services für Authentifizierung, Dashboard, Module, Aufgaben und Profil
 - Vitest und Vue Test Utils für automatisierte Tests
+- Playwright für den browserbasierten Kursimport-Golden-Path
 
 ## Konfiguration
 
@@ -37,6 +38,19 @@ pnpm lint
 pnpm exec vitest run
 pnpm build
 ```
+
+Der Playwright-Golden-Path verwendet die echte Vue-App, API und eine isolierte
+PostgreSQL-Datenbank sowie den deterministischen Mock-Moodle-Adapter. Er startet
+alle benötigten Prozesse selbst und läuft standardmäßig headless:
+
+```bash
+pnpm exec playwright install chromium # einmalig
+pnpm test:e2e
+```
+
+Die Repository-`.env` muss vorhanden sein. Trace und Screenshot fehlgeschlagener
+Läufe liegen unter `test-results/`; der HTML-Bericht liegt unter
+`playwright-report/`.
 
 ## Struktur
 

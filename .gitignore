@@ -19,3 +19,5 @@ dist/
 
 # Test diagnostics
 test-diagnostics*.log
+frontend/playwright-report/
+frontend/test-results/
