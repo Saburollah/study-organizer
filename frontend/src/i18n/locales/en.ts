@@ -75,6 +75,7 @@ export default {
       modules: 'Study modules',
       openTasks: 'Open tasks',
       overdue: 'Overdue',
+      noDueDate: 'No due date',
       completed: 'Completed',
     },
     next: {
@@ -156,6 +157,117 @@ export default {
     },
   },
 
+  courseImports: {
+    registration: {
+      eyebrow: 'MOCK MOODLE',
+      title: 'Connect course',
+      open: 'Connect mock course',
+      description: 'Import course content as personal tasks into a study module.',
+      cancel: 'Close',
+      back: 'Back',
+      progressLabel: 'Course registration progress',
+      steps: { link: 'Course link', module: 'Study module', summary: 'Confirmation' },
+      link: {
+        title: 'Enter mock course link',
+        description: 'Enter the course link whose content should be checked.',
+        label: 'Course link',
+        placeholder: 'https://example.test/mock-moodle/course/…',
+        privacy: 'Your personal access credentials are not shared with other subscribers.',
+        continue: 'Check link',
+      },
+      module: {
+        title: 'Select personal study module',
+        description: 'New course tasks will be added to this study module.',
+        legend: 'Target module',
+        noCode: 'No code',
+        continue: 'Continue',
+      },
+      summary: {
+        title: 'Review connection',
+        description: 'Review the course and target module before the first scan starts.',
+        course: 'Mock course',
+        module: 'Personal study module',
+        scan: 'First scan',
+        scanValue: 'Immediately after confirmation',
+        confirm: 'Connect and start scan',
+        submitting: 'Connecting course …',
+      },
+      validation: {
+        urlRequired: 'Enter a course link.',
+        urlInvalid: 'Enter a complete course link.',
+        urlMax: 'The course link must not exceed 2048 characters.',
+        moduleRequired: 'Select a study module.',
+      },
+      errors: {
+        validation: 'Check the course link and try again.',
+        unsupportedCourseUrl: 'This course link is not supported.',
+        moduleAlreadySubscribed: 'This study module is already connected to a course.',
+        courseAlreadySubscribed: 'This course is already subscribed in another study module.',
+        unexpected: 'The course could not be connected.',
+      },
+    },
+    overview: {
+      loading: 'Loading course connection …',
+      retryLoad: 'Try again',
+      eyebrow: 'CONNECTED MOCK COURSE',
+      openSource: 'Open course source ↗',
+      subscriptionStatus: { Pending: 'Pending', Active: 'Active' },
+      metrics: {
+        knownContents: 'Known course content',
+        latestScan: 'Latest scan',
+        personalTasks: 'New personal tasks',
+      },
+      latestScan: 'Latest scan result',
+      scanFailed: 'Scan failed',
+      scanRunning: 'Scan running. The course overview will update automatically.',
+      scanSummary:
+        '{tasks} new tasks · {newContents} new content items · {updatedContents} updated',
+      history: 'Scan history',
+      noHistory: 'No scans yet.',
+      historyNew: '{count} new',
+      scanStatus: {
+        Running: 'Running',
+        Succeeded: 'Succeeded',
+        Failed: 'Failed',
+        Cancelled: 'Cancelled',
+        Expired: 'Expired',
+      },
+      scanControl: {
+        title: 'Check course for new content',
+        description: 'The shared course is scanned once; only your personal result is shown.',
+        start: 'Start scan',
+        retry: 'Try again',
+        starting: 'Starting scan …',
+      },
+      scanErrors: {
+        sourceUnreachable:
+          'The course source is unreachable. The last valid course state remains available.',
+        accessDenied: 'Access to the course source was denied.',
+        timeout: 'The course source did not respond in time.',
+        invalidSourceData: 'The course source returned invalid data.',
+        persistenceConflict: 'The scan could not be applied because of a persistence conflict.',
+        cancelled: 'The scan was cancelled by the server.',
+        expired: 'The scan expired and can be started again.',
+        unexpected: 'The scan failed unexpectedly.',
+      },
+      end: {
+        action: 'End course connection',
+        title: 'End course connection?',
+        description: 'Do you want to end the connection to “{course}”?',
+        tasksRemain: 'Previously imported tasks remain in this study module.',
+        cancel: 'Cancel',
+        confirm: 'End connection',
+        ending: 'Ending connection …',
+      },
+      errors: {
+        load: 'The course connection could not be loaded.',
+        poll: 'The scan status could not be refreshed.',
+        start: 'The scan could not be started.',
+        end: 'The course connection could not be ended.',
+      },
+    },
+  },
+
   tasks: {
     back: '← Back to study modules',
     eyebrow: 'STUDY MODULE',
@@ -170,6 +282,7 @@ export default {
       save: 'The task could not be saved.',
       status: 'The task status could not be changed.',
       delete: 'The task could not be deleted.',
+      loadAfterScan: 'The imported tasks could not be refreshed.',
     },
     success: {
       created: 'The task was created successfully.',
@@ -177,6 +290,8 @@ export default {
       completed: 'The task was marked as completed.',
       reopened: 'The task was reopened.',
       deleted: 'The task was deleted successfully.',
+      courseScanCompleted: 'The course scan completed and the tasks were refreshed.',
+      courseSubscriptionEnded: 'The course connection ended. Imported tasks remain available.',
     },
     empty: {
       title: 'No tasks yet',
@@ -190,6 +305,7 @@ export default {
     due: {
       due: 'Due:',
       overdue: 'Overdue:',
+      none: 'No due date',
     },
     actions: {
       edit: 'Edit',
@@ -211,7 +327,7 @@ export default {
       cancel: 'Cancel',
       fields: {
         title: 'Title *',
-        dueDate: 'Due date *',
+        dueDate: 'Due date',
         description: 'Description',
       },
       placeholders: {
@@ -232,6 +348,7 @@ export default {
         nextMonth: 'Next month',
         time: 'Time',
         apply: 'Apply',
+        clear: 'Remove due date',
       },
     },
     deleteDialog: {

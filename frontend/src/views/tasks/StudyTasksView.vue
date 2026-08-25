@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 import { moduleService } from '@/features/modules/moduleService'
 import type { StudyModule } from '@/features/modules/moduleModels'
+import CourseSubscriptionPanel from '@/features/course-imports/CourseSubscriptionPanel.vue'
 import StudyTaskForm from '@/features/tasks/StudyTaskForm.vue'
 import type { SaveStudyTaskRequest, StudyTask, StudyTaskStatus } from '@/features/tasks/taskModels'
 import { taskService } from '@/features/tasks/taskService'
@@ -36,7 +37,7 @@ const formInitialValues = computed<SaveStudyTaskRequest>(() => {
   if (!editingTask.value) {
     return {
       title: '',
-      dueDateUtc: '',
+      dueDateUtc: null,
     }
   }
 
@@ -225,10 +226,29 @@ function replaceTask(updatedTask: StudyTask): void {
   )
 }
 
+async function refreshTasksAfterScan(): Promise<void> {
+  try {
+    tasks.value = sortTasks(await taskService.getByModule(props.moduleId))
+    successMessage.value = t('tasks.success.courseScanCompleted')
+    actionErrorMessage.value = ''
+  } catch (error: unknown) {
+    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.loadAfterScan'))
+  }
+}
+
+function reportSubscriptionEnded(): void {
+  successMessage.value = t('tasks.success.courseSubscriptionEnded')
+  actionErrorMessage.value = ''
+}
+
 function sortTasks(items: StudyTask[]): StudyTask[] {
   return [...items].sort(
-    (first, second) => Date.parse(first.dueDateUtc) - Date.parse(second.dueDateUtc),
+    (first, second) => dueDateSortValue(first.dueDateUtc) - dueDateSortValue(second.dueDateUtc),
   )
+}
+
+function dueDateSortValue(value: string | null): number {
+  return value ? Date.parse(value) : Number.POSITIVE_INFINITY
 }
 
 function formatDueDate(value: string): string {
@@ -241,7 +261,9 @@ function formatDueDate(value: string): string {
 }
 
 function isOverdue(task: StudyTask): boolean {
-  return task.status === 'Open' && Date.parse(task.dueDateUtc) < Date.now()
+  return Boolean(
+    task.dueDateUtc && task.status === 'Open' && Date.parse(task.dueDateUtc) < Date.now(),
+  )
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -296,6 +318,13 @@ function getErrorMessage(error: unknown, fallback: string): string {
       :submit-label="editingTask ? t('tasks.form.saveChanges') : t('tasks.form.create')"
       @save="saveTask"
       @cancel="closeTaskForm"
+    />
+
+    <CourseSubscriptionPanel
+      v-if="!isLoading && !loadErrorMessage"
+      :module-id="moduleId"
+      @scan-completed="refreshTasksAfterScan"
+      @ended="reportSubscriptionEnded"
     />
 
     <p v-if="isLoading" class="state-card" role="status">
@@ -356,11 +385,14 @@ function getErrorMessage(error: unknown, fallback: string): string {
             {{ t('tasks.noDescription') }}
           </p>
 
-          <p class="due-date">
+          <p v-if="task.dueDateUtc" class="due-date">
             <strong>
               {{ isOverdue(task) ? t('tasks.due.overdue') : t('tasks.due.due') }}
             </strong>
             {{ formatDueDate(task.dueDateUtc) }}
+          </p>
+          <p v-else class="due-date muted">
+            {{ t('tasks.due.none') }}
           </p>
 
           <div class="task-actions">

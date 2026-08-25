@@ -21,15 +21,12 @@ const completedTasks = computed(
   () => dashboard.value?.tasks.filter((task) => task.status === 'Completed') ?? [],
 )
 
-const overdueTasks = computed(() =>
-  openTasks.value.filter((task) => new Date(task.dueDateUtc) < new Date()),
-)
+const overdueTasks = computed(() => openTasks.value.filter((task) => isOverdue(task.dueDateUtc)))
 
 const nextTasks = computed(() =>
   [...openTasks.value]
     .sort(
-      (first, second) =>
-        new Date(first.dueDateUtc).getTime() - new Date(second.dueDateUtc).getTime(),
+      (first, second) => dueDateSortValue(first.dueDateUtc) - dueDateSortValue(second.dueDateUtc),
     )
     .slice(0, 5),
 )
@@ -56,8 +53,12 @@ function formatDate(dateUtc: string): string {
   }).format(new Date(dateUtc))
 }
 
-function isOverdue(dateUtc: string): boolean {
-  return new Date(dateUtc) < new Date()
+function isOverdue(dateUtc: string | null): boolean {
+  return Boolean(dateUtc && new Date(dateUtc) < new Date())
+}
+
+function dueDateSortValue(dateUtc: string | null): number {
+  return dateUtc ? new Date(dateUtc).getTime() : Number.POSITIVE_INFINITY
 }
 
 onMounted(loadDashboard)
@@ -156,9 +157,10 @@ onMounted(loadDashboard)
               <span v-if="isOverdue(task.dueDateUtc)">
                 {{ t('dashboard.next.overdue') }}
               </span>
-              <time :datetime="task.dueDateUtc">
+              <time v-if="task.dueDateUtc" :datetime="task.dueDateUtc">
                 {{ formatDate(task.dueDateUtc) }}
               </time>
+              <span v-else>{{ t('dashboard.next.noDueDate') }}</span>
             </div>
           </RouterLink>
         </div>

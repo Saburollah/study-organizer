@@ -2,19 +2,27 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
+import { courseImportService } from '@/features/course-imports/courseImportService'
+import type { CourseSubscription } from '@/features/course-imports/courseImportModels'
 import { i18n, setLocale } from '@/i18n'
 
 import ModulesView from '../ModulesView.vue'
+
+const { pushMock } = vi.hoisted(() => ({
+  pushMock: vi.fn<(location: unknown) => Promise<void>>().mockResolvedValue(),
+}))
 
 vi.mock('vue-router', () => ({
   RouterLink: {
     template: '<a><slot /></a>',
   },
+  useRouter: () => ({ push: pushMock }),
 }))
 
 describe('ModulesView', () => {
   beforeEach(() => {
     setLocale('de')
+    pushMock.mockReset()
   })
 
   afterEach(() => {
@@ -64,6 +72,56 @@ describe('ModulesView', () => {
     expect(wrapper.text()).toContain('Sichere Systeme')
     expect(wrapper.text()).toContain('SIS')
     expect(wrapper.findAll('.module-card')).toHaveLength(1)
+  })
+
+  it('starts course registration and opens the selected module after confirmation', async () => {
+    const moduleId = 'e6ab31a1-292b-4b31-b65b-dab568512b40'
+    vi.spyOn(moduleService, 'getAll').mockResolvedValue([
+      {
+        id: moduleId,
+        name: 'Software Engineering',
+        code: 'SWE',
+        description: null,
+        color: '#0c66e4',
+        createdAtUtc: '2026-08-25T08:00:00Z',
+      },
+    ])
+    const subscription = {
+      moduleId,
+      status: 'Pending',
+      createdAtUtc: '2026-08-25T08:00:00Z',
+      activatedAtUtc: null,
+      course: {
+        displayName: 'Software Engineering',
+        sourceType: 'mock-moodle',
+        sourceUrl: 'https://example.test/mock-moodle/course/software-engineering',
+      },
+      latestSnapshot: null,
+      latestScan: null,
+      recentScans: [],
+    } satisfies CourseSubscription
+    vi.spyOn(courseImportService, 'register').mockResolvedValue({
+      data: subscription,
+      status: 202,
+      location: null,
+      retryAfterMilliseconds: 1000,
+    })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    await wrapper.get('.connect-course-button').trigger('click')
+    await wrapper.get('input[type="url"]').setValue(subscription.course.sourceUrl)
+    await wrapper.get('.registration-panel').trigger('submit')
+    await wrapper.get('input[type="radio"]').setValue(moduleId)
+    await wrapper.get('.registration-panel').trigger('submit')
+    await wrapper.get('.registration-panel').trigger('submit')
+    await flushPromises()
+
+    expect(pushMock).toHaveBeenCalledWith({
+      name: 'module-tasks',
+      params: { moduleId },
+    })
   })
 
   it('shows an error and can retry loading', async () => {

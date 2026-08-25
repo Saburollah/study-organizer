@@ -1,10 +1,4 @@
-import {
-  afterEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { HttpTaskService } from '../taskService'
 
@@ -20,6 +14,7 @@ const task = {
   status: 'Open' as const,
   createdAtUtc: '2026-08-13T08:00:00Z',
   updatedAtUtc: null,
+  importSource: null,
 }
 
 describe('HttpTaskService', () => {
@@ -70,11 +65,7 @@ describe('HttpTaskService', () => {
       dueDateUtc: task.dueDateUtc,
     }
 
-    const result = await service.update(
-      moduleId,
-      taskId,
-      request,
-    )
+    const result = await service.update(moduleId, taskId, request)
 
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
       `http://localhost:5101/api/modules/${moduleId}/tasks/${taskId}`,
@@ -95,11 +86,7 @@ describe('HttpTaskService', () => {
     const fetchMock = stubFetch(completedTask, 200)
     const service = new HttpTaskService()
 
-    const result = await service.updateStatus(
-      moduleId,
-      taskId,
-      'Completed',
-    )
+    const result = await service.updateStatus(moduleId, taskId, 'Completed')
 
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
       `http://localhost:5101/api/modules/${moduleId}/tasks/${taskId}/status`,
@@ -112,9 +99,7 @@ describe('HttpTaskService', () => {
   })
 
   it('deletes a task', async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(new Response(null, { status: 204 }))
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }))
 
     vi.stubGlobal('fetch', fetchMock)
 
@@ -130,16 +115,14 @@ describe('HttpTaskService', () => {
 })
 
 function stubFetch(body: unknown, status: number) {
-  const fetchMock = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response(JSON.stringify(body), {
-        status,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }),
-    )
+  const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }),
+  )
 
   vi.stubGlobal('fetch', fetchMock)
 

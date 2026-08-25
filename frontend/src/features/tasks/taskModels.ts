@@ -5,16 +5,25 @@ export interface StudyTask {
   moduleId: string
   title: string
   description: string | null
-  dueDateUtc: string
+  dueDateUtc: string | null
   status: StudyTaskStatus
   createdAtUtc: string
   updatedAtUtc: string | null
+  importSource: StudyTaskImportSource | null
+}
+
+export interface StudyTaskImportSource {
+  status: 'Available' | 'Unavailable' | 'SubscriptionEnded'
+  contentType: string | null
+  mediaType: string | null
+  sourceUrl: string | null
+  hasSourceUpdate: boolean
 }
 
 export interface SaveStudyTaskRequest {
   title: string
   description?: string | null
-  dueDateUtc: string
+  dueDateUtc: string | null
 }
 
 export interface UpdateStudyTaskStatusRequest {

@@ -6,7 +6,7 @@ export interface DashboardTask {
   moduleName: string
   moduleCode: string | null
   title: string
-  dueDateUtc: string
+  dueDateUtc: string | null
   status: StudyTaskStatus
 }
 

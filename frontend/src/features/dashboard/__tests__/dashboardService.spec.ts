@@ -32,6 +32,7 @@ describe('dashboardService', () => {
         status: 'Open',
         createdAtUtc: '2026-08-13T00:00:00Z',
         updatedAtUtc: null,
+        importSource: null,
       },
     ])
 
@@ -50,8 +51,6 @@ describe('dashboardService', () => {
       },
     ])
 
-    expect(taskService.getByModule).toHaveBeenCalledWith(
-      'module-1',
-    )
+    expect(taskService.getByModule).toHaveBeenCalledWith('module-1')
   })
 })
