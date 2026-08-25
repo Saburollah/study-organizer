@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using StudyOrganizer.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 
@@ -19,14 +20,19 @@ public sealed class PostgreSqlFixture : IAsyncLifetime
         await context.Database.MigrateAsync();
     }
 
-    public ApplicationDbContext CreateDbContext()
+    public ApplicationDbContext CreateDbContext(
+        params IInterceptor[] interceptors)
     {
-        var options =
+        var optionsBuilder =
             new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql(_container.GetConnectionString())
-                .Options;
+                .UseNpgsql(_container.GetConnectionString());
 
-        return new ApplicationDbContext(options);
+        if (interceptors.Length > 0)
+        {
+            optionsBuilder.AddInterceptors(interceptors);
+        }
+
+        return new ApplicationDbContext(optionsBuilder.Options);
     }
 
     public async Task ResetDatabaseAsync()

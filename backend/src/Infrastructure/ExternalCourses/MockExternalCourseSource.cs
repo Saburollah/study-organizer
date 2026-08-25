@@ -1,0 +1,146 @@
+using StudyOrganizer.Application.ExternalCourses;
+using StudyOrganizer.Domain.ExternalCourses;
+
+namespace StudyOrganizer.Infrastructure.ExternalCourses;
+
+public sealed class MockExternalCourseSource
+    : IExternalCourseSource
+{
+    private readonly object _gate = new();
+    private readonly Dictionary<ExternalCourseIdentity, CourseScenario>
+        _courses = [];
+
+    public void RegisterCourse(
+        ExternalCourseIdentity identity,
+        string initialVersion,
+        IReadOnlyDictionary<string, CourseSourceSnapshot> versions)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+        ArgumentNullException.ThrowIfNull(versions);
+
+        if (string.IsNullOrWhiteSpace(initialVersion))
+        {
+            throw new ArgumentException(
+                "Initial version must not be empty.",
+                nameof(initialVersion));
+        }
+
+        if (!versions.ContainsKey(initialVersion))
+        {
+            throw new ArgumentException(
+                "Initial version must exist in the version catalog.",
+                nameof(initialVersion));
+        }
+
+        lock (_gate)
+        {
+            if (!_courses.TryAdd(
+                identity,
+                new CourseScenario(initialVersion, versions)))
+            {
+                throw new InvalidOperationException(
+                    "Mock course is already registered.");
+            }
+        }
+    }
+
+    public void UseVersion(
+        ExternalCourseIdentity identity,
+        string version)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+
+        lock (_gate)
+        {
+            var scenario = GetScenario(identity);
+            if (!scenario.Versions.ContainsKey(version))
+            {
+                throw new ArgumentException(
+                    "Unknown mock course version.",
+                    nameof(version));
+            }
+
+            scenario.CurrentVersion = version;
+        }
+    }
+
+    public int GetFetchCount(ExternalCourseIdentity identity)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+
+        lock (_gate)
+        {
+            return GetScenario(identity).FetchCount;
+        }
+    }
+
+    public void FailWith(
+        ExternalCourseIdentity identity,
+        ScanRunErrorCode errorCode)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+        _ = new ExternalCourseSourceException(errorCode);
+
+        lock (_gate)
+        {
+            GetScenario(identity).Failure = errorCode;
+        }
+    }
+
+    public void ClearFailure(ExternalCourseIdentity identity)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+
+        lock (_gate)
+        {
+            GetScenario(identity).Failure = null;
+        }
+    }
+
+    public Task<CourseSourceSnapshot> FetchSnapshotAsync(
+        ExternalCourseIdentity identity,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(identity);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_gate)
+        {
+            var scenario = GetScenario(identity);
+            scenario.FetchCount++;
+            if (scenario.Failure.HasValue)
+            {
+                throw new ExternalCourseSourceException(
+                    scenario.Failure.Value);
+            }
+
+            return Task.FromResult(
+                scenario.Versions[scenario.CurrentVersion]);
+        }
+    }
+
+    private CourseScenario GetScenario(
+        ExternalCourseIdentity identity)
+    {
+        return _courses.TryGetValue(identity, out var scenario)
+            ? scenario
+            : throw new KeyNotFoundException(
+                "Mock course is not registered.");
+    }
+
+    private sealed class CourseScenario(
+        string currentVersion,
+        IReadOnlyDictionary<string, CourseSourceSnapshot> versions)
+    {
+        public string CurrentVersion { get; set; } = currentVersion;
+
+        public IReadOnlyDictionary<string, CourseSourceSnapshot> Versions
+        {
+            get;
+        } = versions;
+
+        public int FetchCount { get; set; }
+
+        public ScanRunErrorCode? Failure { get; set; }
+    }
+}
