@@ -1,0 +1,23 @@
+name: Production migrations
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-migrations-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-production-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Produktionsmigrationen prüfen
+        run: scripts/test-production-migrations.sh
