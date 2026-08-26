@@ -89,7 +89,11 @@ async function createModule(page: Page, moduleName: string): Promise<void> {
   await page.getByRole('button', { name: 'Neues Lernmodul' }).click()
   await page.getByLabel('Name *', { exact: true }).fill(moduleName)
   await page.getByRole('button', { name: 'Lernmodul speichern' }).click()
-  await expect(page.getByRole('status')).toContainText('Das Lernmodul wurde erfolgreich erstellt.')
+  await expect(
+    page
+      .getByRole('status')
+      .filter({ hasText: 'Das Lernmodul wurde erfolgreich erstellt.' }),
+  ).toBeVisible()
 }
 
 async function connectCourse(page: Page, moduleName: string, courseUrl: string): Promise<void> {

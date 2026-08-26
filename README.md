@@ -119,6 +119,57 @@ pnpm dev
 
 Das Frontend ist anschließend unter `http://localhost:5173` erreichbar.
 
+## Produktionsmigrationen
+
+Das produktive Docker-Image enthält ein EF-Core-Migrationsbundle aus demselben
+Build wie die API. Beim Containerstart führt `scripts/start-api.sh` zuerst alle
+ausstehenden Migrationen aus. Erst nach einem erfolgreichen Abschluss wird die
+API gestartet. Schlägt eine Migration fehl, beendet sich der Container mit
+einem Fehlerstatus; dadurch kann kein Deployment mit einem veralteten oder nur
+teilweise aktualisierten Schema gesund gemeldet werden.
+
+Für Render oder eine andere Docker-Laufzeit werden die bestehenden Secrets nur
+als Umgebungsvariablen des Containers benötigt, insbesondere
+`ConnectionStrings__DefaultConnection` und `Jwt__SigningKey`. Es ist kein .NET
+SDK und kein global installiertes `dotnet-ef` im Runtime-Image erforderlich.
+Die Datenbankverbindung darf weder als Docker-Build-Argument noch direkt in
+einem Startbefehl hinterlegt werden.
+
+Der vollständige Ablauf gegen drei flüchtige PostgreSQL-Datenbanken lässt sich
+lokal prüfen:
+
+```bash
+scripts/test-production-migrations.sh
+```
+
+Der Test deckt eine leere Datenbank, das Upgrade vom vorherigen
+Migrationsstand, wiederholte idempotente Starts, den Erhalt vorhandener Daten
+und einen absichtlich fehlgeschlagenen Migrationslauf ab. Docker Desktop muss
+dazu laufen. Derselbe Nachweis wird in
+`.github/workflows/production-migrations.yml` für Pull Requests ausgeführt.
+
+### Wiederherstellung nach einem Migrationsfehler
+
+1. Das fehlgeschlagene Deployment nicht durch Überspringen der Migration
+   freigeben. Zuerst Container- und PostgreSQL-Logs prüfen und bei
+   produktiven Daten ein aktuelles Backup sicherstellen.
+2. Die Ursache beheben oder ein geprüftes Vorwärts-Fix als neue Migration
+   bereitstellen. Produktive Migrationen nicht ungeprüft zurückrollen.
+3. Falls die Migration getrennt vom API-Start erneut ausgeführt werden muss,
+   exakt dasselbe unveränderte Image verwenden und die Secrets ausschließlich
+   aus der geschützten Laufzeitumgebung übernehmen:
+
+   ```bash
+   docker run --rm \
+     --env ConnectionStrings__DefaultConnection \
+     --env Jwt__SigningKey \
+     --entrypoint /app/efbundle \
+     EXAKTER_IMAGE_TAG --no-color
+   ```
+
+4. Erst nach erfolgreichem Abschluss das API-Deployment erneut starten und
+   Health Check sowie Anwendungsschema kontrollieren.
+
 ## Qualität prüfen
 
 Backend:
