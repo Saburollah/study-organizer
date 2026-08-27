@@ -7,7 +7,7 @@ namespace StudyOrganizer.Infrastructure.Tests;
 public sealed class MockExternalCourseSourceTests
 {
     [Fact]
-    public async Task FetchSnapshotAsync_ForSupportedMockIdentity_ReturnsDefaultCourse()
+    public async Task FetchCourseDataAsync_ForSupportedMockIdentity_ReturnsDefaultCourse()
     {
         var identity = new ExternalCourseIdentity(
             MockMoodleCourseUrlResolver.SourceType,
@@ -15,17 +15,17 @@ public sealed class MockExternalCourseSourceTests
             "software-engineering");
         var source = new MockExternalCourseSource();
 
-        var snapshot = await source.FetchSnapshotAsync(identity);
+        var sourcePayload = await source.FetchCourseDataAsync(identity);
 
-        Assert.Equal(3, snapshot.Items.Count);
-        Assert.Single(snapshot.Items.Where(item =>
+        Assert.Equal(3, sourcePayload.Items.Count);
+        Assert.Single(sourcePayload.Items.Where(item =>
             item.Type == ExternalLearningContentType.File
             && item.MediaType == "application/pdf"));
         Assert.Equal(1, source.GetFetchCount(identity));
     }
 
     [Fact]
-    public async Task FetchSnapshotAsync_ForDefaultCourse_AdvancesOnceAndThenStaysStable()
+    public async Task FetchCourseDataAsync_ForDefaultCourse_AdvancesOnceAndThenStaysStable()
     {
         var identity = new ExternalCourseIdentity(
             MockMoodleCourseUrlResolver.SourceType,
@@ -33,9 +33,9 @@ public sealed class MockExternalCourseSourceTests
             "software-engineering");
         var source = new MockExternalCourseSource();
 
-        var initial = await source.FetchSnapshotAsync(identity);
-        var updated = await source.FetchSnapshotAsync(identity);
-        var repeated = await source.FetchSnapshotAsync(identity);
+        var initial = await source.FetchCourseDataAsync(identity);
+        var updated = await source.FetchCourseDataAsync(identity);
+        var repeated = await source.FetchCourseDataAsync(identity);
 
         Assert.Equal(3, initial.Items.Count);
         Assert.Equal(4, updated.Items.Count);
@@ -49,7 +49,7 @@ public sealed class MockExternalCourseSourceTests
     }
 
     [Fact]
-    public async Task FetchSnapshotAsync_AfterVersionChange_ReturnsSelectedVersion()
+    public async Task FetchCourseDataAsync_AfterVersionChange_ReturnsSelectedVersion()
     {
         // Arrange
         var identity = new ExternalCourseIdentity(
@@ -60,17 +60,17 @@ public sealed class MockExternalCourseSourceTests
         source.RegisterCourse(
             identity,
             "initial",
-            new Dictionary<string, CourseSourceSnapshot>
+            new Dictionary<string, ExternalCourseSourcePayload>
             {
-                ["initial"] = CreateSnapshot("Initial exercise"),
-                ["updated"] = CreateSnapshot("Updated exercise")
+                ["initial"] = CreatePayload("Initial exercise"),
+                ["updated"] = CreatePayload("Updated exercise")
             });
 
-        var initial = await source.FetchSnapshotAsync(identity);
+        var initial = await source.FetchCourseDataAsync(identity);
         source.UseVersion(identity, "updated");
 
         // Act
-        var updated = await source.FetchSnapshotAsync(identity);
+        var updated = await source.FetchCourseDataAsync(identity);
 
         // Assert
         Assert.Equal("Initial exercise", initial.Items.Single().Title);
@@ -79,7 +79,7 @@ public sealed class MockExternalCourseSourceTests
     }
 
     [Fact]
-    public async Task FetchSnapshotAsync_WithConfiguredFailure_ThrowsStableError()
+    public async Task FetchCourseDataAsync_WithConfiguredFailure_ThrowsStableError()
     {
         // Arrange
         var identity = new ExternalCourseIdentity(
@@ -90,29 +90,29 @@ public sealed class MockExternalCourseSourceTests
         source.RegisterCourse(
             identity,
             "initial",
-            new Dictionary<string, CourseSourceSnapshot>
+            new Dictionary<string, ExternalCourseSourcePayload>
             {
-                ["initial"] = CreateSnapshot("Initial exercise")
+                ["initial"] = CreatePayload("Initial exercise")
             });
         source.FailWith(identity, ScanRunErrorCode.AccessDenied);
 
         // Act
         var exception = await Assert.ThrowsAsync<
             ExternalCourseSourceException>(() =>
-                source.FetchSnapshotAsync(identity));
+                source.FetchCourseDataAsync(identity));
 
         // Assert
         Assert.Equal(ScanRunErrorCode.AccessDenied, exception.ErrorCode);
         Assert.Equal(1, source.GetFetchCount(identity));
 
         source.ClearFailure(identity);
-        var snapshot = await source.FetchSnapshotAsync(identity);
-        Assert.Equal("Initial exercise", snapshot.Items.Single().Title);
+        var sourcePayload = await source.FetchCourseDataAsync(identity);
+        Assert.Equal("Initial exercise", sourcePayload.Items.Single().Title);
     }
 
-    private static CourseSourceSnapshot CreateSnapshot(string title)
+    private static ExternalCourseSourcePayload CreatePayload(string title)
     {
-        return new CourseSourceSnapshot(
+        return new ExternalCourseSourcePayload(
         [
             new CourseSourceItem(
                 new ExternalContentKey("file-17"),

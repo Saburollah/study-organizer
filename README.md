@@ -14,6 +14,9 @@ Die Webanwendung und das Backend sind als funktionsfähige erste Version umgeset
 - Aufgaben je Lernmodul anlegen, anzeigen, bearbeiten und löschen
 - Aufgaben als offen oder erledigt markieren
 - Dashboard mit offenen, überfälligen und erledigten Aufgaben
+- Mock-Moodle-Kurse mit einem Lernmodul verbinden und manuell scannen
+- PDF-, Link- und Aktivitätsinhalte als persönliche Aufgaben importieren
+- gemeinsame Kursscans ohne doppelte Verarbeitung für mehrere Abonnenten
 - deutsche und englische Benutzeroberfläche
 - Trennung der Daten nach angemeldetem Benutzer
 - automatisierte Backend- und Frontend-Tests
@@ -118,6 +121,23 @@ pnpm dev
 ```
 
 Das Frontend ist anschließend unter `http://localhost:5173` erreichbar.
+
+## Mock-Moodle-Kursimport
+
+Der aktuelle Kursimport ist ein kontrollierter Vertikalschnitt mit einer
+deterministischen Mock-Moodle-Quelle. Er beweist Registrierung, gemeinsame
+Scans, Deduplizierung, persönliche Aufgaben, Fehlerzustände und den
+Wiederholungsablauf. Eine Anmeldung an einem echten Moodle, tägliches Polling,
+LLM-Erkennung und Benachrichtigungen gehören noch nicht zu diesem Schnitt.
+
+Inaktive External Courses werden standardmäßig nach einer Schonfrist von
+30 Tagen periodisch bereinigt. Persönlich referenzierte Inhalte behalten ihre
+stabile Identität, während externe Metadaten entfernt werden. Die Werte können
+für eine Laufzeitumgebung über
+`ExternalCourseCleanup__RetentionPeriod` und
+`ExternalCourseCleanup__Interval` als .NET-`TimeSpan` überschrieben werden.
+Die 30 Tage sind eine technische Ausgangseinstellung und keine rechtlich
+geprüfte Aufbewahrungsfrist.
 
 ## Produktionsmigrationen
 

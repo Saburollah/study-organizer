@@ -5,11 +5,11 @@ import { i18n, setLocale } from '@/i18n'
 
 import CourseSubscriptionPanel from '../CourseSubscriptionPanel.vue'
 import { courseImportService } from '../courseImportService'
-import type { CourseScan, CourseSubscription } from '../courseImportModels'
+import type { ScanRun, CourseSubscription } from '../courseImportModels'
 
 const moduleId = 'module-1'
 
-function createScan(overrides: Partial<CourseScan> = {}): CourseScan {
+function createScan(overrides: Partial<ScanRun> = {}): ScanRun {
   return {
     scanRunId: 'scan-1',
     status: 'Succeeded',

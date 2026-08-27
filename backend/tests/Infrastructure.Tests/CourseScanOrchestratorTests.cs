@@ -59,7 +59,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot(
+            new ExternalCourseSourcePayload(
             [
                 new CourseSourceItem(
                     new ExternalContentKey("file-17"),
@@ -135,7 +135,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot(
+            new ExternalCourseSourcePayload(
             [
                 new CourseSourceItem(
                     new ExternalContentKey("file-17"),
@@ -212,7 +212,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -234,8 +234,8 @@ public sealed class CourseScanOrchestratorTests
             await personalContext.SaveChangesAsync();
         }
 
-        source.UseSnapshot(
-            CreateSnapshot(
+        source.UsePayload(
+            CreatePayload(
                 "Renamed exercise sheet",
                 DateTimeOffset.UnixEpoch.AddDays(2)));
 
@@ -298,7 +298,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -322,7 +322,7 @@ public sealed class CourseScanOrchestratorTests
                 .SingleAsync();
         }
 
-        source.UseSnapshot(new CourseSourceSnapshot([]));
+        source.UsePayload(new ExternalCourseSourcePayload([]));
         var unavailableResult =
             await orchestrator.ScanAsync(course.Id);
 
@@ -342,7 +342,7 @@ public sealed class CourseScanOrchestratorTests
                 await unavailableContext.SourceUpdates.CountAsync());
         }
 
-        source.UseSnapshot(CreateSnapshot("Exercise sheet", null));
+        source.UsePayload(CreatePayload("Exercise sheet", null));
 
         // Act
         var availableResult = await orchestrator.ScanAsync(course.Id);
@@ -381,7 +381,7 @@ public sealed class CourseScanOrchestratorTests
 
         var duplicateKey = new ExternalContentKey("file-17");
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot(
+            new ExternalCourseSourcePayload(
             [
                 new CourseSourceItem(
                     duplicateKey,
@@ -454,7 +454,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -524,7 +524,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new BlockingExternalCourseSource(
-            new CourseSourceSnapshot([]));
+            new ExternalCourseSourcePayload([]));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -603,7 +603,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot([]));
+            new ExternalCourseSourcePayload([]));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -658,7 +658,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var now = DateTimeOffset.UnixEpoch.AddHours(1);
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
@@ -711,7 +711,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new FaultingPersistenceDbContextFactory(_fixture),
             source,
@@ -771,7 +771,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -797,8 +797,8 @@ public sealed class CourseScanOrchestratorTests
             await transaction.CommitAsync();
         }
 
-        source.UseSnapshot(
-            CreateSnapshot("Renamed exercise sheet", null));
+        source.UsePayload(
+            CreatePayload("Renamed exercise sheet", null));
 
         // Act
         await orchestrator.ScanAsync(course.Id);
@@ -854,7 +854,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot(
+            new ExternalCourseSourcePayload(
             [
                 new CourseSourceItem(
                     new ExternalContentKey("file-17"),
@@ -992,9 +992,9 @@ public sealed class CourseScanOrchestratorTests
         source.RegisterCourse(
             identity,
             "initial",
-            new Dictionary<string, CourseSourceSnapshot>
+            new Dictionary<string, ExternalCourseSourcePayload>
             {
-                ["initial"] = new CourseSourceSnapshot([])
+                ["initial"] = new ExternalCourseSourcePayload([])
             });
         source.FailWith(identity, ScanRunErrorCode.AccessDenied);
         var orchestrator = new CourseScanOrchestrator(
@@ -1041,7 +1041,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new BlockingExternalCourseSource(
-            new CourseSourceSnapshot([]));
+            new ExternalCourseSourcePayload([]));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -1088,7 +1088,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new StubExternalCourseSource(
-            new CourseSourceSnapshot([]));
+            new ExternalCourseSourcePayload([]));
         source.UseUnexpectedFailure();
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
@@ -1129,8 +1129,8 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new SequencedExternalCourseSource(
-            CreateSnapshot("Stale exercise", null),
-            CreateSnapshot("Fresh exercise", null));
+            CreatePayload("Stale exercise", null),
+            CreatePayload("Fresh exercise", null));
         var clock = new MutableTimeProvider(
             DateTimeOffset.UnixEpoch.AddHours(1));
         var orchestrator = new CourseScanOrchestrator(
@@ -1193,8 +1193,8 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new SequencedExternalCourseSource(
-            CreateSnapshot("Stale exercise", null),
-            CreateSnapshot("Fresh exercise", null),
+            CreatePayload("Stale exercise", null),
+            CreatePayload("Fresh exercise", null),
             firstFetchFails: true);
         var clock = new MutableTimeProvider(
             DateTimeOffset.UnixEpoch.AddHours(1));
@@ -1252,7 +1252,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new BlockingExternalCourseSource(
-            new CourseSourceSnapshot([]));
+            new ExternalCourseSourcePayload([]));
         var clock = new MutableTimeProvider(
             DateTimeOffset.UnixEpoch.AddHours(1));
         var orchestrator = new CourseScanOrchestrator(
@@ -1313,7 +1313,7 @@ public sealed class CourseScanOrchestratorTests
         await arrangeContext.SaveChangesAsync();
 
         var source = new BlockingExternalCourseSource(
-            CreateSnapshot("Exercise sheet", null));
+            CreatePayload("Exercise sheet", null));
         var orchestrator = new CourseScanOrchestrator(
             new TestDbContextFactory(_fixture),
             source,
@@ -1361,11 +1361,11 @@ public sealed class CourseScanOrchestratorTests
         Assert.Empty(await assertContext.Tasks.ToListAsync());
     }
 
-    private static CourseSourceSnapshot CreateSnapshot(
+    private static ExternalCourseSourcePayload CreatePayload(
         string title,
         DateTimeOffset? dueDate)
     {
-        return new CourseSourceSnapshot(
+        return new ExternalCourseSourcePayload(
         [
             new CourseSourceItem(
                 new ExternalContentKey("file-17"),
@@ -1433,7 +1433,7 @@ public sealed class CourseScanOrchestratorTests
     private sealed class StubExternalCourseSource
         : IExternalCourseSource
     {
-        private CourseSourceSnapshot _snapshot;
+        private ExternalCourseSourcePayload _sourcePayload;
         private bool _timesOut;
         private bool _throwsUnexpected;
         private int _fetchCount;
@@ -1441,12 +1441,12 @@ public sealed class CourseScanOrchestratorTests
         public int FetchCount => _fetchCount;
 
         public StubExternalCourseSource(
-            CourseSourceSnapshot snapshot)
+            ExternalCourseSourcePayload sourcePayload)
         {
-            _snapshot = snapshot;
+            _sourcePayload = sourcePayload;
         }
 
-        public Task<CourseSourceSnapshot> FetchSnapshotAsync(
+        public Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
             ExternalCourseIdentity identity,
             CancellationToken cancellationToken = default)
         {
@@ -1454,23 +1454,23 @@ public sealed class CourseScanOrchestratorTests
 
             if (_timesOut)
             {
-                return Task.FromException<CourseSourceSnapshot>(
+                return Task.FromException<ExternalCourseSourcePayload>(
                     new TimeoutException());
             }
 
             if (_throwsUnexpected)
             {
-                return Task.FromException<CourseSourceSnapshot>(
+                return Task.FromException<ExternalCourseSourcePayload>(
                     new InvalidOperationException(
                         "Sensitive adapter detail."));
             }
 
-            return Task.FromResult(_snapshot);
+            return Task.FromResult(_sourcePayload);
         }
 
-        public void UseSnapshot(CourseSourceSnapshot snapshot)
+        public void UsePayload(ExternalCourseSourcePayload sourcePayload)
         {
-            _snapshot = snapshot;
+            _sourcePayload = sourcePayload;
             _timesOut = false;
             _throwsUnexpected = false;
         }
@@ -1487,7 +1487,7 @@ public sealed class CourseScanOrchestratorTests
     }
 
     private sealed class BlockingExternalCourseSource(
-        CourseSourceSnapshot snapshot)
+        ExternalCourseSourcePayload sourcePayload)
         : IExternalCourseSource
     {
         private readonly TaskCompletionSource _fetchStarted = new(
@@ -1500,14 +1500,14 @@ public sealed class CourseScanOrchestratorTests
 
         public int FetchCount => _fetchCount;
 
-        public async Task<CourseSourceSnapshot> FetchSnapshotAsync(
+        public async Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
             ExternalCourseIdentity identity,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref _fetchCount);
             _fetchStarted.TrySetResult();
             await _release.Task.WaitAsync(cancellationToken);
-            return snapshot;
+            return sourcePayload;
         }
 
         public void Release()
@@ -1530,7 +1530,7 @@ public sealed class CourseScanOrchestratorTests
 
         public int MaximumConcurrency => _maximumConcurrency;
 
-        public async Task<CourseSourceSnapshot> FetchSnapshotAsync(
+        public async Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
             ExternalCourseIdentity identity,
             CancellationToken cancellationToken = default)
         {
@@ -1545,7 +1545,7 @@ public sealed class CourseScanOrchestratorTests
             try
             {
                 await _release.Task.WaitAsync(cancellationToken);
-                return new CourseSourceSnapshot([]);
+                return new ExternalCourseSourcePayload([]);
             }
             finally
             {
@@ -1605,8 +1605,8 @@ public sealed class CourseScanOrchestratorTests
     }
 
     private sealed class SequencedExternalCourseSource(
-        CourseSourceSnapshot firstSnapshot,
-        CourseSourceSnapshot secondSnapshot,
+        ExternalCourseSourcePayload firstSourcePayload,
+        ExternalCourseSourcePayload secondSourcePayload,
         bool firstFetchFails = false)
         : IExternalCourseSource
     {
@@ -1618,7 +1618,7 @@ public sealed class CourseScanOrchestratorTests
 
         public Task FirstFetchStarted => _firstFetchStarted.Task;
 
-        public async Task<CourseSourceSnapshot> FetchSnapshotAsync(
+        public async Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
             ExternalCourseIdentity identity,
             CancellationToken cancellationToken = default)
         {
@@ -1634,10 +1634,10 @@ public sealed class CourseScanOrchestratorTests
                         "Stale source failure.");
                 }
 
-                return firstSnapshot;
+                return firstSourcePayload;
             }
 
-            return secondSnapshot;
+            return secondSourcePayload;
         }
 
         public void ReleaseFirstFetch()

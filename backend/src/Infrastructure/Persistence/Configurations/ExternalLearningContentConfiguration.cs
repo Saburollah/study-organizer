@@ -72,6 +72,9 @@ public sealed class ExternalLearningContentConfiguration
         builder.Property(content => content.UpdatedAt)
             .HasColumnName("updated_at")
             .HasColumnType("timestamp with time zone");
+        builder.Property(content => content.MetadataPurgedAt)
+            .HasColumnName("metadata_purged_at")
+            .HasColumnType("timestamp with time zone");
 
         ConfigureSignature(builder);
 

@@ -55,10 +55,20 @@ var courseScanOptions = new CourseScanOptions(
     builder.Configuration.GetValue<TimeSpan>(
         "CourseScan:Timeout"));
 
+var externalCourseCleanupOptions =
+    new ExternalCourseCleanupOptions(
+        builder.Configuration.GetValue<TimeSpan>(
+            "ExternalCourseCleanup:RetentionPeriod"),
+        builder.Configuration.GetValue<TimeSpan>(
+            "ExternalCourseCleanup:Interval"));
+
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddSingleton(courseScanOptions);
+builder.Services.AddSingleton(externalCourseCleanupOptions);
+builder.Services.AddSingleton<ExternalCourseCleanup>();
+builder.Services.AddHostedService<ExternalCourseCleanupWorker>();
 
 builder.Services.AddSingleton<MockExternalCourseSource>();
 builder.Services.AddSingleton<IExternalCourseSource>(services =>

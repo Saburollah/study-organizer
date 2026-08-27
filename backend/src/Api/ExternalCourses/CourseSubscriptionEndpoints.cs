@@ -46,14 +46,14 @@ public static class CourseSubscriptionEndpoints
 
         group.MapPost("/scans", StartScanAsync)
             .WithName("StartCourseScan")
-            .Produces<CourseScanResponse>(StatusCodes.Status200OK)
-            .Produces<CourseScanResponse>(StatusCodes.Status202Accepted)
+            .Produces<ScanRunResponse>(StatusCodes.Status200OK)
+            .Produces<ScanRunResponse>(StatusCodes.Status202Accepted)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/scans/{scanRunId:guid}", GetScanAsync)
             .WithName("GetCourseScan")
-            .Produces<CourseScanResponse>(StatusCodes.Status200OK)
+            .Produces<ScanRunResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -211,7 +211,7 @@ public static class CourseSubscriptionEndpoints
             ownerId,
             moduleId,
             cancellationToken);
-        if (result.Outcome == CourseScanRequestOutcome.NotFound)
+        if (result.Outcome == ScanRunRequestOutcome.NotFound)
         {
             return Results.NotFound();
         }
@@ -221,7 +221,7 @@ public static class CourseSubscriptionEndpoints
                 "A successful scan request must return a Scan Run.");
         SetNoStore(httpContext.Response);
 
-        if (result.Outcome == CourseScanRequestOutcome.Running)
+        if (result.Outcome == ScanRunRequestOutcome.Running)
         {
             SetAcceptedScanHeaders(
                 httpContext.Response,
@@ -287,20 +287,20 @@ public static class CourseSubscriptionEndpoints
                 .ToList());
     }
 
-    private static CourseScanResponse ToResponse(
-        CourseScanResultDetails scan)
+    private static ScanRunResponse ToResponse(
+        ScanRunDetailsResult scan)
     {
-        return new CourseScanResponse(
+        return new ScanRunResponse(
             scan.ScanRunId,
             scan.Status.ToString(),
             scan.StartedAtUtc,
             scan.CompletedAtUtc,
-            new CourseScanContentCountsResponse(
+            new ScanRunContentCountsResponse(
                 scan.ContentCounts.New,
                 scan.ContentCounts.Updated,
                 scan.ContentCounts.Unchanged,
                 scan.ContentCounts.Unavailable),
-            new CourseScanPersonalImpactResponse(
+            new ScanRunPersonalImpactResponse(
                 scan.PersonalImpact.TasksCreated,
                 scan.PersonalImpact.PdfTasksCreated,
                 scan.PersonalImpact.NonPdfTasksCreated,

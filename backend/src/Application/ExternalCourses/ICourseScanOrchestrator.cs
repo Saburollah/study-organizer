@@ -2,7 +2,7 @@ namespace StudyOrganizer.Application.ExternalCourses;
 
 public interface ICourseScanOrchestrator
 {
-    Task<CourseScanResult> ScanAsync(
+    Task<ScanRunExecutionResult> ScanAsync(
         Guid externalCourseId,
         Guid? activationSubscriptionId = null,
         CancellationToken cancellationToken = default);

@@ -13,7 +13,7 @@ public sealed class MockExternalCourseSource
     public void RegisterCourse(
         ExternalCourseIdentity identity,
         string initialVersion,
-        IReadOnlyDictionary<string, CourseSourceSnapshot> versions)
+        IReadOnlyDictionary<string, ExternalCourseSourcePayload> versions)
     {
         ArgumentNullException.ThrowIfNull(identity);
         ArgumentNullException.ThrowIfNull(versions);
@@ -97,7 +97,7 @@ public sealed class MockExternalCourseSource
         }
     }
 
-    public Task<CourseSourceSnapshot> FetchSnapshotAsync(
+    public Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
         ExternalCourseIdentity identity,
         CancellationToken cancellationToken = default)
     {
@@ -114,14 +114,14 @@ public sealed class MockExternalCourseSource
                     scenario.Failure.Value);
             }
 
-            var snapshot = scenario.Versions[scenario.CurrentVersion];
+            var sourcePayload = scenario.Versions[scenario.CurrentVersion];
             if (scenario.NextVersion is not null)
             {
                 scenario.CurrentVersion = scenario.NextVersion;
                 scenario.NextVersion = null;
             }
 
-            return Task.FromResult(snapshot);
+            return Task.FromResult(sourcePayload);
         }
     }
 
@@ -157,7 +157,7 @@ public sealed class MockExternalCourseSource
             .Replace('-', ' ')
             .Replace('_', ' ');
 
-        var snapshot = new CourseSourceSnapshot(
+        var initialPayload = new ExternalCourseSourcePayload(
         [
             new CourseSourceItem(
                 new ExternalContentKey("reading-pdf"),
@@ -182,9 +182,9 @@ public sealed class MockExternalCourseSource
                 null)
         ]);
 
-        var updatedSnapshot = new CourseSourceSnapshot(
+        var updatedPayload = new ExternalCourseSourcePayload(
         [
-            .. snapshot.Items,
+            .. initialPayload.Items,
             new CourseSourceItem(
                 new ExternalContentKey("project-brief"),
                 ExternalLearningContentType.Activity,
@@ -196,22 +196,22 @@ public sealed class MockExternalCourseSource
 
         return new CourseScenario(
             "initial",
-            new Dictionary<string, CourseSourceSnapshot>
+            new Dictionary<string, ExternalCourseSourcePayload>
             {
-                ["initial"] = snapshot,
-                ["updated"] = updatedSnapshot
+                ["initial"] = initialPayload,
+                ["updated"] = updatedPayload
             },
             "updated");
     }
 
     private sealed class CourseScenario(
         string currentVersion,
-        IReadOnlyDictionary<string, CourseSourceSnapshot> versions,
+        IReadOnlyDictionary<string, ExternalCourseSourcePayload> versions,
         string? nextVersion = null)
     {
         public string CurrentVersion { get; set; } = currentVersion;
 
-        public IReadOnlyDictionary<string, CourseSourceSnapshot> Versions
+        public IReadOnlyDictionary<string, ExternalCourseSourcePayload> Versions
         {
             get;
         } = versions;

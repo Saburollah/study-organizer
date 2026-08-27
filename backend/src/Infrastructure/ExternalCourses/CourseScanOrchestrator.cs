@@ -14,7 +14,7 @@ public sealed class CourseScanOrchestrator(
     CourseScanOptions options)
     : ICourseScanOrchestrator
 {
-    public async Task<CourseScanResult> ScanAsync(
+    public async Task<ScanRunExecutionResult> ScanAsync(
         Guid externalCourseId,
         Guid? activationSubscriptionId = null,
         CancellationToken cancellationToken = default)
@@ -85,11 +85,11 @@ public sealed class CourseScanOrchestrator(
             }
         }
 
-        CourseSourceSnapshot sourceSnapshot;
+        ExternalCourseSourcePayload sourcePayload;
         try
         {
-            sourceSnapshot = await courseSource
-                .FetchSnapshotAsync(identity, cancellationToken)
+            sourcePayload = await courseSource
+                .FetchCourseDataAsync(identity, cancellationToken)
                 .WaitAsync(
                     options.Timeout,
                     timeProvider,
@@ -122,7 +122,7 @@ public sealed class CourseScanOrchestrator(
                 CancellationToken.None);
         }
 
-        if (!IsValid(sourceSnapshot))
+        if (!IsValid(sourcePayload))
         {
             return await FailScanAsync(
                 scanRun.Id,
@@ -262,7 +262,7 @@ public sealed class CourseScanOrchestrator(
         var observedKeys = new HashSet<string>(
             StringComparer.Ordinal);
 
-        foreach (var sourceItem in sourceSnapshot.Items)
+        foreach (var sourceItem in sourcePayload.Items)
         {
             observedKeys.Add(sourceItem.ExternalContentKey.Value);
 
@@ -342,7 +342,7 @@ public sealed class CourseScanOrchestrator(
                             out var sourceUpdate))
                         {
                             sourceUpdate.Refresh(
-                                CopySignature(content),
+                                content.Signature.Copy(),
                                 completedAt,
                                 scanRun.Id);
                         }
@@ -350,7 +350,7 @@ public sealed class CourseScanOrchestrator(
                         {
                             sourceUpdate = new SourceUpdate(
                                 importState.Id,
-                                CopySignature(content),
+                                content.Signature.Copy(),
                                 completedAt,
                                 scanRun.Id);
                             persistenceContext.SourceUpdates.Add(
@@ -385,7 +385,7 @@ public sealed class CourseScanOrchestrator(
                         externalCourseId,
                         content.Id,
                         task.Id,
-                        CopySignature(content),
+                        content.Signature.Copy(),
                         completedAt));
             }
         }
@@ -416,7 +416,7 @@ public sealed class CourseScanOrchestrator(
                     out var sourceUpdate))
                 {
                     sourceUpdate.Refresh(
-                        CopySignature(content),
+                        content.Signature.Copy(),
                         completedAt,
                         scanRun.Id);
                 }
@@ -424,7 +424,7 @@ public sealed class CourseScanOrchestrator(
                 {
                     sourceUpdate = new SourceUpdate(
                         importState.Id,
-                        CopySignature(content),
+                        content.Signature.Copy(),
                         completedAt,
                         scanRun.Id);
                     persistenceContext.SourceUpdates.Add(sourceUpdate);
@@ -456,11 +456,11 @@ public sealed class CourseScanOrchestrator(
         }
     }
 
-    private static CourseScanResult ToResult(
+    private static ScanRunExecutionResult ToResult(
         ScanRun scanRun,
         bool reusedExistingRun)
     {
-        return new CourseScanResult(
+        return new ScanRunExecutionResult(
             scanRun.Id,
             scanRun.Status,
             scanRun.Counts,
@@ -468,7 +468,7 @@ public sealed class CourseScanOrchestrator(
             reusedExistingRun);
     }
 
-    private async Task<CourseScanResult> FailScanAsync(
+    private async Task<ScanRunExecutionResult> FailScanAsync(
         Guid scanRunId,
         ScanRunErrorCode errorCode,
         CancellationToken cancellationToken)
@@ -489,7 +489,7 @@ public sealed class CourseScanOrchestrator(
         return ToResult(scanRun, false);
     }
 
-    private async Task<CourseScanResult> CancelScanAsync(
+    private async Task<ScanRunExecutionResult> CancelScanAsync(
         Guid scanRunId)
     {
         await using var context =
@@ -509,16 +509,16 @@ public sealed class CourseScanOrchestrator(
     }
 
     private static bool IsValid(
-        CourseSourceSnapshot? snapshot)
+        ExternalCourseSourcePayload? sourcePayload)
     {
-        if (snapshot?.Items is null)
+        if (sourcePayload?.Items is null)
         {
             return false;
         }
 
         var keys = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var item in snapshot.Items)
+        foreach (var item in sourcePayload.Items)
         {
             if (item is null
                 || item.ExternalContentKey is null
@@ -549,15 +549,4 @@ public sealed class CourseScanOrchestrator(
         };
     }
 
-    private static ContentSignature CopySignature(
-        ExternalLearningContent content)
-    {
-        return ContentSignature.Compute(
-            content.Type,
-            content.Title,
-            content.DueDate,
-            content.MediaType,
-            content.SourceReference,
-            content.Availability);
-    }
 }

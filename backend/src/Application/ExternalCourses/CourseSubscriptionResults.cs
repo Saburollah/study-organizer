@@ -22,16 +22,16 @@ public enum CourseSubscriptionEndResult
     NotFound
 }
 
-public enum CourseScanRequestOutcome
+public enum ScanRunRequestOutcome
 {
     Completed,
     Running,
     NotFound
 }
 
-public sealed record CourseScanRequestResult(
-    CourseScanRequestOutcome Outcome,
-    CourseScanResultDetails? Scan = null);
+public sealed record ScanRunRequestResult(
+    ScanRunRequestOutcome Outcome,
+    ScanRunDetailsResult? Scan = null);
 
 public sealed record CourseSubscriptionResult(
     Guid ModuleId,
@@ -40,8 +40,8 @@ public sealed record CourseSubscriptionResult(
     DateTimeOffset? ActivatedAtUtc,
     ExternalCourseSummaryResult Course,
     CourseSnapshotSummaryResult? LatestSnapshot,
-    CourseScanResultDetails? LatestScan,
-    IReadOnlyList<CourseScanResultDetails> RecentScans);
+    ScanRunDetailsResult? LatestScan,
+    IReadOnlyList<ScanRunDetailsResult> RecentScans);
 
 public sealed record ExternalCourseSummaryResult(
     string DisplayName,
@@ -52,17 +52,17 @@ public sealed record CourseSnapshotSummaryResult(
     DateTimeOffset ObservedAtUtc,
     int KnownContentCount);
 
-public sealed record CourseScanResultDetails(
+public sealed record ScanRunDetailsResult(
     Guid ScanRunId,
     ScanRunStatus Status,
     DateTimeOffset StartedAtUtc,
     DateTimeOffset? CompletedAtUtc,
     ScanRunCounts ContentCounts,
-    CourseScanPersonalImpactResult PersonalImpact,
+    ScanRunPersonalImpactResult PersonalImpact,
     ScanRunErrorCode? ErrorCode,
     bool CanRetry);
 
-public sealed record CourseScanPersonalImpactResult(
+public sealed record ScanRunPersonalImpactResult(
     int TasksCreated,
     int PdfTasksCreated,
     int NonPdfTasksCreated,

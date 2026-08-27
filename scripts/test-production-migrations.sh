@@ -18,7 +18,7 @@ DEPLOYMENT_TEST_FAILURE_DATABASE="failure_migration_case"
 DEPLOYMENT_TEST_USER="deployment_test"
 DEPLOYMENT_TEST_PASSWORD="deployment-test-password"
 DEPLOYMENT_TEST_PREVIOUS_MIGRATION="20260813081919_AddUserProfile"
-DEPLOYMENT_TEST_CURRENT_MIGRATION="20260824214445_AddCourseImportSchema"
+DEPLOYMENT_TEST_CURRENT_MIGRATION="20260826164845_AddExternalCourseCleanup"
 
 cleanup_deployment_test() {
   docker rm --force "$DEPLOYMENT_TEST_EMPTY_API" >/dev/null 2>&1 || true
@@ -112,7 +112,7 @@ wait_for_api "$DEPLOYMENT_TEST_EMPTY_API"
 schema_is_current="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_EMPTY_DATABASE" \
     --tuples-only --no-align \
-    --command "SELECT to_regclass('public.course_subscriptions') IS NOT NULL;")"
+    --command "SELECT to_regclass('public.course_subscriptions') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'external_learning_contents' AND column_name = 'metadata_purged_at');")"
 
 if [[ "$schema_is_current" != "t" ]]; then
   fail_deployment_test \

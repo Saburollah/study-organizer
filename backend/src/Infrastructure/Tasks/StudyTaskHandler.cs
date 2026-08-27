@@ -333,20 +333,25 @@ public sealed class StudyTaskHandler(
             select update.Id)
             .AnyAsync(cancellationToken);
 
+        var metadataWasPurged =
+            source.Content.MetadataPurgedAt.HasValue;
         var hasCourseAccess = source.Subscription.State ==
             CourseSubscriptionState.Active;
-        var status = hasCourseAccess
-            ? source.Content.Availability ==
-                ExternalLearningContentAvailability.Available
-                ? StudyTaskImportSourceStatus.Available
-                : StudyTaskImportSourceStatus.Unavailable
-            : StudyTaskImportSourceStatus.SubscriptionEnded;
+        var mayExposeMetadata = hasCourseAccess && !metadataWasPurged;
+        var status = metadataWasPurged
+            ? StudyTaskImportSourceStatus.MetadataPurged
+            : hasCourseAccess
+                ? source.Content.Availability ==
+                    ExternalLearningContentAvailability.Available
+                    ? StudyTaskImportSourceStatus.Available
+                    : StudyTaskImportSourceStatus.Unavailable
+                : StudyTaskImportSourceStatus.SubscriptionEnded;
 
         return new StudyTaskImportSourceResult(
             status,
-            hasCourseAccess ? source.Content.Type : null,
-            hasCourseAccess ? source.Content.MediaType : null,
-            hasCourseAccess
+            mayExposeMetadata ? source.Content.Type : null,
+            mayExposeMetadata ? source.Content.MediaType : null,
+            mayExposeMetadata
                 ? courseUrlResolver.GetSafeContentUrl(
                     source.Course.Identity,
                     source.Content.SourceReference)

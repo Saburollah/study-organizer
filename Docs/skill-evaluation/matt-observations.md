@@ -242,6 +242,16 @@ Schwach war erneut der große Umfang von 36 Fragen. Einige Regeln wie stabile Fe
 
 Die Entkopplung gemeinsamer Scans vom auslösenden HTTP-Request wurde im ADR `Docs/adr/0007-gemeinsame-scans-vom-http-request-entkoppeln.md` dokumentiert.
 
+#### Zehnter Entscheidungsdurchlauf
+
+Das Ticket „Akzeptanzkriterien und Testmatrix des Moodle-Vertikalschnitts festlegen“ verdichtete die vorausgehenden Entscheidungen zu beobachtbaren Abnahmekriterien.
+
+Die Matrix ordnete jede normative Regel der engsten sinnvollen Nachweisebene zu: Domain-Test, PostgreSQL-Integrationstest, API-Test, Frontend-Test oder genau ein Playwright-Golden-Path. Sie verlangte keine pauschale Coverage-Zahl, sondern einen konkreten automatisierten Nachweis pro Regel. Für Zeit und Parallelität wurden eine injizierbare Uhr, deterministische Mock-Barrieren und echte PostgreSQL-Tests ohne Sleeps festgelegt.
+
+Stark war die gemeinsame Abnahmegrenze für alle späteren Implementierungstickets. Der getrennte Review konnte dadurch nicht nur Codequalität, sondern auch fehlende fachliche Nachweise finden. Schwach war der Umfang: Die Matrix enthielt 31 Zeilen und machte den Mock-Schnitt deutlich größer als einen einfachen Demonstrator.
+
+Die bestätigte Auflösung wurde als Kommentar in GitHub-Issue `#77` veröffentlicht. Sie war anschließend die normative Spezifikation für Tickets, Implementierung und Review.
+
 ### Grilling
 
 Grilling wurde verwendet, um das Ziel und die Grenzen des ersten Schnitts festzulegen.
@@ -307,8 +317,59 @@ Das sofortige Aktualisieren des Glossars unterbricht den Gesprächsfluss und erz
 
 ### Implementierung
 
-Noch nicht begonnen.
+Die Spezifikation wurde in sechs vertikale Umsetzungstickets zerlegt und in Abhängigkeitsreihenfolge implementiert:
 
-## Vorläufige Bewertung
+- `#79` / PR `#81`: PostgreSQL- und Mock-Testinfrastruktur,
+- `#82` / PR `#83`: Domainmodell und relationales Schema,
+- `#84` / PR `#85`: Scan-Orchestrierung und Importverarbeitung,
+- `#86` / PR `#87`: API-Vertrag, Authentifizierung und Datenschutz,
+- `#88` / PR `#89`: Registrierungs- und Scan-Oberfläche,
+- `#91` / PR `#92`: Playwright-Golden-Path.
 
-Wayfinder und Grilling haben den Umfang und die offenen Entscheidungen gut sichtbar gemacht. Eine endgültige Bewertung ist erst nach Spezifikation und Implementierung möglich.
+Die Implementierung arbeitete testgetrieben. Besonders wertvoll waren echte PostgreSQL-Tests für Unique Constraints, atomare Scanübernahme, Idempotenz, Parallelität und Berechtigungsgrenzen. Der Mock-Adapter stellte mehrere Inhaltsversionen, kontrollierte Fehler und Synchronisationsbarrieren bereit. Damit konnten PDF-, Link- und Activity-Inhalte, Umbenennungen, Verschwinden und Wiedererscheinen sowie parallele Scan-Anforderungen reproduzierbar geprüft werden.
+
+Nach dem ersten produktiven Deployment wurde eine Lücke außerhalb des fachlichen Codes sichtbar: Das Backend war deployt, aber die Produktionsdatenbank noch nicht migriert. Issue `#90` und PR `#93` ergänzten deshalb ein idempotentes EF-Migrationsbundle, das vor dem API-Start läuft und den Start bei einem Migrationsfehler verhindert. Dieser Korrekturdurchlauf zeigt, dass die ursprüngliche Feature-Matrix den Deployment-Übergang nicht ausreichend erfasste.
+
+### Review und Korrekturen
+
+`code-review` prüfte den Stand ab dem unveränderten Vergleichspunkt `e7d8b5e` getrennt gegen Repository-Standards und gegen die Spezifikation aus Issue `#77`.
+
+Der Standards-Review fand zwei klare Begriffsabweichungen:
+
+- Ergebnis- und API-Typen verwendeten `Course Scan` als Synonym für den kanonischen Fachbegriff `Scan Run`.
+- Das rohe, noch nicht validierte Adapterergebnis hieß `Course Source Snapshot`, obwohl `Course Snapshot` im Domainmodell den validierten und persistierten Kurszustand bezeichnet.
+
+Beide Abweichungen wurden korrigiert. Der Vertrag verwendet jetzt `ScanRun...` für persistierte Läufe und `ExternalCourseSourcePayload` für rohe Adapterdaten. Eine doppelte Hilfsimplementierung zum Kopieren von Inhaltssignaturen wurde ebenfalls durch `ContentSignature.Copy()` vereinheitlicht.
+
+Der finale Standards-Re-Review fand noch lokale `snapshot`-Bezeichner für rohe Adapterdaten und einen fehlenden Glossarbegriff für bereinigte Metadaten. Die lokalen Bezeichner wurden auf `sourcePayload` vereinheitlicht; `Metadata-Purged External Learning Content` wurde in `CONTEXT.md` ergänzt.
+
+Als begründete spätere Refactoring-Möglichkeiten blieben zwei große Infrastruktur-Handler und ein wiederkehrendes Metadaten-Datenbündel bestehen. Ihre Aufteilung hätte den aktuellen Korrekturumfang deutlich erweitert, ohne ein fehlendes Akzeptanzkriterium zu schließen.
+
+Der Spezifikations-Review fand einen schwerwiegenden Abschlussfehler: Obwohl Haupt-Issue `#78` geschlossen war, fehlten der produktive 30-Tage-Cleanup und der geforderte Nachweis für das Rennen zwischen Cleanup und Reaktivierung. Damit waren zwei Matrixzeilen beim ersten Review noch nicht erfüllt. Issue `#78` wurde deshalb transparent wieder geöffnet.
+
+Die Korrektur ergänzt:
+
+- einen konfigurierbaren periodischen Cleanup mit einer anfänglichen Schonfrist von 30 Tagen,
+- Transaktionen und PostgreSQL-Zeilensperren für die atomare Prüfung pro External Course,
+- vollständige Löschung nur ohne persönliche Referenzen,
+- Reduktion referenzierter External Learning Contents auf stabile Identität statt Verlust persönlicher Historie,
+- idempotente Wiederholung ohne Adapteraufruf,
+- sowie einen deterministischen PostgreSQL-Test, in dem eine gleichzeitig bestätigte Reaktivierung die Löschung verhindert.
+
+Der neue Cleanup wurde mit vier gezielten Integrationstests testgetrieben entwickelt. Der vollständige Backend-Abschlusslauf enthält 225 erfolgreiche Tests: 111 Domain-, 63 API- und 51 Infrastructure-Tests.
+
+Im finalen Standards-Re-Review wurden zwei weitere P2-Abweichungen gefunden und behoben: lokale Rohdatenbezeichner wurden vollständig auf `sourcePayload` vereinheitlicht und der neue Zustand `Metadata-Purged External Learning Content` im Glossar ergänzt. Der parallel gestartete finale Spezifikationsagent konnte wegen eines Nutzungslimits nicht antworten. Der Agent führte den erneuten Abgleich deshalb selbst Zeile für Zeile gegen die bestätigte Matrix durch; dabei blieb keine weitere statische Spezifikationsabweichung offen. Diese fehlende unabhängige zweite Re-Review-Antwort ist eine Einschränkung des Abschlusses und wird nicht verschwiegen.
+
+Die Frontend-Typprüfung lief ohne Fehler. Ein Vitest-Lauf in der Agentenumgebung scheiterte nicht an einem Test, sondern schon beim Start der Worker: Das lokale Dateisystem benötigte länger als Vitests feste 60-Sekunden-Startgrenze. Der Benutzer wiederholt den unveränderten Standardbefehl im eigenen Terminal; das Ergebnis wird vor dem endgültigen Abschluss hier ergänzt.
+
+## Matt-Bewertung
+
+### Agentenseitige Auswertung
+
+Matt Pococks Suite war besonders stark bei früher Anforderungsklärung, nachvollziehbaren Entscheidungen und der Trennung von Standards- und Spezifikationsreview. Wayfinder, Grilling, Prototype und Domain Modeling machten versteckte Fragen zu Identität, gemeinsamem Scan, persönlicher Historie, Datenschutz und Parallelität sichtbar, bevor sie zu schwer änderbarem Produktionscode wurden. Die Akzeptanzmatrix ermöglichte außerdem, eine trotz grüner Teilprüfungen übersehene Cleanup-Anforderung im Abschlussreview konkret nachzuweisen.
+
+Die größten Schwächen waren Prozessumfang und Steuerungsaufwand. Zahlreiche Fragerunden, Issues, Auflösungskommentare und ADR-Aktualisierungen erzeugten für einen Mock-Vertikalschnitt viel Verwaltung. Technisch überzeugende Empfehlungen des Agents konnten die Auswahl stark in Richtung eines robusten, aber großen Designs lenken. Außerdem verhinderte der Workflow nicht automatisch, dass ein Haupt-Issue zu früh geschlossen wurde; erst der getrennte Abschlussreview fand die Lücke.
+
+### Bewertung durch den Benutzer
+
+Die persönlichen Bewertungen zu Verständlichkeit, Kontrolle, Lerngewinn, angemessenem Aufwand, Vertrauen, Wiederaufnahme und Anpassbarkeit bleiben bewusst offen, bis der Benutzer sie auf der Skala von 1 bis 5 selbst vergibt. Agentenseitige Einschätzungen ersetzen diese Messwerte nicht.

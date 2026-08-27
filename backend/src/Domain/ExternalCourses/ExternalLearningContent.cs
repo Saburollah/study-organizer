@@ -26,6 +26,8 @@ public sealed class ExternalLearningContent
 
     public DateTimeOffset? UpdatedAt { get; private set; }
 
+    public DateTimeOffset? MetadataPurgedAt { get; private set; }
+
     private ExternalLearningContent()
     {
     }
@@ -73,6 +75,7 @@ public sealed class ExternalLearningContent
             MediaType,
             SourceReference,
             Availability);
+        MetadataPurgedAt = null;
     }
 
     public void UpdateMetadata(
@@ -104,6 +107,7 @@ public sealed class ExternalLearningContent
             SourceReference,
             Availability);
         UpdatedAt = updatedAt;
+        MetadataPurgedAt = null;
     }
 
     public void MarkAvailable(DateTimeOffset updatedAt)
@@ -144,6 +148,31 @@ public sealed class ExternalLearningContent
             SourceReference,
             Availability);
         UpdatedAt = updatedAt;
+    }
+
+    public void PurgeMetadata(DateTimeOffset purgedAt)
+    {
+        if (MetadataPurgedAt.HasValue)
+        {
+            return;
+        }
+
+        Type = ExternalLearningContentType.Activity;
+        Title = "External content metadata purged";
+        DueDate = null;
+        MediaType = null;
+        SourceReference = null;
+        Availability =
+            ExternalLearningContentAvailability.Unavailable;
+        Signature = ContentSignature.Compute(
+            Type,
+            Title,
+            DueDate,
+            MediaType,
+            SourceReference,
+            Availability);
+        UpdatedAt = purgedAt;
+        MetadataPurgedAt = purgedAt;
     }
 
     private static string? NormalizeOptionalValue(

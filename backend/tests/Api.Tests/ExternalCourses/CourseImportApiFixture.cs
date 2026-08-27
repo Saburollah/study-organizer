@@ -129,7 +129,7 @@ public sealed class ControllableExternalCourseSource
     : IExternalCourseSource
 {
     private readonly object _gate = new();
-    private CourseSourceSnapshot _snapshot = CreateDefaultSnapshot();
+    private ExternalCourseSourcePayload _sourcePayload = CreateDefaultPayload();
     private ScanRunErrorCode? _failure;
     private bool _throwUnexpected;
     private bool _blockNextFetch;
@@ -159,12 +159,12 @@ public sealed class ControllableExternalCourseSource
         }
     }
 
-    public void UseSnapshot(CourseSourceSnapshot snapshot)
+    public void UsePayload(ExternalCourseSourcePayload sourcePayload)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(sourcePayload);
         lock (_gate)
         {
-            _snapshot = snapshot;
+            _sourcePayload = sourcePayload;
         }
     }
 
@@ -217,7 +217,7 @@ public sealed class ControllableExternalCourseSource
     {
         lock (_gate)
         {
-            _snapshot = CreateDefaultSnapshot();
+            _sourcePayload = CreateDefaultPayload();
             _failure = null;
             _throwUnexpected = false;
             _blockNextFetch = false;
@@ -229,11 +229,11 @@ public sealed class ControllableExternalCourseSource
         }
     }
 
-    public async Task<CourseSourceSnapshot> FetchSnapshotAsync(
+    public async Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
         ExternalCourseIdentity identity,
         CancellationToken cancellationToken = default)
     {
-        CourseSourceSnapshot snapshot;
+        ExternalCourseSourcePayload sourcePayload;
         ScanRunErrorCode? failure;
         bool throwUnexpected;
         Task? releaseTask = null;
@@ -241,7 +241,7 @@ public sealed class ControllableExternalCourseSource
         lock (_gate)
         {
             _fetchCount++;
-            snapshot = _snapshot;
+            sourcePayload = _sourcePayload;
             failure = _failure;
             throwUnexpected = _throwUnexpected;
 
@@ -269,7 +269,7 @@ public sealed class ControllableExternalCourseSource
                 "credential=private-value; internal database failure");
         }
 
-        return snapshot;
+        return sourcePayload;
     }
 
     private static TaskCompletionSource NewSignal()
@@ -278,9 +278,9 @@ public sealed class ControllableExternalCourseSource
             TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
-    private static CourseSourceSnapshot CreateDefaultSnapshot()
+    private static ExternalCourseSourcePayload CreateDefaultPayload()
     {
-        return new CourseSourceSnapshot(
+        return new ExternalCourseSourcePayload(
         [
             new CourseSourceItem(
                 new ExternalContentKey("reading-pdf"),

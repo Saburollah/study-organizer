@@ -153,19 +153,19 @@ Für jeden Versuch werden folgende Werte erfasst:
 
 | Messwert | Matt | Superpowers |
 | --- | ---: | ---: |
-| Agentensitzungen |  |  |
-| Rückfragen an den Benutzer |  |  |
-| Vom Benutzer korrigierte Annahmen |  |  |
-| Planungs- und Entscheidungsdokumente |  |  |
-| Implementierungstickets beziehungsweise Planaufgaben |  |  |
-| Fehlgeschlagene oder wiederholte Implementierungsversuche |  |  |
-| Neu angelegte automatisierte Tests |  |  |
-| Review-Funde nach Schweregrad |  |  |
-| Nicht erfüllte Akzeptanzkriterien beim ersten Review |  |  |
-| Gesamte verstrichene Arbeitszeit |  |  |
-| Manuelle Arbeitszeit des Benutzers |  |  |
-| Geänderte Dateien |  |  |
-| Hinzugefügte und entfernte Codezeilen |  |  |
+| Agentensitzungen | Nicht zuverlässig erfasst |  |
+| Rückfragen an den Benutzer | Neun dokumentierte Entscheidungs-Grillings; Einzelfragen nicht zuverlässig summiert |  |
+| Vom Benutzer korrigierte Annahmen | Nicht zuverlässig erfasst |  |
+| Planungs- und Entscheidungsdokumente | 11: Architekturnotiz, `CONTEXT.md`, 7 ADRs, Protokoll und Beobachtungslog |  |
+| Implementierungstickets beziehungsweise Planaufgaben | 7: sechs Feature-Tickets und ein Deployment-Follow-up |  |
+| Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 wesentliche Korrekturschleifen: Produktionsmigration und fehlender Cleanup |  |
+| Neu angelegte automatisierte Tests | Nettozahl nicht zuverlässig erfasst; Abschlussstand 225 Backend-Tests plus Frontend und Playwright |  |
+| Review-Funde nach Schweregrad | Erstprüfung: Standards 2 klare Abweichungen und 4 Ermessensfunde, Spezifikation 1 P1-Fund; Re-Review: 2 P2-Standardsfunde |  |
+| Nicht erfüllte Akzeptanzkriterien beim ersten Review | 2 Matrixzeilen: Cleanup-Frist und Cleanup/Reaktivierungs-Rennen |  |
+| Gesamte verstrichene Arbeitszeit | Nicht zuverlässig erfasst |  |
+| Manuelle Arbeitszeit des Benutzers | Nicht zuverlässig erfasst |  |
+| Geänderte Dateien | 139 gegenüber `e7d8b5e` (einschließlich generierter Migrationen und Dokumentation) |  |
+| Hinzugefügte und entfernte Codezeilen | +18.843 / −219 gegenüber `e7d8b5e` |  |
 
 Codezeilen und Dateizahl beschreiben nur den Umfang. Sie sind kein eigenständiges Qualitätsmaß.
 
@@ -241,11 +241,11 @@ Diese Einschränkungen werden im Paper berücksichtigt und nicht als Ergebnis de
 
 Der Matt-Versuch beginnt erst, wenn folgende Punkte bestätigt sind:
 
-- [ ] Neutrale Feature-Beschreibung und Architektur-Arbeitsnotiz sind vorhanden.
-- [ ] Gemeinsamer Ausgangscommit ist festgeschrieben.
-- [ ] Matt-Version ist festgeschrieben.
-- [ ] Baseline-Prüfungen wurden ausgeführt und protokolliert.
-- [ ] Beobachtungslog für Matt ist angelegt.
-- [ ] Der Benutzer versteht, dass Wayfinder Entscheidungen vorbereitet und noch keinen Feature-Code schreibt.
+- [x] Neutrale Feature-Beschreibung und Architektur-Arbeitsnotiz sind vorhanden.
+- [x] Gemeinsamer Ausgangscommit ist festgeschrieben.
+- [x] Matt-Version ist festgeschrieben.
+- [x] Baseline-Prüfungen wurden ausgeführt und protokolliert.
+- [x] Beobachtungslog für Matt ist angelegt.
+- [x] Der Benutzer versteht, dass Wayfinder Entscheidungen vorbereitet und noch keinen Feature-Code schreibt.
 
 Der Superpowers-Versuch beginnt später mit derselben Checkliste und einer festgeschriebenen Superpowers-Version.

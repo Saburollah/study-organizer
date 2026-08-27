@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
 import { courseImportService } from '@/features/course-imports/courseImportService'
-import type { CourseScan, CourseSubscription } from '@/features/course-imports/courseImportModels'
+import type { ScanRun, CourseSubscription } from '@/features/course-imports/courseImportModels'
 import { taskService } from '@/features/tasks/taskService'
 import type { StudyTask } from '@/features/tasks/taskModels'
 import { i18n, setLocale } from '@/i18n'
@@ -234,7 +234,7 @@ describe('StudyTasksView', () => {
 
   it('shows imported tasks automatically after the running course scan succeeds', async () => {
     vi.useFakeTimers()
-    const runningScan: CourseScan = {
+    const runningScan: ScanRun = {
       scanRunId: 'scan-1',
       status: 'Running',
       startedAtUtc: '2026-08-25T08:00:00Z',
@@ -249,7 +249,7 @@ describe('StudyTasksView', () => {
       errorCode: null,
       canRetry: false,
     }
-    const succeededScan: CourseScan = {
+    const succeededScan: ScanRun = {
       ...runningScan,
       status: 'Succeeded',
       completedAtUtc: '2026-08-25T08:00:01Z',
@@ -263,7 +263,7 @@ describe('StudyTasksView', () => {
     }
     const createCourseSubscription = (
       status: CourseSubscription['status'],
-      scan: CourseScan,
+      scan: ScanRun,
     ): CourseSubscription => ({
       moduleId,
       status,

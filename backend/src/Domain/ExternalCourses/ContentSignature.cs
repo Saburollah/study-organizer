@@ -18,6 +18,11 @@ public sealed record ContentSignature
         Hash = hash;
     }
 
+    public ContentSignature Copy()
+    {
+        return new ContentSignature(Version, Hash);
+    }
+
     public static ContentSignature Compute(
         ExternalLearningContentType type,
         string title,

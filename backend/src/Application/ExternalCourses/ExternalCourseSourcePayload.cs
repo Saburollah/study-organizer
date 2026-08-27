@@ -1,10 +1,10 @@
 namespace StudyOrganizer.Application.ExternalCourses;
 
-public sealed class CourseSourceSnapshot
+public sealed class ExternalCourseSourcePayload
 {
     public IReadOnlyList<CourseSourceItem> Items { get; }
 
-    public CourseSourceSnapshot(
+    public ExternalCourseSourcePayload(
         IReadOnlyList<CourseSourceItem> items)
     {
         Items = items

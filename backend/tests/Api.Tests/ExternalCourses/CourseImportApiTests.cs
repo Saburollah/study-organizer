@@ -304,7 +304,7 @@ public sealed class CourseImportApiTests(
             $"/api/modules/{actor.ModuleId}/course-subscription/scans",
             content: null);
         var retryBody = await retryResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
 
         Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
         Assert.Equal("Succeeded", retryBody?.Status);
@@ -342,7 +342,7 @@ public sealed class CourseImportApiTests(
             $"/api/modules/{actor.ModuleId}/course-subscription/scans",
             content: null);
         var sharedScan = await sharedResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
 
         Assert.Equal(HttpStatusCode.Accepted, sharedResponse.StatusCode);
         Assert.Equal("Running", sharedScan?.Status);
@@ -365,13 +365,13 @@ public sealed class CourseImportApiTests(
             // remains server-owned and is asserted through its public status URL.
         }
 
-        CourseScanResponse? completedScan = null;
+        ScanRunResponse? completedScan = null;
         for (var attempt = 0; attempt < 100; attempt++)
         {
             using var statusResponse = await client.GetAsync(
                 $"/api/modules/{actor.ModuleId}/course-subscription/scans/{sharedScan?.ScanRunId}");
             completedScan = await statusResponse.Content
-                .ReadFromJsonAsync<CourseScanResponse>();
+                .ReadFromJsonAsync<ScanRunResponse>();
             if (completedScan?.Status != "Running")
             {
                 break;
@@ -474,8 +474,8 @@ public sealed class CourseImportApiTests(
             new { status = "Completed" });
         Assert.Equal(HttpStatusCode.OK, completion.StatusCode);
 
-        fixture.CourseSource.UseSnapshot(
-            new CourseSourceSnapshot(
+        fixture.CourseSource.UsePayload(
+            new ExternalCourseSourcePayload(
             [
                 new CourseSourceItem(
                     new ExternalContentKey("reading-pdf"),
@@ -504,7 +504,7 @@ public sealed class CourseImportApiTests(
             $"/api/modules/{actor.ModuleId}/course-subscription/scans",
             content: null);
         var scan = await scanResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
         Assert.Equal(HttpStatusCode.OK, scanResponse.StatusCode);
         Assert.Equal(1, scan?.ContentCounts.Updated);
         Assert.Equal(1, scan?.PersonalImpact.SourceUpdatesCreated);
@@ -608,7 +608,7 @@ public sealed class CourseImportApiTests(
             $"/api/modules/{first.ModuleId}/course-subscription/scans",
             content: null);
         var sharedScan = await sharedScanResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
         Assert.DoesNotContain(
             second.ModuleId.ToString(),
             await sharedScanResponse.Content.ReadAsStringAsync(),
@@ -800,12 +800,12 @@ public sealed class CourseImportApiTests(
         Assert.Equal(HttpStatusCode.OK, firstRegistration.StatusCode);
         Assert.Equal(HttpStatusCode.OK, secondRegistration.StatusCode);
 
-        fixture.CourseSource.UseSnapshot(CreateSnapshotWithNewContent());
+        fixture.CourseSource.UsePayload(CreatePayloadWithNewContent());
         using var scanResponse = await firstClient.PostAsync(
             $"/api/modules/{first.ModuleId}/course-subscription/scans",
             content: null);
         var firstScan = await scanResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
 
         Assert.Equal(HttpStatusCode.OK, scanResponse.StatusCode);
         Assert.Equal(1, firstScan?.ContentCounts.New);
@@ -824,7 +824,7 @@ public sealed class CourseImportApiTests(
         using var secondStatusResponse = await secondClient.GetAsync(
             $"/api/modules/{second.ModuleId}/course-subscription/scans/{firstScan?.ScanRunId}");
         var secondScan = await secondStatusResponse.Content
-            .ReadFromJsonAsync<CourseScanResponse>();
+            .ReadFromJsonAsync<ScanRunResponse>();
         Assert.Equal(HttpStatusCode.OK, secondStatusResponse.StatusCode);
         Assert.Equal(1, secondScan?.PersonalImpact.TasksCreated);
 
@@ -969,9 +969,9 @@ public sealed class CourseImportApiTests(
             : null;
     }
 
-    private static CourseSourceSnapshot CreateSnapshotWithNewContent()
+    private static ExternalCourseSourcePayload CreatePayloadWithNewContent()
     {
-        return new CourseSourceSnapshot(
+        return new ExternalCourseSourcePayload(
         [
             new CourseSourceItem(
                 new ExternalContentKey("reading-pdf"),

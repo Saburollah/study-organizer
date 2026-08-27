@@ -4,7 +4,7 @@ namespace StudyOrganizer.Application.ExternalCourses;
 
 public interface IExternalCourseSource
 {
-    Task<CourseSourceSnapshot> FetchSnapshotAsync(
+    Task<ExternalCourseSourcePayload> FetchCourseDataAsync(
         ExternalCourseIdentity identity,
         CancellationToken cancellationToken = default);
 }

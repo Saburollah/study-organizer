@@ -1,28 +1,28 @@
 export type CourseSubscriptionStatus = 'Pending' | 'Active'
 
-export type CourseScanStatus = 'Running' | 'Succeeded' | 'Failed' | 'Cancelled' | 'Expired'
+export type ScanRunStatus = 'Running' | 'Succeeded' | 'Failed' | 'Cancelled' | 'Expired'
 
-export interface CourseScanContentCounts {
+export interface ScanRunContentCounts {
   new: number
   updated: number
   unchanged: number
   unavailable: number
 }
 
-export interface CourseScanPersonalImpact {
+export interface ScanRunPersonalImpact {
   tasksCreated: number
   pdfTasksCreated: number
   nonPdfTasksCreated: number
   sourceUpdatesCreated: number
 }
 
-export interface CourseScan {
+export interface ScanRun {
   scanRunId: string
-  status: CourseScanStatus
+  status: ScanRunStatus
   startedAtUtc: string
   completedAtUtc: string | null
-  contentCounts: CourseScanContentCounts
-  personalImpact: CourseScanPersonalImpact
+  contentCounts: ScanRunContentCounts
+  personalImpact: ScanRunPersonalImpact
   errorCode: string | null
   canRetry: boolean
 }
@@ -41,8 +41,8 @@ export interface CourseSubscription {
     observedAtUtc: string
     knownContentCount: number
   } | null
-  latestScan: CourseScan | null
-  recentScans: CourseScan[]
+  latestScan: ScanRun | null
+  recentScans: ScanRun[]
 }
 
 export interface CourseRequestResult<T> {
