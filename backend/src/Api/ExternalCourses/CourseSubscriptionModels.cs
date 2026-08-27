@@ -16,8 +16,8 @@ public sealed record CourseSubscriptionResponse(
     DateTimeOffset? ActivatedAtUtc,
     ExternalCourseSummaryResponse Course,
     CourseSnapshotSummaryResponse? LatestSnapshot,
-    CourseScanResponse? LatestScan,
-    IReadOnlyList<CourseScanResponse> RecentScans);
+    ScanRunResponse? LatestScan,
+    IReadOnlyList<ScanRunResponse> RecentScans);
 
 public sealed record ExternalCourseSummaryResponse(
     string DisplayName,
@@ -28,23 +28,23 @@ public sealed record CourseSnapshotSummaryResponse(
     DateTimeOffset ObservedAtUtc,
     int KnownContentCount);
 
-public sealed record CourseScanResponse(
+public sealed record ScanRunResponse(
     Guid ScanRunId,
     string Status,
     DateTimeOffset StartedAtUtc,
     DateTimeOffset? CompletedAtUtc,
-    CourseScanContentCountsResponse ContentCounts,
-    CourseScanPersonalImpactResponse PersonalImpact,
+    ScanRunContentCountsResponse ContentCounts,
+    ScanRunPersonalImpactResponse PersonalImpact,
     string? ErrorCode,
     bool CanRetry);
 
-public sealed record CourseScanContentCountsResponse(
+public sealed record ScanRunContentCountsResponse(
     int New,
     int Updated,
     int Unchanged,
     int Unavailable);
 
-public sealed record CourseScanPersonalImpactResponse(
+public sealed record ScanRunPersonalImpactResponse(
     int TasksCreated,
     int PdfTasksCreated,
     int NonPdfTasksCreated,

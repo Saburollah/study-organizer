@@ -1,13 +1,13 @@
 import { apiRequest, apiResponse, type ApiResponse } from '@/services/api/apiClient'
 
-import type { CourseRequestResult, CourseScan, CourseSubscription } from './courseImportModels'
+import type { CourseRequestResult, ScanRun, CourseSubscription } from './courseImportModels'
 
 export interface CourseImportService {
   register(moduleId: string, courseUrl: string): Promise<CourseRequestResult<CourseSubscription>>
   get(moduleId: string): Promise<CourseSubscription>
   end(moduleId: string): Promise<void>
-  startScan(moduleId: string): Promise<CourseRequestResult<CourseScan>>
-  getScan(moduleId: string, scanRunId: string): Promise<CourseScan>
+  startScan(moduleId: string): Promise<CourseRequestResult<ScanRun>>
+  getScan(moduleId: string, scanRunId: string): Promise<ScanRun>
 }
 
 export class HttpCourseImportService implements CourseImportService {
@@ -31,16 +31,16 @@ export class HttpCourseImportService implements CourseImportService {
     return apiRequest<void>(this.getSubscriptionPath(moduleId), { method: 'DELETE' })
   }
 
-  async startScan(moduleId: string): Promise<CourseRequestResult<CourseScan>> {
-    const response = await apiResponse<CourseScan>(`${this.getSubscriptionPath(moduleId)}/scans`, {
+  async startScan(moduleId: string): Promise<CourseRequestResult<ScanRun>> {
+    const response = await apiResponse<ScanRun>(`${this.getSubscriptionPath(moduleId)}/scans`, {
       method: 'POST',
     })
 
     return this.toRequestResult(response)
   }
 
-  getScan(moduleId: string, scanRunId: string): Promise<CourseScan> {
-    return apiRequest<CourseScan>(
+  getScan(moduleId: string, scanRunId: string): Promise<ScanRun> {
+    return apiRequest<ScanRun>(
       `${this.getSubscriptionPath(moduleId)}/scans/${encodeURIComponent(scanRunId)}`,
     )
   }

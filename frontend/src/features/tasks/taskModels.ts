@@ -13,7 +13,7 @@ export interface StudyTask {
 }
 
 export interface StudyTaskImportSource {
-  status: 'Available' | 'Unavailable' | 'SubscriptionEnded'
+  status: 'Available' | 'Unavailable' | 'SubscriptionEnded' | 'MetadataPurged'
   contentType: string | null
   mediaType: string | null
   sourceUrl: string | null

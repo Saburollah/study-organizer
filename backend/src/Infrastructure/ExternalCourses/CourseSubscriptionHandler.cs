@@ -268,7 +268,7 @@ public sealed class CourseSubscriptionHandler(
         return CourseSubscriptionEndResult.Ended;
     }
 
-    public async Task<CourseScanRequestResult> StartScanAsync(
+    public async Task<ScanRunRequestResult> StartScanAsync(
         Guid ownerId,
         Guid moduleId,
         CancellationToken cancellationToken = default)
@@ -279,8 +279,8 @@ public sealed class CourseSubscriptionHandler(
             cancellationToken);
         if (subscription is null)
         {
-            return new CourseScanRequestResult(
-                CourseScanRequestOutcome.NotFound);
+            return new ScanRunRequestResult(
+                ScanRunRequestOutcome.NotFound);
         }
 
         if (subscription.State == CourseSubscriptionState.Pending
@@ -313,14 +313,14 @@ public sealed class CourseSubscriptionHandler(
             ?? throw new InvalidOperationException(
                 "A persisted Scan Run must be readable.");
 
-        return new CourseScanRequestResult(
+        return new ScanRunRequestResult(
             details.Status == ScanRunStatus.Running
-                ? CourseScanRequestOutcome.Running
-                : CourseScanRequestOutcome.Completed,
+                ? ScanRunRequestOutcome.Running
+                : ScanRunRequestOutcome.Completed,
             details);
     }
 
-    public async Task<CourseScanResultDetails?> GetScanAsync(
+    public async Task<ScanRunDetailsResult?> GetScanAsync(
         Guid ownerId,
         Guid moduleId,
         Guid scanRunId,
@@ -553,7 +553,7 @@ public sealed class CourseSubscriptionHandler(
                         course.Id,
                         content.Id,
                         task.Id,
-                        CopySignature(content),
+                        content.Signature.Copy(),
                         activationAt));
                 continue;
             }
@@ -566,14 +566,14 @@ public sealed class CourseSubscriptionHandler(
 
             if (updates.TryGetValue(state.Id, out var update))
             {
-                update.Refresh(CopySignature(content), activationAt);
+                update.Refresh(content.Signature.Copy(), activationAt);
             }
             else
             {
                 context.SourceUpdates.Add(
                     new SourceUpdate(
                         state.Id,
-                        CopySignature(content),
+                        content.Signature.Copy(),
                         activationAt));
             }
         }
@@ -686,7 +686,7 @@ public sealed class CourseSubscriptionHandler(
             .Take(maximumScanCount)
             .Select(scan => scan.Id)
             .ToListAsync(cancellationToken);
-        var recentScans = new List<CourseScanResultDetails>(scanIds.Count);
+        var recentScans = new List<ScanRunDetailsResult>(scanIds.Count);
         foreach (var scanId in scanIds)
         {
             var scan = await BuildScanResultAsync(
@@ -718,7 +718,7 @@ public sealed class CourseSubscriptionHandler(
             recentScans);
     }
 
-    private async Task<CourseScanResultDetails?> BuildScanResultAsync(
+    private async Task<ScanRunDetailsResult?> BuildScanResultAsync(
         Guid subscriptionId,
         Guid scanRunId,
         CancellationToken cancellationToken)
@@ -773,13 +773,13 @@ public sealed class CourseSubscriptionHandler(
                 .CountAsync(cancellationToken);
         }
 
-        return new CourseScanResultDetails(
+        return new ScanRunDetailsResult(
             scan.Id,
             scan.Status,
             scan.StartedAt,
             scan.CompletedAt,
             scan.Counts,
-            new CourseScanPersonalImpactResult(
+            new ScanRunPersonalImpactResult(
                 tasksCreated,
                 pdfTasksCreated,
                 tasksCreated - pdfTasksCreated,
@@ -802,18 +802,6 @@ public sealed class CourseSubscriptionHandler(
         return scan.Status == ScanRunStatus.Running
             ? scan.StartedAt >= subscription.ActivatedAt.Value
             : scan.CompletedAt >= subscription.ActivatedAt.Value;
-    }
-
-    private static ContentSignature CopySignature(
-        ExternalLearningContent content)
-    {
-        return ContentSignature.Compute(
-            content.Type,
-            content.Title,
-            content.DueDate,
-            content.MediaType,
-            content.SourceReference,
-            content.Availability);
     }
 
     private static bool IsRegistrationConflict(

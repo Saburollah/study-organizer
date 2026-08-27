@@ -18,12 +18,12 @@ public interface ICourseSubscriptionHandler
         Guid moduleId,
         CancellationToken cancellationToken = default);
 
-    Task<CourseScanRequestResult> StartScanAsync(
+    Task<ScanRunRequestResult> StartScanAsync(
         Guid ownerId,
         Guid moduleId,
         CancellationToken cancellationToken = default);
 
-    Task<CourseScanResultDetails?> GetScanAsync(
+    Task<ScanRunDetailsResult?> GetScanAsync(
         Guid ownerId,
         Guid moduleId,
         Guid scanRunId,

@@ -44,6 +44,10 @@ _Avoid_: Course Copy, Course Ownership
 Ein normalisierter Inhalt eines External Course mit einer stabilen gemeinsamen Identität. Er kann eine PDF-Datei, ein Link oder eine andere Aufgabe sein und bleibt auch bekannt, wenn er extern nicht mehr verfügbar ist.
 _Avoid_: Study Task, File
 
+**Metadata-Purged External Learning Content**:
+Ein External Learning Content, dessen Aufbewahrungsfrist abgelaufen ist und dessen externe Metadaten entfernt wurden, während seine stabile Identität wegen persönlicher Importhistorie erhalten bleibt. Imported Study Tasks bleiben bestehen; Titel, Fälligkeit, Medientyp und Quellreferenz des externen Inhalts dürfen nicht mehr offengelegt werden.
+_Avoid_: Deleted External Content, Unavailable External Learning Content
+
 **Imported Study Task**:
 Eine persönliche Study Task, die aus einem External Learning Content entstanden und dauerhaft mit ihm verbunden ist. Ihre persönlichen Planungsdaten und ihr Status bleiben von den gemeinsamen externen Metadaten getrennt.
 _Avoid_: External Learning Content

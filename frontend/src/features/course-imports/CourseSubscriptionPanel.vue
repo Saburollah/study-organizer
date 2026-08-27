@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/services/api/apiClient'
 
 import { courseImportService } from './courseImportService'
-import type { CourseScan, CourseSubscription } from './courseImportModels'
+import type { ScanRun, CourseSubscription } from './courseImportModels'
 
 const props = defineProps<{
   moduleId: string
@@ -94,7 +94,7 @@ async function pollScan(scanRunId: string): Promise<void> {
   }
 }
 
-function updateVisibleScan(scan: CourseScan): void {
+function updateVisibleScan(scan: ScanRun): void {
   if (!subscription.value) {
     return
   }
@@ -144,11 +144,11 @@ async function startScan(): Promise<void> {
   }
 }
 
-function isScanFailure(scan: CourseScan): boolean {
+function isScanFailure(scan: ScanRun): boolean {
   return scan.status === 'Failed' || scan.status === 'Cancelled' || scan.status === 'Expired'
 }
 
-function scanError(scan: CourseScan): string {
+function scanError(scan: ScanRun): string {
   const code = scan.errorCode ?? scan.status.toLowerCase()
   const keyByCode: Record<string, string> = {
     'source-unreachable': 'sourceUnreachable',
@@ -186,7 +186,7 @@ async function endSubscription(): Promise<void> {
   }
 }
 
-function scanStatus(scan: CourseScan): string {
+function scanStatus(scan: ScanRun): string {
   return t(`courseImports.overview.scanStatus.${scan.status}`)
 }
 
