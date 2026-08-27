@@ -22,11 +22,16 @@ Die Architekturfragen sind in [`../moodle-architecture-notes.md`](../moodle-arch
 | Merkmal | Wert |
 | --- | --- |
 | Projekt-Branch für den Matt-Versuch | `experiment/matt` |
+| Projekt-Branch für den Superpowers-Versuch | `experiment/superpowers` |
 | Ausgangscommit vor den neuen Dokumenten | `2f38578d63f988b18a749ac7c0045158fd0ed45b` |
+| Gemeinsamer Feature-Ausgangscommit | `e7d8b5ecc3fe75a38655f16c4636328bb1598d57` |
 | Zentrales Skills-Repository | `https://github.com/Saburollah/agent-skills.git` |
 | Matt-Skill-Commit | `f6de92c45098088741afdba6dbb275199803cf78` |
 | Matt-Version | `matt-v1.0` |
-| Superpowers-Version | Vor dem Superpowers-Versuch festschreiben |
+| Superpowers-Version | `superpowers-v6.3.0` |
+| Superpowers-Skill-Commit | `a41901651ce44a66c2fea78dda4f81e8a3815fbe` |
+| Superpowers-Upstream | `obra/superpowers` Tag `v6.3.0` |
+| Beginn des Superpowers-Versuchs | 27. August 2026 |
 | Datum | 20. August 2026 |
 
 Vor dem ersten Feature-Code werden die neutralen Experimentdokumente committed und der endgültige gemeinsame Ausgangscommit notiert. Der Superpowers-Versuch startet nach Möglichkeit von demselben Commit in einem getrennten Branch oder Worktree.
