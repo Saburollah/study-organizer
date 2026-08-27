@@ -179,13 +179,13 @@ Der Benutzer vergibt nach jedem Versuch Werte von 1 bis 5:
 
 | Kriterium | Bedeutung | Matt | Superpowers |
 | --- | --- | ---: | ---: |
-| Verständlichkeit | Ich konnte den Prozess und die Entscheidungen nachvollziehen. |  |  |
-| Kontrolle | Ich konnte wichtige Entscheidungen selbst treffen. |  |  |
-| Lerngewinn | Ich verstehe Architektur und Implementierung danach besser. |  |  |
-| Angemessener Aufwand | Der Prozess war für die Aufgabe weder zu leicht noch zu schwer. |  |  |
-| Vertrauen | Tests und Nachweise geben mir Vertrauen in das Ergebnis. |  |  |
-| Wiederaufnahme | Ein frischer Agent konnte die Arbeit leicht fortsetzen. |  |  |
-| Anpassbarkeit | Der Workflow ließ sich sinnvoll an das Projekt anpassen. |  |  |
+| Verständlichkeit | Ich konnte den Prozess und die Entscheidungen nachvollziehen. | 4 |  |
+| Kontrolle | Ich konnte wichtige Entscheidungen selbst treffen. | 4 |  |
+| Lerngewinn | Ich verstehe Architektur und Implementierung danach besser. | 5 |  |
+| Angemessener Aufwand | Der Prozess war für die Aufgabe weder zu leicht noch zu schwer. | 3 |  |
+| Vertrauen | Tests und Nachweise geben mir Vertrauen in das Ergebnis. | 4 |  |
+| Wiederaufnahme | Ein frischer Agent konnte die Arbeit leicht fortsetzen. | 4 |  |
+| Anpassbarkeit | Der Workflow ließ sich sinnvoll an das Projekt anpassen. | 4 |  |
 
 Bewertungsskala:
 

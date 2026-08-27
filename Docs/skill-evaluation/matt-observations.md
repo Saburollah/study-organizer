@@ -372,4 +372,16 @@ Die größten Schwächen waren Prozessumfang und Steuerungsaufwand. Zahlreiche F
 
 ### Bewertung durch den Benutzer
 
-Die persönlichen Bewertungen zu Verständlichkeit, Kontrolle, Lerngewinn, angemessenem Aufwand, Vertrauen, Wiederaufnahme und Anpassbarkeit bleiben bewusst offen, bis der Benutzer sie auf der Skala von 1 bis 5 selbst vergibt. Agentenseitige Einschätzungen ersetzen diese Messwerte nicht.
+Der Benutzer vergab am 27.08.2026 folgende Bewertungen auf der Skala von 1 bis 5:
+
+| Kriterium | Wert | Konkretes Beispiel aus dem Versuch |
+| --- | ---: | --- |
+| Verständlichkeit | 4 | Wayfinder, ADRs und Akzeptanzmatrix machten die schrittweise entstandenen Entscheidungen nachlesbar. |
+| Kontrolle | 4 | Der Benutzer traf die Produktentscheidungen in den Grilling-Runden selbst und korrigierte unter anderem eine versehentlich gewählte Prototyp-Antwort. |
+| Lerngewinn | 5 | Der Versuch führte von der dynamischen Moodle-Struktur über Adapter und stabile Identitäten bis zu gemeinsamem Scannen und persönlicher Projektion. |
+| Angemessener Aufwand | 3 | Neun Entscheidungs-Grillings, zahlreiche Issues und mehrere Review-Runden erzeugten für den Mock-Vertikalschnitt spürbaren Prozessaufwand. |
+| Vertrauen | 4 | 225 Backend-Tests sowie erfolgreiche Frontend-Tests, Lint- und Buildläufe lieferten technische Nachweise; die unabhängige finale Spezifikationsantwort fiel wegen eines Nutzungslimits aus. |
+| Wiederaufnahme | 4 | Issues, ADRs, `CONTEXT.md` und Beobachtungsprotokoll ermöglichten die Fortsetzung über viele getrennte Agentensitzungen hinweg. |
+| Anpassbarkeit | 4 | Die Skills ließen sich mit GitHub Issues, den vorhandenen Repository-Regeln, PostgreSQL-Tests und dem Mock-Adapter verbinden. |
+
+Die Beispiele dokumentieren beobachtete Vorgänge des Versuchs; die Zahlen stammen ausschließlich vom Benutzer.
