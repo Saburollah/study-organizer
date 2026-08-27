@@ -360,7 +360,7 @@ Der neue Cleanup wurde mit vier gezielten Integrationstests testgetrieben entwic
 
 Im finalen Standards-Re-Review wurden zwei weitere P2-Abweichungen gefunden und behoben: lokale Rohdatenbezeichner wurden vollständig auf `sourcePayload` vereinheitlicht und der neue Zustand `Metadata-Purged External Learning Content` im Glossar ergänzt. Der parallel gestartete finale Spezifikationsagent konnte wegen eines Nutzungslimits nicht antworten. Der Agent führte den erneuten Abgleich deshalb selbst Zeile für Zeile gegen die bestätigte Matrix durch; dabei blieb keine weitere statische Spezifikationsabweichung offen. Diese fehlende unabhängige zweite Re-Review-Antwort ist eine Einschränkung des Abschlusses und wird nicht verschwiegen.
 
-Die Frontend-Typprüfung lief ohne Fehler. Ein Vitest-Lauf in der Agentenumgebung scheiterte nicht an einem Test, sondern schon beim Start der Worker: Das lokale Dateisystem benötigte länger als Vitests feste 60-Sekunden-Startgrenze. Der Benutzer wiederholt den unveränderten Standardbefehl im eigenen Terminal; das Ergebnis wird vor dem endgültigen Abschluss hier ergänzt.
+Die Frontend-Typprüfung lief ohne Fehler. Ein erster Vitest-Lauf in der Agentenumgebung scheiterte nicht an einem Test, sondern bereits beim Lesen von Dateien mit `ETIMEDOUT`. Ursache war der macOS File Provider, der den unter `Documents` liegenden Projektordner zeitweise nicht vollständig bereitstellte. Nachdem die Dateien wieder lokal verfügbar waren, bestätigte der Benutzer am 27.08.2026 erfolgreiche Abschlussläufe von `pnpm exec vitest run`, `pnpm lint` und `pnpm build`. Damit blieb kein ungeklärter Frontend-Test-, Lint- oder Buildfehler offen.
 
 ## Matt-Bewertung
 

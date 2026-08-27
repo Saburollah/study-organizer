@@ -117,6 +117,10 @@ Wayfinder benennt das Ziel des Moodle-Vorhabens, erstellt eine Entscheidungsland
 
 **Abgeschlossen, wenn:** Review-Funde bearbeitet oder begründet akzeptiert, Abschlussprüfungen protokolliert und alle Bewertungsfelder ausgefüllt sind.
 
+#### Technischer Abschlussstand
+
+Am 27.08.2026 waren 225 Backend-Tests erfolgreich. Der Benutzer bestätigte außerdem erfolgreiche Läufe von `pnpm exec vitest run`, `pnpm lint` und `pnpm build`. Ein zuvor aufgetretener `ETIMEDOUT`-Fehler stammte vom macOS File Provider des Projektordners und nicht von einem fehlgeschlagenen Test. Offen bleibt nur die persönliche Bewertung des Benutzers; sie wird nicht durch eine Agenteneinschätzung ersetzt.
+
 ## Superpowers-Versuch
 
 Vor diesem Versuch wird eine feste Superpowers-Version im zentralen Skills-Repository veröffentlicht und im Projektbranch festgeschrieben. Matt-Skills sind in diesem Versuch nicht aktiv.
