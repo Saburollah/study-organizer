@@ -21,3 +21,6 @@ dist/
 test-diagnostics*.log
 frontend/playwright-report/
 frontend/test-results/
+
+# Git worktrees
+.worktrees/
