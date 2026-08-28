@@ -82,6 +82,25 @@ public sealed class StudyTask
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void SynchronizeFromExternalSource(
+        string title,
+        DateTimeOffset dueDate,
+        string? description,
+        DateTimeOffset updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException(
+                "Task title must not be empty.",
+                nameof(title));
+        }
+
+        Title = title.Trim();
+        Description = NormalizeOptionalValue(description);
+        DueDate = dueDate;
+        UpdatedAt = updatedAt;
+    }
+
     private static string? NormalizeOptionalValue(string? value)
     {
         return string.IsNullOrWhiteSpace(value)

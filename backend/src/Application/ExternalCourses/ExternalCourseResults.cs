@@ -38,3 +38,24 @@ public sealed record ExternalContentResult(
     ExternalContentDisplayStatus Status,
     string? ReviewReason,
     Guid? TaskId);
+
+public enum CourseScanOutcome
+{
+    Succeeded,
+    NotFound,
+    AlreadyRunning,
+    ExternalFailure,
+    InvalidSnapshot
+}
+
+public sealed record CourseScanSummary(
+    int NewContentCount,
+    int ChangedContentCount,
+    int ReviewRequiredCount,
+    int NotVisibleCount,
+    int NewTaskEligibleCount);
+
+public sealed record CourseScanResult(
+    CourseScanOutcome Outcome,
+    CourseScanSummary? Summary,
+    string? ErrorCode);
