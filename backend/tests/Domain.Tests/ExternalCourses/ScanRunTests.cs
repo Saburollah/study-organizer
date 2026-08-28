@@ -94,6 +94,23 @@ public sealed class ScanRunTests
         Assert.Equal("errorCode", exception.ParamName);
     }
 
+    [Theory]
+    [InlineData("Bearer eyJhbGciOiJIUzI1NiJ9.payload.signature")]
+    [InlineData("{\"message\":\"provider returned an internal error\"}")]
+    public void Fail_WithUnsafeOrUnknownErrorCode_ThrowsWithoutPersistingIt(
+        string errorCode)
+    {
+        var run = CreateRun();
+
+        var exception = Assert.Throws<ArgumentException>(() =>
+            run.Fail(errorCode, run.StartedAtUtc.AddSeconds(1)));
+
+        Assert.Equal("errorCode", exception.ParamName);
+        Assert.Equal(ScanRunStatus.InProgress, run.Status);
+        Assert.Null(run.ErrorCode);
+        Assert.Null(run.FinishedAtUtc);
+    }
+
     private static ScanRun CreateRun()
     {
         return new ScanRun(

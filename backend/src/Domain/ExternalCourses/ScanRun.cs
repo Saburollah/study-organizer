@@ -2,6 +2,15 @@ namespace StudyOrganizer.Domain.ExternalCourses;
 
 public sealed class ScanRun
 {
+    private static readonly HashSet<string> SupportedErrorCodes = new(
+        StringComparer.Ordinal)
+    {
+        "external_timeout",
+        "external_auth_required",
+        "invalid_external_response",
+        "unsupported_url"
+    };
+
     public Guid Id { get; private set; }
 
     public Guid ExternalCourseId { get; private set; }
@@ -47,7 +56,7 @@ public sealed class ScanRun
     {
         EnsureCanComplete(finishedAtUtc);
 
-        ErrorCode = NormalizeRequiredValue(errorCode, nameof(errorCode));
+        ErrorCode = NormalizeSupportedErrorCode(errorCode);
         Status = ScanRunStatus.Failed;
         FinishedAtUtc = finishedAtUtc;
     }
@@ -75,13 +84,22 @@ public sealed class ScanRun
         }
     }
 
-    private static string NormalizeRequiredValue(string value, string parameterName)
+    private static string NormalizeSupportedErrorCode(string errorCode)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(errorCode))
         {
-            throw new ArgumentException("Value must not be empty.", parameterName);
+            throw new ArgumentException("Error code must not be empty.", nameof(errorCode));
         }
 
-        return value.Trim();
+        var normalizedErrorCode = errorCode.Trim();
+
+        if (!SupportedErrorCodes.Contains(normalizedErrorCode))
+        {
+            throw new ArgumentException(
+                "Error code is not supported.",
+                nameof(errorCode));
+        }
+
+        return normalizedErrorCode;
     }
 }
