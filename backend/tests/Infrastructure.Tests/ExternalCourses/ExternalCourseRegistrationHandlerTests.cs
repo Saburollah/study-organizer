@@ -1,5 +1,8 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using StudyOrganizer.Application.ExternalCourses;
+using StudyOrganizer.Domain.ExternalCourses;
+using StudyOrganizer.Domain.Modules;
 using StudyOrganizer.Infrastructure.ExternalCourses;
 
 namespace StudyOrganizer.Infrastructure.Tests.ExternalCourses;
@@ -146,6 +149,132 @@ public sealed class ExternalCourseRegistrationHandlerTests
         Assert.Empty(database.Context.ExternalContents);
     }
 
+    [Fact]
+    public async Task RegisterAsync_UniqueSubscriptionRaceForSameOwner_ReconcilesExactExistingSubscription()
+    {
+        await using var database = await ExternalCourseTestDatabase.CreateAsync();
+        var ownerId = await database.CreateUserAsync("student@example.com");
+        var otherOwnerId = await database.CreateUserAsync("other@example.com");
+        var course = new ExternalCourse(
+            "mock-moodle",
+            "software-engineering-2026",
+            "Software Engineering",
+            database.Now);
+        var existingModule = new StudyModule(ownerId, "Concurrent module");
+        var existingSubscription = new CourseSubscription(
+            ownerId,
+            course.Id,
+            existingModule.Id,
+            database.Now);
+        var otherModule = new StudyModule(otherOwnerId, "Other module");
+        var otherSubscription = new CourseSubscription(
+            otherOwnerId,
+            course.Id,
+            otherModule.Id,
+            database.Now);
+        database.Context.AddRange(
+            course,
+            existingModule,
+            existingSubscription,
+            otherModule,
+            otherSubscription);
+        await database.Context.SaveChangesAsync();
+        database.Context.ChangeTracker.Clear();
+        var race = await ConfigureSubscriptionRaceAsync(
+            database,
+            revealSubscriptionsAfterFirstConflict: true);
+        var handler = CreateHandler(database, ControlledExternalCourseProvider.ForSoftwareEngineering());
+
+        var result = await handler.RegisterAsync(
+            ownerId,
+            "https://mock-moodle.local/courses/software-engineering-2026");
+
+        Assert.Equal(CourseRegistrationOutcome.Existing, result.Outcome);
+        Assert.Equal(existingSubscription.Id, result.Subscription!.Id);
+        Assert.Equal(existingSubscription.ModuleId, result.Subscription.ModuleId);
+        Assert.Equal(1, race.InsertAttempts);
+        Assert.Single(await database.Context.ExternalCourses.ToListAsync());
+        Assert.Equal(2, await database.Context.CourseSubscriptions.CountAsync());
+        Assert.Equal(2, await database.Context.Modules.CountAsync());
+    }
+
+    [Fact]
+    public async Task RegisterAsync_UniqueCanonicalCourseRaceForAnotherOwner_RetriesOwnerSubscription()
+    {
+        await using var database = await ExternalCourseTestDatabase.CreateAsync();
+        var ownerId = await database.CreateUserAsync("student@example.com");
+        var otherOwnerId = await database.CreateUserAsync("other@example.com");
+        var sharedCourse = new ExternalCourse(
+            "mock-moodle",
+            "software-engineering-2026",
+            "Software Engineering",
+            database.Now);
+        var otherModule = new StudyModule(otherOwnerId, "Other module");
+        database.Context.AddRange(
+            sharedCourse,
+            otherModule,
+            new CourseSubscription(
+                otherOwnerId,
+                sharedCourse.Id,
+                otherModule.Id,
+                database.Now));
+        await database.Context.SaveChangesAsync();
+        database.Context.ChangeTracker.Clear();
+        var race = await ConfigureSubscriptionRaceAsync(
+            database,
+            revealSubscriptionsAfterFirstConflict: true);
+        var handler = CreateHandler(database, ControlledExternalCourseProvider.ForSoftwareEngineering());
+
+        var result = await handler.RegisterAsync(
+            ownerId,
+            "https://mock-moodle.local/courses/software-engineering-2026");
+
+        Assert.Equal(CourseRegistrationOutcome.Created, result.Outcome);
+        Assert.Equal(ownerId, (await database.Context.CourseSubscriptions
+            .SingleAsync(item => item.Id == result.Subscription!.Id)).OwnerId);
+        Assert.Single(await database.Context.ExternalCourses.ToListAsync());
+        Assert.Equal(2, await database.Context.CourseSubscriptions.CountAsync());
+        Assert.Equal(2, await database.Context.Modules.CountAsync());
+        Assert.Equal(2, race.InsertAttempts);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_SecondUniqueConflictAfterCanonicalRetry_Propagates()
+    {
+        await using var database = await ExternalCourseTestDatabase.CreateAsync();
+        var ownerId = await database.CreateUserAsync("student@example.com");
+        var course = new ExternalCourse(
+            "mock-moodle",
+            "software-engineering-2026",
+            "Software Engineering",
+            database.Now);
+        var existingModule = new StudyModule(ownerId, "Existing module");
+        database.Context.AddRange(
+            course,
+            existingModule,
+            new CourseSubscription(
+                ownerId,
+                course.Id,
+                existingModule.Id,
+                database.Now));
+        await database.Context.SaveChangesAsync();
+        database.Context.ChangeTracker.Clear();
+        var race = await ConfigureSubscriptionRaceAsync(
+            database,
+            revealSubscriptionsAfterFirstConflict: false);
+        var handler = CreateHandler(database, ControlledExternalCourseProvider.ForSoftwareEngineering());
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => handler.RegisterAsync(
+            ownerId,
+            "https://mock-moodle.local/courses/software-engineering-2026"));
+
+        Assert.Equal(2, race.InsertAttempts);
+        race.RevealSubscriptions();
+        Assert.Single(await database.Context.ExternalCourses.ToListAsync());
+        Assert.Single(await database.Context.CourseSubscriptions.ToListAsync());
+        Assert.Single(await database.Context.Modules.ToListAsync());
+    }
+
     private static ExternalCourseRegistrationHandler CreateHandler(
         ExternalCourseTestDatabase database,
         IExternalCourseProvider provider)
@@ -154,5 +283,68 @@ public sealed class ExternalCourseRegistrationHandlerTests
             database.Context,
             [provider],
             database.TimeProvider);
+    }
+
+    private static async Task<SubscriptionRace> ConfigureSubscriptionRaceAsync(
+        ExternalCourseTestDatabase database,
+        bool revealSubscriptionsAfterFirstConflict)
+    {
+        var race = new SubscriptionRace(revealSubscriptionsAfterFirstConflict);
+        database.Connection.CreateFunction("show_subscription_rows", () =>
+            race.SubscriptionsVisible ? 1 : 0);
+        database.Connection.CreateFunction("prepare_subscription_insert", () =>
+        {
+            race.InsertAttempts++;
+            if (race.RevealSubscriptionsAfterFirstConflict)
+            {
+                race.RevealSubscriptions();
+            }
+
+            return 0;
+        });
+        database.Connection.CreateFunction("force_first_subscription_conflict", () =>
+            race.InsertAttempts == 1 ? 1 : 0);
+
+        await database.Context.Database.ExecuteSqlRawAsync(
+            "ALTER TABLE course_subscriptions RENAME TO course_subscriptions_store");
+        await database.Context.Database.ExecuteSqlRawAsync(
+            """
+            CREATE VIEW course_subscriptions AS
+            SELECT id, owner_id, external_course_id, module_id, created_at_utc
+            FROM course_subscriptions_store
+            WHERE show_subscription_rows() = 1
+            """);
+        await database.Context.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TRIGGER insert_course_subscription
+            INSTEAD OF INSERT ON course_subscriptions
+            BEGIN
+                SELECT prepare_subscription_insert();
+                SELECT CASE WHEN force_first_subscription_conflict() = 1
+                    THEN RAISE(ABORT, 'UNIQUE constraint failed: course_subscriptions.owner_id, course_subscriptions.external_course_id')
+                END;
+                INSERT INTO course_subscriptions_store (
+                    id, owner_id, external_course_id, module_id, created_at_utc)
+                VALUES (
+                    NEW.id, NEW.owner_id, NEW.external_course_id, NEW.module_id, NEW.created_at_utc);
+            END
+            """);
+
+        return race;
+    }
+
+    private sealed class SubscriptionRace(bool revealSubscriptionsAfterFirstConflict)
+    {
+        public bool RevealSubscriptionsAfterFirstConflict { get; } =
+            revealSubscriptionsAfterFirstConflict;
+
+        public bool SubscriptionsVisible { get; private set; }
+
+        public int InsertAttempts { get; set; }
+
+        public void RevealSubscriptions()
+        {
+            SubscriptionsVisible = true;
+        }
     }
 }

@@ -28,9 +28,15 @@ public sealed class ExternalCourseQueryHandlerTests
         succeededRun.Succeed(database.Now.AddMinutes(3));
         completed.Course.MarkScanStarted(succeededRun.Id);
         completed.Course.MarkScanSucceeded(succeededRun.Id, database.Now.AddMinutes(3));
-        var activeRun = new ScanRun(active.Course.Id, ownerId, database.Now.AddMinutes(4));
-        active.Course.MarkScanStarted(activeRun.Id);
-        database.Context.ScanRuns.AddRange(failedRun, succeededRun, activeRun);
+        var activeHistory = new ScanRun(
+            active.Course.Id,
+            ownerId,
+            database.Now.AddMinutes(4));
+        activeHistory.Succeed(database.Now.AddMinutes(5));
+        active.Course.MarkScanStarted(activeHistory.Id);
+        active.Course.MarkScanSucceeded(activeHistory.Id, database.Now.AddMinutes(5));
+        active.Course.MarkScanStarted(Guid.NewGuid());
+        database.Context.ScanRuns.AddRange(failedRun, succeededRun, activeHistory);
         await database.Context.SaveChangesAsync();
         var handler = new ExternalCourseQueryHandler(database.Context);
 
