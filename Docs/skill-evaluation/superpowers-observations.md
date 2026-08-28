@@ -21,15 +21,15 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Messwert | Aktueller Wert | Erläuterung |
 | --- | ---: | --- |
 | Agentensitzungen | 1 | Beginn von S0 und S1 in derselben Sitzung |
-| Rückfragen an den Benutzer | 19 | Eine S0-Reflexionsfrage, siebzehn S1-Entscheidungs-/Freigabefragen und eine schriftliche Spec-Review-Frage |
+| Rückfragen an den Benutzer | 20 | Eine S0-Reflexionsfrage, siebzehn S1-Entscheidungs-/Freigabefragen, eine schriftliche Spec-Review-Frage und die S2-Auswahl der Ausführungsform |
 | Davon Produkt-/Architekturfragen | 17 | Zehn Klärungsfragen, eine Ansatzwahl, fünf Designfreigaben und eine Konsistenzfrage |
 | Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
 | Vom Benutzer korrigierte Annahmen | 0 |  |
-| Planungs- und Entscheidungsdokumente | 1 | Bestätigte Moodle-Designspezifikation; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 0 | Noch keine Planung oder Implementierung |
+| Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
+| Implementierungsplanaufgaben | 12 | Noch keine Aufgabe wurde ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 0 | Drei Setup-/Baseline-Wiederholungen werden unten separat erfasst |
 | Neu angelegte automatisierte Tests | 0 |  |
-| Geänderte Produktdateien | 0 | Nur dieses Versuchslog wurde angelegt |
+| Geänderte Produktdateien | 0 | Nur Versuchslog, Designspezifikation und Implementierungsplan wurden angelegt |
 
 ## Baseline-Ergebnisse
 
@@ -78,12 +78,12 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - Was war an Isolation und Baseline verständlich oder unverständlich?
 - War der Freigabeaufwand angemessen?
 
-### Superpowers S1 — Brainstorming (laufend)
+### Superpowers S1 — Brainstorming (abgeschlossen)
 
-- **Beginn/Ende:** 27. August 2026, nach Abschluss von S0 / laufend
+- **Beginn/Ende:** 27. August 2026 nach Abschluss von S0 bis 28. August 2026, ca. 12:00 CEST
 - **Verwendete Skills:** `brainstorming`
 - **Erzeugte Artefakte:** `Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md`
-- **Gestellte Rückfragen:** 1. Welchen Umfang soll der erste vertikale Moodle-Schnitt haben? 2. Was ist der Hauptgrund für diese Wahl? 3. Wie sollen erkannte Moodle-Inhalte zu persönlichen Aufgaben werden? 4. Was ist der Hauptgrund für diese Aufgabenregel? 5. Wie weit soll der Zustand `Prüfung erforderlich` im ersten Schnitt bedienbar sein? 6. Welchem persönlichen Lernmodul sollen automatisch erzeugte Aufgaben zugeordnet werden? 7. Wie wird derselbe externe Kurs trotz unterschiedlicher Links kanonisch erkannt? 8. Wie wirken Änderungen externer Inhalte auf bereits erzeugte Aufgaben? 9. Wann gilt eine externe Frist im ersten Schnitt als verlässlich? 10. Wie erhält ein später Abonnent bereits bekannte Kursinhalte? 11. Welcher Architekturansatz soll den bestätigten Schnitt tragen? 12. Ist der Designabschnitt zu Systemgrenzen und Datenmodell korrekt? 13. Ist der Designabschnitt zu Registrierung und Scanablauf korrekt? 14. Ist der Designabschnitt zu Fehlern und sicheren Zustandsänderungen korrekt? 15. Ist der Designabschnitt zu API und Benutzeroberfläche korrekt? 16. Ist der Designabschnitt zu Tests, Abnahme und ausgeschlossenem Umfang korrekt? 17. Dürfen automatisch erzeugte Aufgaben lokal bearbeitet oder gelöscht werden? 18. Schriftliche Prüfung der Designspezifikation. Antwort auf Frage 18 ausstehend.
+- **Gestellte Rückfragen:** 1. Welchen Umfang soll der erste vertikale Moodle-Schnitt haben? 2. Was ist der Hauptgrund für diese Wahl? 3. Wie sollen erkannte Moodle-Inhalte zu persönlichen Aufgaben werden? 4. Was ist der Hauptgrund für diese Aufgabenregel? 5. Wie weit soll der Zustand `Prüfung erforderlich` im ersten Schnitt bedienbar sein? 6. Welchem persönlichen Lernmodul sollen automatisch erzeugte Aufgaben zugeordnet werden? 7. Wie wird derselbe externe Kurs trotz unterschiedlicher Links kanonisch erkannt? 8. Wie wirken Änderungen externer Inhalte auf bereits erzeugte Aufgaben? 9. Wann gilt eine externe Frist im ersten Schnitt als verlässlich? 10. Wie erhält ein später Abonnent bereits bekannte Kursinhalte? 11. Welcher Architekturansatz soll den bestätigten Schnitt tragen? 12. Ist der Designabschnitt zu Systemgrenzen und Datenmodell korrekt? 13. Ist der Designabschnitt zu Registrierung und Scanablauf korrekt? 14. Ist der Designabschnitt zu Fehlern und sicheren Zustandsänderungen korrekt? 15. Ist der Designabschnitt zu API und Benutzeroberfläche korrekt? 16. Ist der Designabschnitt zu Tests, Abnahme und ausgeschlossenem Umfang korrekt? 17. Dürfen automatisch erzeugte Aufgaben lokal bearbeitet oder gelöscht werden? 18. Schriftliche Prüfung der Designspezifikation. Der Benutzer antwortete `Nein`, also keine Änderungswünsche; damit war die Spezifikation bestätigt.
 - **Wichtige Entscheidungen:** **Vom Benutzer bestätigt:** Variante A, ein lokaler End-to-End-Schnitt. Er umfasst Kursregistrierung über die UI, manuellen Scan einer deterministischen Mock-Quelle, sichtbare erkannte Inhalte sowie automatisierte Nachweise für Deduplizierung und mehrere Abonnenten. Reale Moodle-Anbindung, Scheduler und reale Benachrichtigungen sind zunächst ausgeschlossen.
 
   **Begründung des Benutzers:** „Ich bevorzuge den lokalen End-to-End-Schnitt, weil ich damit den vollständigen Ablauf vom Registrieren eines Kurses bis zur erzeugten Aufgabe testen kann. Der Mock macht die Tests reproduzierbar und unabhängig von Zugangsdaten oder der Verfügbarkeit eines echten Moodle-Systems, während trotzdem Architektur, Benutzeroberfläche und Deduplizierung gemeinsam geprüft werden.“
@@ -120,7 +120,22 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Fehlversuche oder Blocker:** Keine
 - **Korrekturen durch den Benutzer:** Keine
 - **Besonders hilfreich:** Die abschnittsweisen Freigaben hielten Produktentscheidungen sichtbar; der vorgeschriebene Spec-Self-Review fand die zuvor nicht geregelte Löschung des verknüpften persönlichen Moduls.
-- **Unnötig oder zu aufwendig:** Noch zu bewerten
-- **Vom Skill übersehen:** Noch zu bewerten
+- **Unnötig oder zu aufwendig:** **Agentenentwurf:** Die fünf abschnittsweisen Freigaben erhöhten die Zahl der Interaktionen deutlich; sie schufen jedoch nachvollziehbare Entscheidungspunkte für den Versuch.
+- **Vom Skill übersehen:** **Agentenentwurf:** Die Löschregel für das automatisch verknüpfte persönliche Modul wurde nicht durch eine Skill-Frage entdeckt, sondern erst durch den verpflichtenden Konsistenz-Self-Review der fertigen Spezifikation.
 - **Was ich selbst gelernt habe:** Nach Abschluss von S1 vom Benutzer zu ergänzen
-- **Nachweis:** Dieses Beobachtungslog; späteres Designdokument
+- **Nachweis:** `Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md`; Commit `3dc5ff5`
+
+### Superpowers S2 — Arbeitsumgebung und Plan (abgeschlossen)
+
+- **Beginn/Ende:** 28. August 2026, nach Bestätigung der Spezifikation bis ca. 12:45 CEST
+- **Verwendete Skills:** `writing-plans`; `using-git-worktrees` zur erneuten Prüfung der bereits bestehenden Isolation
+- **Erzeugte Artefakte:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md` mit 12 geordneten Aufgaben
+- **Gestellte Rückfragen:** Auswahl zwischen subagentengesteuerter und Inline-Ausführung bei der Planübergabe; Antwort ausstehend
+- **Wichtige Entscheidungen:** Der Plan führt Domain, Provider-Port und Snapshot-Diff, relationale Persistenz, Registrierung, gemeinsamen Scan, Fehler- und Nebenläufigkeitsverhalten, Schutz quellengesteuerter Daten, API, Frontend und Abschlussnachweise in dieser Abhängigkeitsreihenfolge ein. Jede Produktänderung beginnt mit einem fehlschlagenden Test. Zwei exakte Mock-URLs, feste Snapshot-Termine und öffentliche Test-Helper-Schnittstellen beseitigen Zufalls- und Interpretationsspielraum. Der bekannte JWT-Baseline-Fehler bleibt als separater Vergleichspunkt sichtbar.
+- **Fehlversuche oder Blocker:** Keine Implementierungsversuche; die Plan-Selbstprüfung fand und beseitigte drei Dokumentationsunschärfen: eine unvollständig erklärte Test-Szenario-API, einen nicht eigenständig ausführbaren Frontend-Testbefehl und einen nur relativ beschriebenen Mock-Termin. Ein erster rein lesender Verifikationsbefehl scheiterte an fehlerhafter Shell-Quotierung und wurde korrigiert wiederholt. Eine zunächst zu einfache Pfadprüfung meldete sechs gültige `Modify`-Pfade, die laut Aufgabenreihenfolge erst zuvor erstellt werden; die sequenzbewusste Wiederholung bestätigte null ungültige Pfade.
+- **Korrekturen durch den Benutzer:** Keine
+- **Besonders hilfreich:** Die Vorgabe kleiner Red-Green-Schritte zwang den Plan, Verhalten, betroffene Dateien, Schnittstellen, Prüfbefehle und Commitgrenzen gemeinsam sichtbar zu machen. Dadurch kann ein frischer Kontext jede Aufgabe ohne Zugriff auf Matt-Artefakte aufnehmen.
+- **Unnötig oder zu aufwendig:** **Agentenentwurf:** Der 12-Aufgaben-Plan ist mit mehr als 1.500 Zeilen sehr ausführlich. Diese Detailtiefe verbessert Reproduzierbarkeit, erhöht aber Lese- und Pflegeaufwand und muss im Vergleich mit dem Matt-Versuch ausdrücklich bewertet werden.
+- **Vom Skill übersehen:** **Agentenentwurf:** `writing-plans` erfasst keine Experimentmetriken und kennt den vorbestehenden JWT-Baseline-Fehler nicht; beides musste aus dem projektspezifischen Versuchsprotokoll ergänzt werden.
+- **Was ich selbst gelernt habe:** Nach der Planübergabe vom Benutzer zu ergänzen
+- **Nachweis:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md`; verknüpfter Worktree `/Users/saburollahsafari/Documents/study-organizer/.worktrees/superpowers`; Branch `experiment/superpowers`; `e7d8b5e` ist Vorfahr von `HEAD`
