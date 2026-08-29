@@ -79,6 +79,10 @@ async function logout(): Promise<void> {
             {{ t('navigation.modules') }}
           </RouterLink>
 
+          <RouterLink to="/moodle-courses">
+            {{ t('navigation.moodleCourses') }}
+          </RouterLink>
+
           <RouterLink to="/profile">
             {{ t('navigation.profile') }}
           </RouterLink>

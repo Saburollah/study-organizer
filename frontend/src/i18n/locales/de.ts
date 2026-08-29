@@ -4,6 +4,7 @@ export default {
     home: 'Startseite',
     dashboard: 'Dashboard',
     modules: 'Lernmodule',
+    moodleCourses: 'Moodle-Kurse',
     profile: 'Profil',
     login: 'Anmelden',
     register: 'Registrieren',
@@ -84,6 +85,67 @@ export default {
       emptyDescription: 'Aktuell stehen keine offenen Aufgaben an.',
       openModules: 'Zu den Lernmodulen',
       overdue: 'Überfällig',
+    },
+  },
+
+  externalCourses: {
+    eyebrow: 'MOODLE-VERBINDUNG',
+    title: 'Moodle-Kurse',
+    description: 'Registriere einen Kurslink und übernimm verlässliche Abgaben in deinen Study Organizer.',
+    loading: 'Moodle-Kurse werden geladen …',
+    retry: 'Erneut versuchen',
+    lastScan: 'Letzter Scan',
+    form: {
+      label: 'Moodle-Kurslink',
+      placeholder: 'https://mock-moodle.local/courses/…',
+      submit: 'Kurs registrieren',
+      submitting: 'Wird registriert …',
+      validation: {
+        required: 'Bitte gib einen Kurslink ein.',
+        invalid: 'Bitte gib einen gültigen HTTPS-Link ein.',
+      },
+    },
+    loadingContents: 'Kursinhalte werden geladen …',
+    errors: {
+      load: 'Die Moodle-Kurse konnten nicht geladen werden.',
+      register: 'Der Moodle-Kurs konnte nicht registriert werden.',
+      scan: 'Der Moodle-Kurs konnte nicht gescannt werden.',
+    },
+    success: {
+      registered: 'Der Moodle-Kurs wurde erfolgreich registriert.',
+    },
+    empty: {
+      title: 'Noch keine Moodle-Kurse',
+      description: 'Registriere deinen ersten Fixture-Kurslink.',
+    },
+    actions: {
+      openModule: 'Persönliches Modul öffnen',
+      scan: 'Jetzt scannen',
+      scanning: 'Scan läuft …',
+    },
+    contents: {
+      title: 'Erkannte Inhalte',
+      empty: 'Noch keine Inhalte erkannt.',
+      openSource: 'Quelle öffnen',
+      due: 'Frist:',
+      noDueDate: 'Keine strukturierte Frist',
+    },
+    summary: {
+      new: 'Neue Inhalte:',
+      changed: 'Geändert:',
+      review: 'Prüfung:',
+      notVisible: 'Nicht sichtbar:',
+      taskEligible: 'Neue Aufgaben:',
+    },
+    statuses: {
+      TaskCreated: 'Aufgabe erstellt',
+      ReviewRequired: 'Prüfung erforderlich',
+      NotVisible: 'Nicht mehr sichtbar',
+    },
+    reviewReasons: {
+      MissingStructuredDueDate: 'Keine verlässliche strukturierte Frist vorhanden.',
+      UnsupportedContentKind: 'Dieser Inhaltstyp wird nicht automatisch als Aufgabe übernommen.',
+      None: '',
     },
   },
 

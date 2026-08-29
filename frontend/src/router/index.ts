@@ -12,6 +12,7 @@ import ModulesView from '@/views/modules/ModulesView.vue'
 import StudyTasksView from '@/views/tasks/StudyTasksView.vue'
 import DashboardView from '@/views/dashboard/DashboardView.vue'
 import ProfileView from '@/views/profile/ProfileView.vue'
+import MoodleCoursesView from '@/views/externalCourses/MoodleCoursesView.vue'
 
 export function createAppRouter(
   history: RouterHistory = createWebHistory(
@@ -65,6 +66,14 @@ export function createAppRouter(
         path: '/profile',
         name: 'profile',
         component: ProfileView,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/moodle-courses',
+        name: 'moodle-courses',
+        component: MoodleCoursesView,
         meta: {
           requiresAuth: true,
         },

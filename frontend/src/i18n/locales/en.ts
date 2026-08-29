@@ -4,6 +4,7 @@ export default {
     home: 'Home',
     dashboard: 'Dashboard',
     modules: 'Study modules',
+    moodleCourses: 'Moodle courses',
     profile: 'Profile',
     login: 'Sign in',
     register: 'Sign up',
@@ -84,6 +85,67 @@ export default {
       emptyDescription: 'There are currently no open tasks.',
       openModules: 'Go to study modules',
       overdue: 'Overdue',
+    },
+  },
+
+  externalCourses: {
+    eyebrow: 'MOODLE CONNECTION',
+    title: 'Moodle courses',
+    description: 'Register a course link and bring reliable assignments into your Study Organizer.',
+    loading: 'Loading Moodle courses …',
+    retry: 'Try again',
+    lastScan: 'Last scan',
+    form: {
+      label: 'Moodle course link',
+      placeholder: 'https://mock-moodle.local/courses/…',
+      submit: 'Register course',
+      submitting: 'Registering …',
+      validation: {
+        required: 'Please enter a course link.',
+        invalid: 'Please enter a valid HTTPS link.',
+      },
+    },
+    loadingContents: 'Loading course contents …',
+    errors: {
+      load: 'The Moodle courses could not be loaded.',
+      register: 'The Moodle course could not be registered.',
+      scan: 'The Moodle course could not be scanned.',
+    },
+    success: {
+      registered: 'The Moodle course was registered successfully.',
+    },
+    empty: {
+      title: 'No Moodle courses yet',
+      description: 'Register your first fixture course link.',
+    },
+    actions: {
+      openModule: 'Open personal module',
+      scan: 'Scan now',
+      scanning: 'Scanning …',
+    },
+    contents: {
+      title: 'Detected content',
+      empty: 'No content detected yet.',
+      openSource: 'Open source',
+      due: 'Due:',
+      noDueDate: 'No structured due date',
+    },
+    summary: {
+      new: 'New content:',
+      changed: 'Changed:',
+      review: 'Review:',
+      notVisible: 'Not visible:',
+      taskEligible: 'New tasks:',
+    },
+    statuses: {
+      TaskCreated: 'Task created',
+      ReviewRequired: 'Review required',
+      NotVisible: 'No longer visible',
+    },
+    reviewReasons: {
+      MissingStructuredDueDate: 'No reliable structured due date is available.',
+      UnsupportedContentKind: 'This content type is not converted into a task automatically.',
+      None: '',
     },
   },
 
