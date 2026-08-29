@@ -285,3 +285,30 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   bleibt nach Task 12.
 - **Unterbrechungen/Effizienz:** keine; nur fokussierter Vitest-Lauf und danach
   der breitere Typecheck.
+
+### 30. August 2026 — Task 10 — Moodle-Kursansicht und Navigation
+
+- **Ausführung:** vollständig inline durch den Main-Agenten; keine Subagents und
+  kein Per-Task-Reviewer.
+- **Zweck:** geschützte, zweisprachige Kursregistrierung, Inhaltsanzeige und
+  manuellen Scan als sichtbaren End-to-End-Workflow bereitstellen.
+- **Inspiziert:** Task-10-Planabschnitt, Task-9-Client/-Modelle, bestehende
+  Router-, App-, i18n- und Vue-Testmuster sowie der fertige Task-10-Diff.
+- **Geändert:** `CourseRegistrationForm.vue` mit Test, `MoodleCoursesView.vue`
+  mit Test, Router und Routertests, authentifizierte App-Navigation sowie
+  deutsche und englische Übersetzungen.
+- **Entscheidungen:** nur getrimmte HTTPS-Links akzeptieren; Inhalte nach
+  Registrierung und Scan neu laden; alle fünf Scan-Kennzahlen anzeigen;
+  Quellenlinks mit `noopener noreferrer`; Route `moodle-courses` authentifiziert.
+- **Tests:** erwartetes Komponenten-Import-RED; erster Komponenten-GREEN-Lauf
+  11/12 wegen einer zu whitespace-empfindlichen DOM-Textassertion, danach 12/12;
+  Router 8/8. Beim Planabgleich zusätzlicher gezielter RED-Nachweis für die
+  fehlende Kennzahl `newTaskEligibleCount`, danach View 7/7. Final relevante
+  Frontend-Suite 24/24, `pnpm type-check` und `pnpm lint` grün; `git diff
+  --check` ohne Fund.
+- **Commit:** `0fc36cc feat: add Moodle course workflow`.
+- **Review/Fixrunde:** kein Per-Task-Review; keine wiederholte Reviewrunde; ein
+  Planabgleich vor Commit schloss die einzelne Scan-Summary-Lücke testgetrieben.
+  Gesamt-Review bleibt nach Task 12.
+- **Unterbrechungen/Effizienz:** keine Unterbrechung. Die breitere 24-Test-Suite
+  lief nur nach fokussiertem GREEN; Typecheck und Lint wurden parallel ausgeführt.
