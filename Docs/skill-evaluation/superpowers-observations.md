@@ -21,15 +21,17 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Messwert | Aktueller Wert | Erläuterung |
 | --- | ---: | --- |
 | Agentensitzungen | 1 | Beginn von S0 und S1 in derselben Sitzung |
+| Subagent-Aufrufe | 22 | Tasks 1–3: acht; Task 4: fünf; Task 5: fünf; Task 6: Implementierung, Review, beendeter Fixturn und gestoppter Verifikationsturn |
 | Rückfragen an den Benutzer | 20 | Eine S0-Reflexionsfrage, siebzehn S1-Entscheidungs-/Freigabefragen, eine schriftliche Spec-Review-Frage und die S2-Auswahl der Ausführungsform |
 | Davon Produkt-/Architekturfragen | 17 | Zehn Klärungsfragen, eine Ansatzwahl, fünf Designfreigaben und eine Konsistenzfrage |
 | Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
 | Vom Benutzer korrigierte Annahmen | 0 |  |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 12 | Noch keine Aufgabe wurde ausgeführt |
-| Fehlgeschlagene oder wiederholte Implementierungsversuche | 0 | Drei Setup-/Baseline-Wiederholungen werden unten separat erfasst |
-| Neu angelegte automatisierte Tests | 0 |  |
-| Geänderte Produktdateien | 0 | Nur Versuchslog, Designspezifikation und Implementierungsplan wurden angelegt |
+| Implementierungsplanaufgaben | 12 | Tasks 1–6 abgeschlossen; Tasks 7–12 werden inline ausgeführt |
+| Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
+| Neu angelegte automatisierte Tests | 107 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19 |
+| Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
+| Geänderte Produktdateien | Laufend | Wird nach Task 12 aus dem finalen Feature-Diff gezählt |
 
 ## Baseline-Ergebnisse
 
@@ -139,3 +141,29 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Vom Skill übersehen:** **Agentenentwurf:** `writing-plans` erfasst keine Experimentmetriken und kennt den vorbestehenden JWT-Baseline-Fehler nicht; beides musste aus dem projektspezifischen Versuchsprotokoll ergänzt werden.
 - **Was ich selbst gelernt habe:** Nach der Planübergabe vom Benutzer zu ergänzen
 - **Nachweis:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md`; verknüpfter Worktree `/Users/saburollahsafari/Documents/study-organizer/.worktrees/superpowers`; Branch `experiment/superpowers`; `e7d8b5e` ist Vorfahr von `HEAD`
+
+### Superpowers S3 — Implementierung und TDD (laufend)
+
+- **Beginn/Ende:** 28. August 2026, 12:47 CEST / laufend
+- **Verwendete Skills:** `subagent-driven-development`, `test-driven-development`; bestehende Isolation erneut gemäß `using-git-worktrees` bestätigt
+- **Erzeugte Artefakte:** Git-ignorierter, planspezifischer SDD-Ledger unter `.superpowers/sdd/2026-08-28-moodle-end-to-end/`; Task-Briefs, Implementierungsberichte und Review-Pakete folgen dort
+- **Gestellte Rückfragen:** Der Benutzer wählte Ausführungsform 1, die empfohlene subagentengesteuerte Umsetzung. Der Skill läuft danach ohne routinemäßige Zwischenfreigaben weiter.
+- **Wichtige Entscheidungen:** Vor Task 1 wurden alle taskübergreifend geteilten Dateien und Schnittstellen sowie die innere Konsistenz jeder Aufgabe tabellarisch geprüft. Drei Rulings sind im Ledger festgehalten: Application-Platzierung des portnahen Snapshot-Diffs, keine Produktionsabhängigkeit auf spätere Test-Fixtures und ein einheitlicher Test-Helper-Propertyname.
+- **Fehlversuche oder Blocker:** Das mitgelieferte Skript `sdd-workspace` besitzt kein Ausführungsbit und musste unverändert über `bash` gestartet werden. `task-brief` ruft dieses Skript intern direkt auf; der erste Aufruf scheiterte daher ebenfalls und wurde mit dem dokumentierten expliziten Ausgabepfad erfolgreich wiederholt.
+- **Subagent-Ereignis:** Der erste Task-4-Fixturn endete vor Änderungen mit dem vom Agentendienst gemeldeten Nutzungslimit. Der Arbeitsbaum blieb sauber; gemäß `subagent-driven-development` wurde dieselbe Fixrunde mit Brief, Bericht und Findings an einen frischen Agenten übergeben.
+- **Subagent-Ereignis:** Der Task-5-Fixagent erreichte sein Nutzungslimit nach vollständigem RED/GREEN-Bericht, aber vor dem Commit. Zwei uncommittete Fixdateien blieben erhalten und wurden einem frischen Agenten zur unabhängigen Verifikation und Übernahme übergeben.
+- **Subagent-Ereignis:** Task 6 wurde mit 122/122 grünen Backend-Tests implementiert. Der Review fand keine Produktionslücke, aber drei Important-Testlücken in Past-Due-Materialisierung, Description-Synchronisierung und vollständiger Safe-Error-/Last-Success-Abdeckung. Der erste Fixturn endete nach Teständerungen am Nutzungslimit. Ein frischer Verifikationsturn wurde auf korrigierte Benutzeranweisung gestoppt; seine temporäre Due-Date-Mutation wurde erkannt und exakt zurückgesetzt. Inline bestanden anschließend 63/63 fokussierte und 63/63 volle Infrastructure-Tests.
+- **Ausführungsmodus:** Nach Task 6 ersetzte der Benutzer die subagentengesteuerte Ausführung für Tasks 7–12 durch einen Single-Agent-/Inline-Workflow. Plan und TDD bleiben bindend; es gibt keine Per-Task-Reviewer oder wiederholten Review-/Fixschleifen und genau einen Gesamt-Review nach Task 12.
+- **Review-Funde:** Task 1: ein Critical-Fund, keine Important- oder Minor-Funde. `ScanRun.Fail` akzeptierte zunächst beliebige nichtleere Fehltexte und hätte dadurch Tokens oder Rohantworten speichern können. Fixrunde 1 führte testgetrieben eine geschlossene Safe-Code-Liste ein; der Re-Review bestätigte den Fund als behoben und fand keine neue Regression.
+- **Task-Nachweise:** Task 1: `f1abab1 feat: model external course domain`; `8825513 fix: restrict scan run error codes`; RED als erwarteter Compile-Fehler vor dem Domain-Namespace; GREEN 35/35 fokussierte ExternalCourses-Tests. VSTest benötigte wegen der bekannten Loopback-Socket-Sperre dieselbe Sandbox-Ausnahme wie die Baseline.
+- **Task-Nachweise:** Task 2: `0a52747 feat: define external course snapshots`; RED wegen fehlendem Application-Namespace und fehlenden Snapshot-Typen; GREEN Application 6/6 und Domain 52/52. Der Task-Review war ohne Fund. Die Läufe meldeten `NU1900`, weil die NuGet-Advisory-Quelle im eingeschränkten Netzwerk nicht erreichbar war; Restore und Tests liefen dennoch vollständig.
+- **Task-Nachweise:** Task 3: `17f3022 feat: persist external course state`; RED wegen fehlender DbSets; GREEN Infrastructure 5/5; Build mit 0 Fehlern; Migration mit fünf Tabellen, sieben Fremdschlüsseln, fünf Unique-Indizes und drei Restrict-Aktionen. Review: ein Minor-Fund zur Dispose-Behandlung des Testfixtures, für den Gesamt-Review vorgemerkt. Der bekannte JWT-Baseline-Fehler wurde vom Task-Agenten selbst erneut erkannt.
+- **Task-Nachweise:** Task 4: `51c621a feat: register mock Moodle courses`; `4d5a6a4 test: cover external course conflict recovery`; ursprüngliches RED wegen fehlender Contracts/Handler; GREEN nach Korrektur zweier SQLite-`DateTimeOffset`-Sortierfehler; final 31/31 ExternalCourse-Tests. Review: zwei Important-Testlücken in Unique-Retry und Active-Lease-Priorität, durch drei deterministische Tests plus Mutation-Checks behoben; ein Minor zur caller-seitigen Tracker-Bereinigung für den Gesamt-Review vorgemerkt. Ein erster paralleler SQLite-Race-Ansatz wurde wegen Locks verworfen und durch relationale View-/Trigger-Fixtures ersetzt.
+- **Task-Nachweise:** Task 5: `634947e feat: scan shared courses idempotently`; `721216f fix: canonicalize external content identities`; RED wegen fehlender StudyTask-Synchronisierung und fehlendem Scanhandler; final Domain 53/53, Application 6/6, Infrastructure 46/46. Review: ein Important-Fund, weil rohe Inhalts-IDs vor der späteren Domain-Trimmung auf Eindeutigkeit geprüft wurden; zwei Regressionstests und eine einmalige Snapshot-Kanonisierung behoben den Fund, Re-Review sauber.
+- **Task-Nachweise:** Task 6: `07b81a1 feat: preserve course state across scan changes`; `468a715 test: harden external scan guarantees`; ursprüngliche finale Verifikation Domain 55/55, Application 6/6, Infrastructure 61/61. Review: drei Important-Testlücken ohne belegten Produktionsfehler; geerbte Fixänderungen erweiterten die Infrastructure-Abdeckung auf 63/63 und belegen sichtbare abgelaufene Inhalte, Description-Synchronisierung sowie alle sicheren Providerfehler und Last-Success-Erhalt. Ein `NU1900`-Minor bleibt als Umgebungsrauschen dokumentiert.
+- **Korrekturen durch den Benutzer:** Keine
+- **Besonders hilfreich:** Noch zu bewerten
+- **Unnötig oder zu aufwendig:** Noch zu bewerten
+- **Vom Skill übersehen:** Noch zu bewerten
+- **Was ich selbst gelernt habe:** Nach Abschluss von S3 vom Benutzer zu ergänzen
+- **Nachweis:** SDD-Ledger; Task-Berichte; Task- und Review-Commits werden fortlaufend ergänzt
