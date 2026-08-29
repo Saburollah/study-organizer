@@ -20,6 +20,9 @@ using StudyOrganizer.Api.Tasks;
 using StudyOrganizer.Application.Profiles;
 using StudyOrganizer.Infrastructure.Profiles;
 using StudyOrganizer.Api.Profiles;
+using StudyOrganizer.Api.ExternalCourses;
+using StudyOrganizer.Application.ExternalCourses;
+using StudyOrganizer.Infrastructure.ExternalCourses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +97,22 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IStudyTaskHandler,
     StudyTaskHandler>();
+
+builder.Services.AddSingleton<
+    IExternalCourseProvider,
+    MockMoodleProvider>();
+
+builder.Services.AddScoped<
+    IExternalCourseRegistrationHandler,
+    ExternalCourseRegistrationHandler>();
+
+builder.Services.AddScoped<
+    IExternalCourseQueryHandler,
+    ExternalCourseQueryHandler>();
+
+builder.Services.AddScoped<
+    IExternalCourseScanHandler,
+    ExternalCourseScanHandler>();
 
 builder.Services.AddCors(options =>
 {
@@ -188,6 +207,7 @@ app.MapUserEndpoints();
 app.MapProfileEndpoints();
 app.MapModuleEndpoints();
 app.MapStudyTaskEndpoints();
+app.MapExternalCourseEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();
