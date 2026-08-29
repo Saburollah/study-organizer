@@ -198,19 +198,35 @@ das Log fortlaufend gepflegt.
 Ab hier erhält jeder Task zusätzlich eine ausdrückliche Kennzeichnung, ob die
 Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte.
 
-### 29. August 2026 — Task 7 — vorbereitet
+### 29. August 2026 — Task 7 — Schutz und Quellenmetadaten
 
-- **Ausführung:** noch keine Produktarbeit; Task-Brief inline durch den
-  Main-Agenten erzeugt. Die Implementierung erfolgt gemäß korrigierter
-  Benutzeranweisung inline durch den Main-Agenten.
+- **Ausführung:** vollständig inline durch den Main-Agenten; keine Subagents und
+  kein Per-Task-Reviewer.
 - **Zweck:** Moodle-gesteuerte Tasks und verknüpfte Module schützen sowie
   Quellenmetadaten additiv ausgeben.
 - **Inspiziert:** Task-7-Planabschnitt, vorhandene Task-/Module-Interfaces,
   Infrastructure-Handler, API-Endpunkte und betroffene API-Tests.
-- **Geändert:** nur ignorierter SDD-Brief
-  `.superpowers/sdd/2026-08-28-moodle-end-to-end/task-7-brief.md`;
-  noch kein Produktcode.
+- **Geändert:** Task-/Module-Applicationverträge und Resultate,
+  `StudyTaskHandler`, `ModuleHandler`, Task-/Module-API-Modelle und Endpunkte,
+  beide vorhandenen API-Testdateien sowie neuer
+  `ExternalSourceProtectionTests.cs`; zusätzlich ignorierter Task-7-Brief.
 - **Entscheidungen:** Statusänderungen bleiben erlaubt; Update/Delete werden
   geschützt; Quellenfelder sind additiv; bestehendes Verhalten außerhalb
   verknüpfter Moodle-Daten bleibt erhalten.
-- **Tests/Commits/Reviews:** noch keine.
+- **Tests:** erwartetes RED mit 15 Compilefehlern wegen fehlender Outcomes und
+  Metadaten; erster Handler-GREEN 5/6, dann zwei nacheinander belegte
+  SQLite-`DateTimeOffset`-Sortierfehler in Task- und Module-Query; minimale
+  Client-Sortierung führte zu 6/6 fokussierten Schutztests. Breite
+  Infrastructure-Suite 69/69. Fokussierte Task-/Module-API-Suite kompiliert,
+  scheitert aber wie die Baseline mit 31/31 Fällen vor Endpunktausführung an
+  unvollständiger JWT-Konfiguration. Solution-Build: 0 Fehler, ein
+  umgebungsbedingtes `NU1900`.
+- **Commit:** `3c080d1 feat: protect Moodle-managed study data`.
+- **Review/Fixrunde:** kein Per-Task-Review auf Benutzeranweisung; genau ein
+  Gesamt-Review bleibt für das Ende. Die beiden SQLite-Korrekturen folgten dem
+  vollständig gelesenen `systematic-debugging`-Ablauf.
+- **Unterbrechungen/Effizienz:** Der API-RED-Aufruf wurde vom Tool zunächst als
+  lange laufend gemeldet, lieferte beim kontrollierten Abruf aber nach 1,8 s den
+  erwarteten Compilefehler. Die 31 identischen JWT-Stacktraces haben wenig
+  Zusatznutzen; deshalb keine wiederholte volle API-Suite und Build als
+  planmäßiger Ersatznachweis.

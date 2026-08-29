@@ -27,9 +27,9 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
 | Vom Benutzer korrigierte Annahmen | 0 |  |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 12 | Tasks 1–6 abgeschlossen; Tasks 7–12 werden inline ausgeführt |
+| Implementierungsplanaufgaben | 12 | Tasks 1–7 abgeschlossen; Tasks 8–12 werden inline ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
-| Neu angelegte automatisierte Tests | 107 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19 |
+| Neu angelegte automatisierte Tests | 118 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11 |
 | Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
 | Geänderte Produktdateien | Laufend | Wird nach Task 12 aus dem finalen Feature-Diff gezählt |
 
@@ -161,6 +161,7 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Task-Nachweise:** Task 4: `51c621a feat: register mock Moodle courses`; `4d5a6a4 test: cover external course conflict recovery`; ursprüngliches RED wegen fehlender Contracts/Handler; GREEN nach Korrektur zweier SQLite-`DateTimeOffset`-Sortierfehler; final 31/31 ExternalCourse-Tests. Review: zwei Important-Testlücken in Unique-Retry und Active-Lease-Priorität, durch drei deterministische Tests plus Mutation-Checks behoben; ein Minor zur caller-seitigen Tracker-Bereinigung für den Gesamt-Review vorgemerkt. Ein erster paralleler SQLite-Race-Ansatz wurde wegen Locks verworfen und durch relationale View-/Trigger-Fixtures ersetzt.
 - **Task-Nachweise:** Task 5: `634947e feat: scan shared courses idempotently`; `721216f fix: canonicalize external content identities`; RED wegen fehlender StudyTask-Synchronisierung und fehlendem Scanhandler; final Domain 53/53, Application 6/6, Infrastructure 46/46. Review: ein Important-Fund, weil rohe Inhalts-IDs vor der späteren Domain-Trimmung auf Eindeutigkeit geprüft wurden; zwei Regressionstests und eine einmalige Snapshot-Kanonisierung behoben den Fund, Re-Review sauber.
 - **Task-Nachweise:** Task 6: `07b81a1 feat: preserve course state across scan changes`; `468a715 test: harden external scan guarantees`; ursprüngliche finale Verifikation Domain 55/55, Application 6/6, Infrastructure 61/61. Review: drei Important-Testlücken ohne belegten Produktionsfehler; geerbte Fixänderungen erweiterten die Infrastructure-Abdeckung auf 63/63 und belegen sichtbare abgelaufene Inhalte, Description-Synchronisierung sowie alle sicheren Providerfehler und Last-Success-Erhalt. Ein `NU1900`-Minor bleibt als Umgebungsrauschen dokumentiert.
+- **Task-Nachweise:** Task 7 inline: `3c080d1 feat: protect Moodle-managed study data`; erwartetes Compile-RED, danach 6/6 fokussierte Schutztests und 69/69 volle Infrastructure-Tests. Zwei SQLite-`DateTimeOffset`-Fehler wurden nach `systematic-debugging` durch Client-Sortierung bei weiterhin serverseitiger Owner-/Modulfilterung behoben. Die 31 fokussierten API-Fälle kompilierten, erreichten wegen des unveränderten JWT-Baselinefehlers aber keinen Endpunkt; der Solution-Build bestand mit 0 Fehlern und einem `NU1900`.
 - **Korrekturen durch den Benutzer:** Keine
 - **Besonders hilfreich:** Noch zu bewerten
 - **Unnötig oder zu aufwendig:** Noch zu bewerten
