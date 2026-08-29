@@ -27,9 +27,9 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
 | Vom Benutzer korrigierte Annahmen | 0 |  |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 12 | Tasks 1–10 abgeschlossen; Tasks 11–12 werden inline ausgeführt |
+| Implementierungsplanaufgaben | 12 | Tasks 1–11 abgeschlossen; Task 12 wird inline ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
-| Neu angelegte automatisierte Tests | 153 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17; Task 9: 4; Task 10: 14 |
+| Neu angelegte automatisierte Tests | 155 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17; Task 9: 4; Task 10: 14; Task 11: 2 |
 | Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
 | Geänderte Produktdateien | Laufend | Wird nach Task 12 aus dem finalen Feature-Diff gezählt |
 
@@ -165,6 +165,7 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Task-Nachweise:** Task 8 inline: `c4b7322 feat: expose Moodle course APIs`; erwartetes Compile-RED; nach zwei systematisch eingegrenzten Testhost-Konfigurationsläufen 17/17 neue, vollständig konfigurierte API-Tests grün. Der Plan nahm an, dass `ConfigureAppConfiguration` allein die bereits vor Host-Build gelesenen `Program`-Werte erreicht; zusätzlich war deshalb derselbe frühe Umgebungsbootstrap wie in den bestehenden API-Tests nötig. Solution-Build bestand mit 0 Fehlern und einem `NU1900`.
 - **Task-Nachweise:** Task 9 inline: `1e41522 feat: add Moodle course client`; erwartetes fehlendes-Service-Import-RED; anschließend 4/4 exakte HTTP-Routentests und vollständiger Frontend-Typecheck grün. Keine Wiederholungs- oder Debugrunde.
 - **Task-Nachweise:** Task 10 inline: `0fc36cc feat: add Moodle course workflow`; erwartetes Komponenten-Import-RED, danach 12/12 Komponenten- und 8/8 Routertests. Ein abschließender Planabgleich deckte die zunächst nicht angezeigte fünfte Scan-Kennzahl auf; ein gezieltes RED und minimales GREEN ergänzten sie. Final 24/24 relevante Frontendtests sowie Typecheck und Lint grün.
+- **Task-Nachweise:** Task 11 inline: `5ec8b3d feat: identify Moodle-managed tasks`; erwartetes View-RED 2 fehlgeschlagen/17 bestanden, danach 19/19 fokussierte Viewtests und 10/10 angepasste Service-/Dashboardtests. Vollständig 20 Testdateien/97 Tests sowie Typecheck, Lint und Build grün. Externe Tasks zeigen Provenienz bei erhaltenem Statuswechsel; verknüpfte Module bleiben editierbar und sind gegen Löschung gesperrt.
 - **Korrekturen durch den Benutzer:** Keine
 - **Besonders hilfreich:** Noch zu bewerten
 - **Unnötig oder zu aufwendig:** Noch zu bewerten

@@ -312,3 +312,28 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   Gesamt-Review bleibt nach Task 12.
 - **Unterbrechungen/Effizienz:** keine Unterbrechung. Die breitere 24-Test-Suite
   lief nur nach fokussiertem GREEN; Typecheck und Lint wurden parallel ausgeführt.
+
+### 30. August 2026 — Task 11 — Provenienz und Aktionsschutz im Frontend
+
+- **Ausführung:** vollständig inline durch den Main-Agenten; keine Subagents und
+  kein Per-Task-Reviewer.
+- **Zweck:** Moodle-Quellen an erzeugten Aufgaben sichtbar machen und
+  quellengesteuerte Task-/Modulaktionen in vorhandenen Ansichten sperren.
+- **Inspiziert:** Task-11-Planabschnitt, Task-/Module-Modelle und Services,
+  Dashboard-Fixture, beide vorhandenen Views/Tests sowie i18n-Strukturen.
+- **Geändert:** Task-/Module-Modelle und Testfixtures, `StudyTasksView.vue`,
+  `ModulesView.vue`, beide Viewtests sowie deutsche/englische Übersetzungen.
+- **Entscheidungen:** externe Tasks zeigen Kurs und sicheren Quellenlink;
+  Edit/Delete fehlen, Status bleibt verfügbar. Verknüpfte Module bleiben
+  editierbar; Delete ist deaktiviert und der Handler öffnet auch programmatisch
+  keinen Dialog; Hilfetext verweist auf einen künftigen Abmeldeablauf.
+- **Tests:** erwartetes View-RED 2 fehlgeschlagen/17 bestanden; nach minimalem
+  GREEN beide Viewdateien 19/19. Angepasste Service-/Dashboardtests 10/10.
+  Vollständig: 20 Testdateien und 97/97 Tests, Typecheck, Lint und Build grün;
+  `git diff --check` ohne Fund.
+- **Commit:** `5ec8b3d feat: identify Moodle-managed tasks`.
+- **Review/Fixrunde:** kein Per-Task-Review und keine Fixrunde; ein Gesamt-Review
+  bleibt nach Task 12.
+- **Unterbrechungen/Effizienz:** erster Commitversuch scheiterte an der
+  Worktree-`index.lock`-Sandboxgrenze und wurde nach gezielter Freigabe einmal
+  wiederholt. Die volle Frontend-Suite lief genau einmal nach fokussiertem GREEN.
