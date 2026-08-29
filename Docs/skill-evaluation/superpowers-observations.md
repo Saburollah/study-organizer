@@ -27,9 +27,9 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
 | Vom Benutzer korrigierte Annahmen | 0 |  |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 12 | Tasks 1–8 abgeschlossen; Tasks 9–12 werden inline ausgeführt |
+| Implementierungsplanaufgaben | 12 | Tasks 1–9 abgeschlossen; Tasks 10–12 werden inline ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
-| Neu angelegte automatisierte Tests | 135 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17 |
+| Neu angelegte automatisierte Tests | 139 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17; Task 9: 4 |
 | Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
 | Geänderte Produktdateien | Laufend | Wird nach Task 12 aus dem finalen Feature-Diff gezählt |
 
@@ -163,6 +163,7 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Task-Nachweise:** Task 6: `07b81a1 feat: preserve course state across scan changes`; `468a715 test: harden external scan guarantees`; ursprüngliche finale Verifikation Domain 55/55, Application 6/6, Infrastructure 61/61. Review: drei Important-Testlücken ohne belegten Produktionsfehler; geerbte Fixänderungen erweiterten die Infrastructure-Abdeckung auf 63/63 und belegen sichtbare abgelaufene Inhalte, Description-Synchronisierung sowie alle sicheren Providerfehler und Last-Success-Erhalt. Ein `NU1900`-Minor bleibt als Umgebungsrauschen dokumentiert.
 - **Task-Nachweise:** Task 7 inline: `3c080d1 feat: protect Moodle-managed study data`; erwartetes Compile-RED, danach 6/6 fokussierte Schutztests und 69/69 volle Infrastructure-Tests. Zwei SQLite-`DateTimeOffset`-Fehler wurden nach `systematic-debugging` durch Client-Sortierung bei weiterhin serverseitiger Owner-/Modulfilterung behoben. Die 31 fokussierten API-Fälle kompilierten, erreichten wegen des unveränderten JWT-Baselinefehlers aber keinen Endpunkt; der Solution-Build bestand mit 0 Fehlern und einem `NU1900`.
 - **Task-Nachweise:** Task 8 inline: `c4b7322 feat: expose Moodle course APIs`; erwartetes Compile-RED; nach zwei systematisch eingegrenzten Testhost-Konfigurationsläufen 17/17 neue, vollständig konfigurierte API-Tests grün. Der Plan nahm an, dass `ConfigureAppConfiguration` allein die bereits vor Host-Build gelesenen `Program`-Werte erreicht; zusätzlich war deshalb derselbe frühe Umgebungsbootstrap wie in den bestehenden API-Tests nötig. Solution-Build bestand mit 0 Fehlern und einem `NU1900`.
+- **Task-Nachweise:** Task 9 inline: `1e41522 feat: add Moodle course client`; erwartetes fehlendes-Service-Import-RED; anschließend 4/4 exakte HTTP-Routentests und vollständiger Frontend-Typecheck grün. Keine Wiederholungs- oder Debugrunde.
 - **Korrekturen durch den Benutzer:** Keine
 - **Besonders hilfreich:** Noch zu bewerten
 - **Unnötig oder zu aufwendig:** Noch zu bewerten

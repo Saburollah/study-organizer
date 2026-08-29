@@ -263,3 +263,25 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
 - **Unterbrechungen/Effizienz:** Zwei Läufe erzeugten jeweils 17 gleichartige
   JWT-Stacktraces; nach eindeutiger Ursachenbestätigung wurde nur die fokussierte
   Suite wiederholt und keine volle API-Suite gestartet.
+
+### 29. August 2026 — Task 9 — typisierter Frontend-Client
+
+- **Ausführung:** vollständig inline durch den Main-Agenten; keine Subagents und
+  kein Per-Task-Reviewer.
+- **Zweck:** TypeScript-Verträge und vier dünne HTTP-Methoden für die Task-8-API
+  bereitstellen.
+- **Inspiziert:** Task-9-Planabschnitt, `apiClient.ts`, bestehende Task-/Module-
+  Service- und Testmuster, Frontend-TypeScript-/Vite-Konfiguration.
+- **Geändert:** neue `externalCourseModels.ts`, `externalCourseService.ts` und
+  `__tests__/externalCourseService.spec.ts`.
+- **Entscheidungen:** API-JSON wird ohne zusätzliche Transformation typisiert;
+  Subscription-IDs werden über `encodeURIComponent` geschützt; Pfade entsprechen
+  exakt `/api/course-subscriptions` sowie `/contents` und `/scan`; Singleton über
+  das Interface exportiert.
+- **Tests:** erwartetes Import-RED wegen fehlendem Service; danach 1/1 Testdatei
+  und 4/4 Routentests grün; `pnpm type-check` grün.
+- **Commit:** `1e41522 feat: add Moodle course client`.
+- **Review/Fixrunde:** kein Per-Task-Review; keine Fixrunde; ein Gesamt-Review
+  bleibt nach Task 12.
+- **Unterbrechungen/Effizienz:** keine; nur fokussierter Vitest-Lauf und danach
+  der breitere Typecheck.
