@@ -109,3 +109,32 @@ because NuGet vulnerability metadata could not be reached; test execution passed
   cannot guarantee audit persistence, but the original exception is preserved.
 - Existing `Docs/skill-evaluation/superpowers-observations.md` changes were left
   untouched and unstaged.
+
+## Review fix round 1
+
+The independent review found no production defect and three Important test gaps.
+The existing tests were strengthened to keep an expired item visible and
+task-eligible during late registration, use and assert a changed non-null task
+description, cover all four typed provider failures, and compare the persisted
+last-success/content/task state across provider, cancellation, unexpected, and
+persistence failures.
+
+The first fix agent stopped at its usage limit after editing the tests. A fresh
+verification agent was interrupted when the controller switched Tasks 7–12 to an
+inline workflow. At that moment it had temporarily removed the production due-date
+filter for a mutation check; the controller restored exactly that committed line.
+No Task 6 production behavior was otherwise changed in this round.
+
+Fresh inline verification of the inherited worktree:
+
+```text
+dotnet test backend/tests/Infrastructure.Tests/StudyOrganizer.Infrastructure.Tests.csproj --no-restore --filter FullyQualifiedName~ExternalCourse -m:1 --disable-build-servers
+63 passed, 0 failed
+
+dotnet test backend/tests/Infrastructure.Tests/StudyOrganizer.Infrastructure.Tests.csproj --no-restore -m:1 --disable-build-servers
+63 passed, 0 failed
+```
+
+Review findings: **3 addressed, 0 open**. Per the updated execution constraint,
+there was no per-task re-review; one complete implementation review remains after
+Tasks 7–12.

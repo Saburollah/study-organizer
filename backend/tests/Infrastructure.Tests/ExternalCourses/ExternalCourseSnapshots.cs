@@ -35,7 +35,7 @@ public static class ExternalCourseSnapshots
                 "exercise-1",
                 ExternalContentKind.Assignment,
                 "Exercise 1 revised",
-                null,
+                "Revised exercise details",
                 new Uri("https://mock-moodle.local/content/exercise-1-v2"),
                 new DateTimeOffset(2026, 9, 17, 12, 0, 0, TimeSpan.Zero)),
             new CourseSnapshotItem(

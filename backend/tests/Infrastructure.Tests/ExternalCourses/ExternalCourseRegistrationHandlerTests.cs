@@ -36,23 +36,30 @@ public sealed class ExternalCourseRegistrationHandlerTests
     public async Task RegisterAsync_AfterSuccessfulScan_MaterializesOnlyVisibleFutureEligibleContents()
     {
         await using var setup = await ExternalCourseScenario.CreateAsync(subscriberCount: 1);
+        var pastExercise = ExternalCourseSnapshots.Initial.Contents[0] with
+        {
+            ProviderContentId = "past-exercise",
+            Title = "Past exercise",
+            StructuredDueDateUtc = setup.Database.Now.AddDays(-1)
+        };
         setup.Provider.SetSnapshot(new CourseSnapshot(
             "mock-moodle",
             "software-engineering-2026",
             true,
             [
                 ExternalCourseSnapshots.Initial.Contents[0],
-                ExternalCourseSnapshots.Initial.Contents[0] with
-                {
-                    ProviderContentId = "past-exercise",
-                    Title = "Past exercise",
-                    StructuredDueDateUtc = setup.Database.Now.AddDays(-1)
-                },
+                pastExercise,
                 ExternalCourseSnapshots.Initial.Contents[1]
             ]));
         await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
-        setup.Provider.SetSnapshot(ExternalCourseSnapshots.WithoutExerciseOne);
+        setup.Provider.SetSnapshot(new CourseSnapshot(
+            "mock-moodle",
+            "software-engineering-2026",
+            true,
+            [pastExercise, ExternalCourseSnapshots.Initial.Contents[1]]));
         await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
+        var visiblePastContent = await setup.Database.Context.ExternalContents.SingleAsync(
+            content => content.ProviderContentId == "past-exercise");
         var secondOwner = await setup.Database.CreateUserAsync("late@example.com");
 
         var result = await setup.RegistrationHandler.RegisterAsync(
@@ -60,6 +67,11 @@ public sealed class ExternalCourseRegistrationHandlerTests
             "https://mock-moodle.local/courses/software-engineering-2026");
 
         Assert.Equal(CourseRegistrationOutcome.Created, result.Outcome);
+        Assert.Equal(ExternalContentVisibility.Visible, visiblePastContent.Visibility);
+        Assert.Equal(
+            ExternalContentProcessingState.TaskEligible,
+            visiblePastContent.ProcessingState);
+        Assert.Equal(setup.Database.Now.AddDays(-1), visiblePastContent.StructuredDueDateUtc);
         Assert.Empty(await setup.TasksForAsync(secondOwner));
         Assert.Empty(await setup.Database.Context.ExternalTaskLinks
             .Where(link => link.CourseSubscriptionId == result.Subscription!.Id)

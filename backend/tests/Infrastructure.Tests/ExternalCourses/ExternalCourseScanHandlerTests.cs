@@ -26,6 +26,7 @@ public sealed class ExternalCourseScanHandlerTests
         Assert.Equal(
             new DateTimeOffset(2026, 9, 17, 12, 0, 0, TimeSpan.Zero),
             updatedExerciseOne.DueDate);
+        Assert.Equal("Revised exercise details", updatedExerciseOne.Description);
         Assert.Equal(StudyTaskStatus.Open, updatedExerciseOne.Status);
         Assert.Equal(2, tasks.Count);
         Assert.Contains(tasks, task => task.Title == "Exercise 2");
@@ -43,6 +44,7 @@ public sealed class ExternalCourseScanHandlerTests
         await setup.Database.Context.SaveChangesAsync();
         var originalTitle = originalTask.Title;
         var originalDueDate = originalTask.DueDate;
+        var originalDescription = originalTask.Description;
         setup.Provider.SetSnapshot(ExternalCourseSnapshots.Changed);
 
         await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
@@ -51,6 +53,7 @@ public sealed class ExternalCourseScanHandlerTests
         Assert.Equal(StudyTaskStatus.Completed, completedTask.Status);
         Assert.Equal(originalTitle, completedTask.Title);
         Assert.Equal(originalDueDate, completedTask.DueDate);
+        Assert.Equal(originalDescription, completedTask.Description);
     }
 
     [Fact]
@@ -332,16 +335,16 @@ public sealed class ExternalCourseScanHandlerTests
     [Theory]
     [InlineData(ExternalCourseProviderError.Timeout, "external_timeout")]
     [InlineData(ExternalCourseProviderError.AuthenticationRequired, "external_auth_required")]
+    [InlineData(ExternalCourseProviderError.InvalidResponse, "invalid_external_response")]
+    [InlineData(ExternalCourseProviderError.UnsupportedUrl, "unsupported_url")]
     public async Task ScanAsync_ProviderFailure_PreservesStateAndStoresOnlySafeAuditCode(
         ExternalCourseProviderError providerError,
         string expectedErrorCode)
     {
         await using var setup = await ExternalCourseScenario.CreateScannedAsync(
             subscriberCount: 1);
-        var originalContent = await setup.Database.Context.ExternalContents
-            .AsNoTracking()
-            .SingleAsync(content => content.ProviderContentId == "exercise-1");
-        var originalTask = await setup.Database.Context.Tasks.AsNoTracking().SingleAsync();
+        var stateBefore = await CapturePersistedStateAsync(setup);
+        ((TestTimeProvider)setup.Database.TimeProvider).Advance(TimeSpan.FromMinutes(1));
         setup.Provider.SetFailure(providerError);
 
         var result = await setup.Handler.ScanAsync(
@@ -349,10 +352,7 @@ public sealed class ExternalCourseScanHandlerTests
             setup.SubscriptionIds[0]);
 
         setup.Database.Context.ChangeTracker.Clear();
-        var currentContent = await setup.Database.Context.ExternalContents
-            .SingleAsync(content => content.Id == originalContent.Id);
-        var currentTask = await setup.Database.Context.Tasks
-            .SingleAsync(task => task.Id == originalTask.Id);
+        var stateAfter = await CapturePersistedStateAsync(setup);
         var failedRun = await setup.Database.Context.ScanRuns
             .AsNoTracking()
             .SingleAsync(run => run.Status == ScanRunStatus.Failed);
@@ -362,10 +362,10 @@ public sealed class ExternalCourseScanHandlerTests
         Assert.Equal(expectedErrorCode, failedRun.ErrorCode);
         Assert.Equal(ScanRunStatus.Failed, failedRun.Status);
         Assert.Null(course.ActiveScanRunId);
-        Assert.Equal(originalContent.Title, currentContent.Title);
-        Assert.Equal(originalContent.StructuredDueDateUtc, currentContent.StructuredDueDateUtc);
-        Assert.Equal(originalTask.Title, currentTask.Title);
-        Assert.Equal(originalTask.DueDate, currentTask.DueDate);
+        Assert.Equal(stateBefore.LastSuccessfulScanAtUtc, stateAfter.LastSuccessfulScanAtUtc);
+        Assert.Equal(stateBefore.ActiveScanRunId, stateAfter.ActiveScanRunId);
+        Assert.Equal(stateBefore.Contents, stateAfter.Contents);
+        Assert.Equal(stateBefore.Tasks, stateAfter.Tasks);
         Assert.DoesNotContain("provider", failedRun.ErrorCode, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -416,8 +416,10 @@ public sealed class ExternalCourseScanHandlerTests
     [Fact]
     public async Task ScanAsync_CancelledFetch_RecordsCancellationClearsLeaseAndRethrows()
     {
-        await using var setup = await ExternalCourseScenario.CreateAsync(
+        await using var setup = await ExternalCourseScenario.CreateScannedAsync(
             subscriberCount: 1);
+        var stateBefore = await CapturePersistedStateAsync(setup);
+        ((TestTimeProvider)setup.Database.TimeProvider).Advance(TimeSpan.FromMinutes(1));
         setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial);
         setup.Provider.BlockNextFetch();
         using var cancellation = new CancellationTokenSource();
@@ -432,19 +434,26 @@ public sealed class ExternalCourseScanHandlerTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => scan);
         setup.Provider.ReleaseBlockedFetch();
         setup.Database.Context.ChangeTracker.Clear();
-        var run = await setup.Database.Context.ScanRuns.SingleAsync();
+        var stateAfter = await CapturePersistedStateAsync(setup);
+        var run = await setup.Database.Context.ScanRuns.SingleAsync(
+            item => item.Status == ScanRunStatus.Failed);
         var course = await setup.Database.Context.ExternalCourses.SingleAsync();
         Assert.Equal(ScanRunStatus.Failed, run.Status);
         Assert.Equal("scan_cancelled", run.ErrorCode);
         Assert.Null(course.ActiveScanRunId);
-        Assert.Empty(await setup.Database.Context.ExternalContents.ToListAsync());
+        Assert.Equal(stateBefore.LastSuccessfulScanAtUtc, stateAfter.LastSuccessfulScanAtUtc);
+        Assert.Equal(stateBefore.ActiveScanRunId, stateAfter.ActiveScanRunId);
+        Assert.Equal(stateBefore.Contents, stateAfter.Contents);
+        Assert.Equal(stateBefore.Tasks, stateAfter.Tasks);
     }
 
     [Fact]
     public async Task ScanAsync_UnexpectedProviderFailure_RecordsFailureClearsLeaseAndRethrows()
     {
-        await using var setup = await ExternalCourseScenario.CreateAsync(
+        await using var setup = await ExternalCourseScenario.CreateScannedAsync(
             subscriberCount: 1);
+        var stateBefore = await CapturePersistedStateAsync(setup);
+        ((TestTimeProvider)setup.Database.TimeProvider).Advance(TimeSpan.FromMinutes(1));
         setup.Provider.SetUnexpectedFailure(
             new InvalidOperationException("secret payload https://mock-moodle.local/?token=raw"));
 
@@ -452,20 +461,28 @@ public sealed class ExternalCourseScanHandlerTests
             setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]));
 
         setup.Database.Context.ChangeTracker.Clear();
-        var run = await setup.Database.Context.ScanRuns.SingleAsync();
+        var stateAfter = await CapturePersistedStateAsync(setup);
+        var run = await setup.Database.Context.ScanRuns.SingleAsync(
+            item => item.Status == ScanRunStatus.Failed);
         var course = await setup.Database.Context.ExternalCourses.SingleAsync();
         Assert.Contains("secret payload", exception.Message, StringComparison.Ordinal);
         Assert.Equal("scan_failed", run.ErrorCode);
         Assert.DoesNotContain("secret", run.ErrorCode, StringComparison.Ordinal);
         Assert.Null(course.ActiveScanRunId);
+        Assert.Equal(stateBefore.LastSuccessfulScanAtUtc, stateAfter.LastSuccessfulScanAtUtc);
+        Assert.Equal(stateBefore.ActiveScanRunId, stateAfter.ActiveScanRunId);
+        Assert.Equal(stateBefore.Contents, stateAfter.Contents);
+        Assert.Equal(stateBefore.Tasks, stateAfter.Tasks);
     }
 
     [Fact]
     public async Task ScanAsync_PersistenceFailure_RollsBackContentRecordsFailureAndClearsLease()
     {
-        await using var setup = await ExternalCourseScenario.CreateAsync(
+        await using var setup = await ExternalCourseScenario.CreateScannedAsync(
             subscriberCount: 1);
-        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial);
+        var stateBefore = await CapturePersistedStateAsync(setup);
+        ((TestTimeProvider)setup.Database.TimeProvider).Advance(TimeSpan.FromMinutes(1));
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Changed);
         await setup.Database.Context.Database.ExecuteSqlRawAsync(
             """
             CREATE TRIGGER fail_external_content_insert
@@ -479,14 +496,18 @@ public sealed class ExternalCourseScanHandlerTests
             setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]));
 
         setup.Database.Context.ChangeTracker.Clear();
-        var run = await setup.Database.Context.ScanRuns.SingleAsync();
+        var stateAfter = await CapturePersistedStateAsync(setup);
+        var run = await setup.Database.Context.ScanRuns.SingleAsync(
+            item => item.Status == ScanRunStatus.Failed);
         var course = await setup.Database.Context.ExternalCourses.SingleAsync();
         Assert.Equal(ScanRunStatus.Failed, run.Status);
         Assert.Equal("scan_failed", run.ErrorCode);
         Assert.Null(course.ActiveScanRunId);
-        Assert.Empty(await setup.Database.Context.ExternalContents.ToListAsync());
-        Assert.Empty(await setup.Database.Context.Tasks.ToListAsync());
-        Assert.Empty(await setup.Database.Context.ExternalTaskLinks.ToListAsync());
+        Assert.Equal(stateBefore.LastSuccessfulScanAtUtc, stateAfter.LastSuccessfulScanAtUtc);
+        Assert.Equal(stateBefore.ActiveScanRunId, stateAfter.ActiveScanRunId);
+        Assert.Equal(stateBefore.Contents, stateAfter.Contents);
+        Assert.Equal(stateBefore.Tasks, stateAfter.Tasks);
+        Assert.Single(await setup.Database.Context.ExternalTaskLinks.ToListAsync());
     }
 
     [Fact]
@@ -534,6 +555,78 @@ public sealed class ExternalCourseScanHandlerTests
         Assert.Equal(0, setup.Provider.FetchCount);
         Assert.Empty(await setup.Database.Context.ScanRuns.ToListAsync());
     }
+
+    private static async Task<PersistedCourseState> CapturePersistedStateAsync(
+        ExternalCourseScenario setup)
+    {
+        var course = await setup.Database.Context.ExternalCourses
+            .AsNoTracking()
+            .SingleAsync();
+        var contents = (await setup.Database.Context.ExternalContents
+                .AsNoTracking()
+                .ToListAsync())
+            .OrderBy(content => content.ProviderContentId, StringComparer.Ordinal)
+            .Select(content => new PersistedContentState(
+                content.Id,
+                content.ProviderContentId,
+                content.Title,
+                content.Description,
+                content.SourceUrl,
+                content.StructuredDueDateUtc,
+                content.ProcessingState,
+                content.ReviewReason,
+                content.Visibility,
+                content.LastSeenAtUtc))
+            .ToArray();
+        var tasks = (await setup.Database.Context.Tasks
+                .AsNoTracking()
+                .ToListAsync())
+            .OrderBy(task => task.Id)
+            .Select(task => new PersistedTaskState(
+                task.Id,
+                task.ModuleId,
+                task.Title,
+                task.Description,
+                task.DueDate,
+                task.Status,
+                task.CreatedAt,
+                task.UpdatedAt))
+            .ToArray();
+
+        return new PersistedCourseState(
+            course.ActiveScanRunId,
+            course.LastSuccessfulScanAtUtc,
+            contents,
+            tasks);
+    }
+
+    private sealed record PersistedCourseState(
+        Guid? ActiveScanRunId,
+        DateTimeOffset? LastSuccessfulScanAtUtc,
+        IReadOnlyList<PersistedContentState> Contents,
+        IReadOnlyList<PersistedTaskState> Tasks);
+
+    private sealed record PersistedContentState(
+        Guid Id,
+        string ProviderContentId,
+        string Title,
+        string? Description,
+        string SourceUrl,
+        DateTimeOffset? StructuredDueDateUtc,
+        ExternalContentProcessingState ProcessingState,
+        ExternalContentReviewReason ReviewReason,
+        ExternalContentVisibility Visibility,
+        DateTimeOffset LastSeenAtUtc);
+
+    private sealed record PersistedTaskState(
+        Guid Id,
+        Guid ModuleId,
+        string Title,
+        string? Description,
+        DateTimeOffset DueDate,
+        StudyTaskStatus Status,
+        DateTimeOffset CreatedAt,
+        DateTimeOffset? UpdatedAt);
 
     public static TheoryData<CourseSnapshot> InvalidSnapshots => new()
     {
