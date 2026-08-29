@@ -230,3 +230,36 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   erwarteten Compilefehler. Die 31 identischen JWT-Stacktraces haben wenig
   Zusatznutzen; deshalb keine wiederholte volle API-Suite und Build als
   planmäßiger Ersatznachweis.
+
+### 29. August 2026 — Task 8 — geschützte Moodle-Kurs-API
+
+- **Ausführung:** vollständig inline durch den Main-Agenten; keine Subagents und
+  kein Per-Task-Reviewer.
+- **Zweck:** vier authentifizierte Kursrouten mit owner-scoped Handleraufrufen,
+  stabilen JSON-Modellen und sicheren Status-/Fehlerabbildungen bereitstellen.
+- **Inspiziert:** Task-8-Planabschnitt, Designspezifikation zur API,
+  ExternalCourse-Applicationinterfaces/-resultate, `Program.cs`, vorhandene
+  API-Testfactory-/JWT-Muster und `JwtOptions`.
+- **Geändert:** neue `Api/ExternalCourses/ExternalCourseModels.cs` und
+  `ExternalCourseEndpoints.cs`, `Api/Program.cs` sowie neue
+  `Api.Tests/ExternalCourses/ExternalCourseEndpointsTests.cs`.
+- **Entscheidungen:** exakte Routen unter `/api/course-subscriptions`; alle vier
+  erfordern Authentifizierung; 201/200 für Created/Existing; sichere
+  `invalid_course_url`/`unsupported_course_url`; fremde Abonnements 404;
+  `scan_in_progress` 409; externe/ungültige Snapshots 502 mit ausschließlich
+  Application-Safe-Code. Mock-Provider singleton, drei Handler scoped.
+- **Tests:** erwartetes Compile-RED wegen fehlendem API-Namespace. Erster GREEN-
+  Versuch: 17/17 Hoststarts `JWT configuration was not found`; nach Signing-Key-
+  Bootstrap 17/17 `incomplete or invalid`; Ursache über
+  `systematic-debugging` auf frühes `Program`-Binding vor dem Testhost-
+  Configuration-Callback eingegrenzt. Vollständiger, mit bestehenden Tests
+  identischer Bootstrap plus weiterhin komplettes In-Memory-Dictionary führte
+  zu 17/17 fokussierten API-Tests. Solution-Build: 0 Fehler, ein
+  umgebungsbedingtes `NU1900`.
+- **Commit:** `c4b7322 feat: expose Moodle course APIs`.
+- **Review/Fixrunde:** kein Per-Task-Review; ein Gesamt-Review bleibt nach
+  Task 12. Zwei aufeinander aufbauende Test-Harness-Korrekturen, keine Änderung
+  am Produkt-Bootstrap oder am bekannten Baselinefehler.
+- **Unterbrechungen/Effizienz:** Zwei Läufe erzeugten jeweils 17 gleichartige
+  JWT-Stacktraces; nach eindeutiger Ursachenbestätigung wurde nur die fokussierte
+  Suite wiederholt und keine volle API-Suite gestartet.
