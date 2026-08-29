@@ -46,7 +46,9 @@ public static class StudyTaskEndpoints
             .Produces(
                 StatusCodes.Status401Unauthorized)
             .Produces(
-                StatusCodes.Status404NotFound);
+                StatusCodes.Status404NotFound)
+            .ProducesProblem(
+                StatusCodes.Status409Conflict);
 
         group.MapPatch(
                 "/{taskId:guid}/status",
@@ -68,7 +70,9 @@ public static class StudyTaskEndpoints
             .Produces(
                 StatusCodes.Status401Unauthorized)
             .Produces(
-                StatusCodes.Status404NotFound);
+                StatusCodes.Status404NotFound)
+            .ProducesProblem(
+                StatusCodes.Status409Conflict);
 
         return group;
     }
@@ -160,7 +164,7 @@ public static class StudyTaskEndpoints
                 validationErrors);
         }
 
-        var task = await taskHandler.UpdateAsync(
+        var result = await taskHandler.UpdateAsync(
             ownerId,
             moduleId,
             taskId,
@@ -169,9 +173,16 @@ public static class StudyTaskEndpoints
             request.Description,
             cancellationToken);
 
-        return task is null
-            ? Results.NotFound()
-            : Results.Ok(ToResponse(task));
+        return result.Outcome switch
+        {
+            StudyTaskMutationOutcome.Succeeded =>
+                Results.Ok(ToResponse(result.Task!)),
+            StudyTaskMutationOutcome.ExternallyManaged =>
+                Results.Problem(
+                    detail: "externally_managed_task",
+                    statusCode: StatusCodes.Status409Conflict),
+            _ => Results.NotFound()
+        };
     }
 
     private static async Task<IResult> UpdateStatusAsync(
@@ -238,15 +249,20 @@ public static class StudyTaskEndpoints
             return Results.Unauthorized();
         }
 
-        var wasDeleted = await taskHandler.DeleteAsync(
+        var result = await taskHandler.DeleteAsync(
             ownerId,
             moduleId,
             taskId,
             cancellationToken);
 
-        return wasDeleted
-            ? Results.NoContent()
-            : Results.NotFound();
+        return result.Outcome switch
+        {
+            StudyTaskMutationOutcome.Succeeded => Results.NoContent(),
+            StudyTaskMutationOutcome.ExternallyManaged => Results.Problem(
+                detail: "externally_managed_task",
+                statusCode: StatusCodes.Status409Conflict),
+            _ => Results.NotFound()
+        };
     }
 
     private static StudyTaskResponse ToResponse(
@@ -260,6 +276,12 @@ public static class StudyTaskEndpoints
             task.DueDateUtc,
             task.Status.ToString(),
             task.CreatedAtUtc,
-            task.UpdatedAtUtc);
+            task.UpdatedAtUtc,
+            task.ExternalSource is null
+                ? null
+                : new ExternalTaskSourceResponse(
+                    task.ExternalSource.ProviderKey,
+                    task.ExternalSource.CourseName,
+                    task.ExternalSource.SourceUrl));
     }
 }

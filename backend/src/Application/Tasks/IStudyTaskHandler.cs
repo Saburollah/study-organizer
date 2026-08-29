@@ -18,7 +18,7 @@ public interface IStudyTaskHandler
             Guid moduleId,
             CancellationToken cancellationToken = default);
 
-    Task<StudyTaskResult?> UpdateAsync(
+    Task<StudyTaskMutationResult> UpdateAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
@@ -34,7 +34,7 @@ public interface IStudyTaskHandler
         StudyTaskStatus status,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<StudyTaskMutationResult> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,

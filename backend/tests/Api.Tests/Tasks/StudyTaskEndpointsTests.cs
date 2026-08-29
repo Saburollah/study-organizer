@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -349,6 +350,74 @@ public sealed class StudyTaskEndpointsTests
         Assert.True(handler.UpdateWasCalled);
     }
 
+    [Fact]
+    public async Task UpdateTask_WhenExternallyManaged_ReturnsConflictWithSafeDetail()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler(
+            updateOutcome: StudyTaskMutationOutcome.ExternallyManaged);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}",
+            new
+            {
+                title = "Local override",
+                dueDateUtc = "2026-10-01T18:00:00Z"
+            });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("externally_managed_task", problem!.Detail);
+    }
+
+    [Fact]
+    public async Task GetTasks_WithExternalSource_ReturnsSourceMetadata()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var task = new StudyTaskResult(
+            Guid.NewGuid(),
+            moduleId,
+            "Exercise 1",
+            null,
+            DateTimeOffset.Parse("2026-09-12T12:00:00Z"),
+            StudyTaskStatus.Open,
+            DateTimeOffset.UtcNow,
+            null,
+            new ExternalTaskSourceResult(
+                "mock-moodle",
+                "Software Engineering",
+                "https://mock-moodle.local/content/exercise-1"));
+        var handler = new StubStudyTaskHandler(
+            tasksByOwnerAndModule: new Dictionary<
+                (Guid OwnerId, Guid ModuleId),
+                IReadOnlyList<StudyTaskResult>>
+            {
+                [(ownerId, moduleId)] = [task]
+            });
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.GetAsync($"/api/modules/{moduleId}/tasks/");
+
+        var body = await response.Content.ReadFromJsonAsync<List<StudyTaskResponse>>();
+        var source = Assert.Single(body!).ExternalSource;
+        Assert.NotNull(source);
+        Assert.Equal("mock-moodle", source.ProviderKey);
+        Assert.Equal("Software Engineering", source.CourseName);
+        Assert.Equal(
+            "https://mock-moodle.local/content/exercise-1",
+            source.SourceUrl);
+    }
+
     [Theory]
     [InlineData("Completed", StudyTaskStatus.Completed)]
     [InlineData("Open", StudyTaskStatus.Open)]
@@ -502,6 +571,27 @@ public sealed class StudyTaskEndpointsTests
         Assert.Equal(ownerId, handler.ReceivedDeleteOwnerId);
     }
 
+    [Fact]
+    public async Task DeleteTask_WhenExternallyManaged_ReturnsConflictWithSafeDetail()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var handler = new StubStudyTaskHandler(
+            deleteOutcome: StudyTaskMutationOutcome.ExternallyManaged);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync(
+            $"/api/modules/{moduleId}/tasks/{taskId}");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("externally_managed_task", problem!.Detail);
+    }
+
     private static void AddAuthorization(
         HttpClient client,
         Guid userId)
@@ -578,7 +668,9 @@ public sealed class StudyTaskEndpointsTests
             tasksByOwnerAndModule = null,
         StudyTaskResult? updateResult = null,
         StudyTaskResult? statusResult = null,
-        bool deleteResult = false)
+        bool deleteResult = false,
+        StudyTaskMutationOutcome? updateOutcome = null,
+        StudyTaskMutationOutcome? deleteOutcome = null)
         : IStudyTaskHandler
     {
         public Guid? ReceivedCreateOwnerId
@@ -663,7 +755,7 @@ public sealed class StudyTaskEndpointsTests
                 IReadOnlyList<StudyTaskResult>?>(null);
         }
 
-        public Task<StudyTaskResult?> UpdateAsync(
+        public Task<StudyTaskMutationResult> UpdateAsync(
             Guid ownerId,
             Guid moduleId,
             Guid taskId,
@@ -679,7 +771,11 @@ public sealed class StudyTaskEndpointsTests
             ReceivedUpdateModuleId = moduleId;
             ReceivedUpdateTaskId = taskId;
 
-            return Task.FromResult(updateResult);
+            return Task.FromResult(new StudyTaskMutationResult(
+                updateOutcome ?? (updateResult is null
+                    ? StudyTaskMutationOutcome.NotFound
+                    : StudyTaskMutationOutcome.Succeeded),
+                updateResult));
         }
 
         public Task<StudyTaskResult?> SetStatusAsync(
@@ -700,7 +796,7 @@ public sealed class StudyTaskEndpointsTests
             return Task.FromResult(statusResult);
         }
 
-        public Task<bool> DeleteAsync(
+        public Task<StudyTaskMutationResult> DeleteAsync(
             Guid ownerId,
             Guid moduleId,
             Guid taskId,
@@ -712,7 +808,11 @@ public sealed class StudyTaskEndpointsTests
             ReceivedDeleteModuleId = moduleId;
             ReceivedDeleteTaskId = taskId;
 
-            return Task.FromResult(deleteResult);
+            return Task.FromResult(new StudyTaskMutationResult(
+                deleteOutcome ?? (deleteResult
+                    ? StudyTaskMutationOutcome.Succeeded
+                    : StudyTaskMutationOutcome.NotFound),
+                null));
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -364,6 +365,63 @@ public sealed class ModuleEndpointsTests
             handler.ReceivedDeleteModuleId);
     }
 
+    [Fact]
+    public async Task DeleteModule_WhenLinkedToExternalCourse_ReturnsConflictWithSafeDetail()
+    {
+        var ownerId = Guid.NewGuid();
+        var moduleId = Guid.NewGuid();
+        var fallbackModule = new ModuleResult(
+            moduleId,
+            "Software Engineering",
+            null,
+            null,
+            null,
+            DateTimeOffset.UtcNow,
+            true);
+        var handler = new StubModuleHandler(
+            fallbackModule,
+            deleteOutcome: ModuleDeleteOutcome.LinkedToExternalCourse);
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.DeleteAsync($"/api/modules/{moduleId}");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("linked_external_course_module", problem!.Detail);
+    }
+
+    [Fact]
+    public async Task GetModules_WithExternalCourseLink_ReturnsLinkedMetadata()
+    {
+        var ownerId = Guid.NewGuid();
+        var module = new ModuleResult(
+            Guid.NewGuid(),
+            "Software Engineering",
+            null,
+            null,
+            null,
+            DateTimeOffset.UtcNow,
+            true);
+        var handler = new StubModuleHandler(
+            module,
+            new Dictionary<Guid, IReadOnlyList<ModuleResult>>
+            {
+                [ownerId] = [module]
+            });
+
+        using var factory = CreateFactory(handler);
+        using var client = CreateClient(factory);
+        AddAuthorization(client, ownerId);
+
+        var response = await client.GetAsync("/api/modules/");
+
+        var body = await response.Content.ReadFromJsonAsync<List<ModuleResponse>>();
+        Assert.True(Assert.Single(body!).IsExternalCourseLinked);
+    }
+
     private static void AddAuthorization(
         HttpClient client,
         Guid userId)
@@ -436,7 +494,8 @@ public sealed class ModuleEndpointsTests
             Guid,
             IReadOnlyList<ModuleResult>>? modulesByOwner = null,
         ModuleResult? updateResult = null,
-        bool deleteResult = false)
+        bool deleteResult = false,
+        ModuleDeleteOutcome? deleteOutcome = null)
         : IModuleHandler
     {
         public Guid? ReceivedOwnerId { get; private set; }
@@ -501,7 +560,7 @@ public sealed class ModuleEndpointsTests
             return Task.FromResult(updateResult);
         }
 
-        public Task<bool> DeleteAsync(
+        public Task<ModuleDeleteOutcome> DeleteAsync(
             Guid ownerId,
             Guid moduleId,
             CancellationToken cancellationToken = default)
@@ -511,7 +570,9 @@ public sealed class ModuleEndpointsTests
             ReceivedDeleteOwnerId = ownerId;
             ReceivedDeleteModuleId = moduleId;
 
-            return Task.FromResult(deleteResult);
+            return Task.FromResult(deleteOutcome ?? (deleteResult
+                ? ModuleDeleteOutcome.Deleted
+                : ModuleDeleteOutcome.NotFound));
         }
     }
 }

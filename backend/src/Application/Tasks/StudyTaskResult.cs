@@ -10,4 +10,5 @@ public sealed record StudyTaskResult(
     DateTimeOffset DueDateUtc,
     StudyTaskStatus Status,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    ExternalTaskSourceResult? ExternalSource = null);

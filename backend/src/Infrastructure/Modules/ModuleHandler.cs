@@ -37,21 +37,24 @@ public sealed class ModuleHandler(
             Guid ownerId,
             CancellationToken cancellationToken = default)
     {
-        return await dbContext.Modules
+        var modules = await dbContext.Modules
             .AsNoTracking()
             .Where(module =>
                 module.OwnerId == ownerId)
-            .OrderByDescending(module =>
-                module.CreatedAt)
-            .Select(module =>
-                new ModuleResult(
-                    module.Id,
-                    module.Name,
-                    module.Code,
-                    module.Description,
-                    module.Color,
-                    module.CreatedAt))
+            .Select(module => new ModuleResult(
+                module.Id,
+                module.Name,
+                module.Code,
+                module.Description,
+                module.Color,
+                module.CreatedAt,
+                dbContext.CourseSubscriptions.Any(
+                    subscription => subscription.ModuleId == module.Id)))
             .ToListAsync(cancellationToken);
+
+        return modules
+            .OrderByDescending(module => module.CreatedAt)
+            .ToList();
     }
     public async Task<ModuleResult?> UpdateAsync(
         Guid ownerId,
@@ -83,10 +86,14 @@ public sealed class ModuleHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return ToResult(module);
+        var isExternalCourseLinked = await dbContext.CourseSubscriptions.AnyAsync(
+            subscription => subscription.ModuleId == module.Id,
+            cancellationToken);
+
+        return ToResult(module, isExternalCourseLinked);
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<ModuleDeleteOutcome> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         CancellationToken cancellationToken = default)
@@ -100,7 +107,14 @@ public sealed class ModuleHandler(
 
         if (module is null)
         {
-            return false;
+            return ModuleDeleteOutcome.NotFound;
+        }
+
+        if (await dbContext.CourseSubscriptions.AnyAsync(
+                subscription => subscription.ModuleId == moduleId,
+                cancellationToken))
+        {
+            return ModuleDeleteOutcome.LinkedToExternalCourse;
         }
 
         dbContext.Modules.Remove(module);
@@ -108,11 +122,12 @@ public sealed class ModuleHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return true;
+        return ModuleDeleteOutcome.Deleted;
     }
 
     private static ModuleResult ToResult(
-        StudyModule module)
+        StudyModule module,
+        bool isExternalCourseLinked = false)
     {
         return new ModuleResult(
             module.Id,
@@ -120,6 +135,7 @@ public sealed class ModuleHandler(
             module.Code,
             module.Description,
             module.Color,
-            module.CreatedAt);
+            module.CreatedAt,
+            isExternalCourseLinked);
     }
 }

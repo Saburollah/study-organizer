@@ -42,4 +42,10 @@ public sealed record StudyTaskResponse(
     DateTimeOffset DueDateUtc,
     string Status,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    ExternalTaskSourceResponse? ExternalSource);
+
+public sealed record ExternalTaskSourceResponse(
+    string ProviderKey,
+    string CourseName,
+    string SourceUrl);

@@ -61,28 +61,42 @@ public sealed class StudyTaskHandler(
             return null;
         }
 
-        return await dbContext.Tasks
-            .AsNoTracking()
-            .Where(task =>
-                task.ModuleId == moduleId)
-            .OrderBy(task =>
-                task.DueDate)
-            .ThenBy(task =>
-                task.CreatedAt)
-            .Select(task =>
-                new StudyTaskResult(
-                    task.Id,
-                    task.ModuleId,
-                    task.Title,
-                    task.Description,
-                    task.DueDate,
-                    task.Status,
-                    task.CreatedAt,
-                    task.UpdatedAt))
+        var tasks = await (
+                from task in dbContext.Tasks.AsNoTracking()
+                where task.ModuleId == moduleId
+                join link in dbContext.ExternalTaskLinks.AsNoTracking()
+                    on task.Id equals link.TaskId into taskLinks
+                from link in taskLinks.DefaultIfEmpty()
+                join content in dbContext.ExternalContents.AsNoTracking()
+                    on link.ExternalContentId equals content.Id into linkedContents
+                from content in linkedContents.DefaultIfEmpty()
+                join course in dbContext.ExternalCourses.AsNoTracking()
+                    on content.ExternalCourseId equals course.Id into linkedCourses
+                from course in linkedCourses.DefaultIfEmpty()
+                select new
+                {
+                    Task = task,
+                    ProviderKey = course == null ? null : course.ProviderKey,
+                    CourseName = course == null ? null : course.Name,
+                    SourceUrl = content == null ? null : content.SourceUrl
+                })
             .ToListAsync(cancellationToken);
+
+        return tasks
+            .OrderBy(item => item.Task.DueDate)
+            .ThenBy(item => item.Task.CreatedAt)
+            .Select(item => ToResult(
+                item.Task,
+                item.ProviderKey is null
+                    ? null
+                    : new ExternalTaskSourceResult(
+                        item.ProviderKey,
+                        item.CourseName!,
+                        item.SourceUrl!)))
+            .ToList();
     }
 
-    public async Task<StudyTaskResult?> UpdateAsync(
+    public async Task<StudyTaskMutationResult> UpdateAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
@@ -99,7 +113,16 @@ public sealed class StudyTaskHandler(
 
         if (task is null)
         {
-            return null;
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.NotFound,
+                null);
+        }
+
+        if (await IsExternallyManagedAsync(taskId, cancellationToken))
+        {
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.ExternallyManaged,
+                null);
         }
 
         task.Update(
@@ -110,7 +133,9 @@ public sealed class StudyTaskHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return ToResult(task);
+        return new StudyTaskMutationResult(
+            StudyTaskMutationOutcome.Succeeded,
+            ToResult(task));
     }
 
     public async Task<StudyTaskResult?> SetStatusAsync(
@@ -152,7 +177,7 @@ public sealed class StudyTaskHandler(
         return ToResult(task);
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<StudyTaskMutationResult> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
@@ -166,7 +191,16 @@ public sealed class StudyTaskHandler(
 
         if (task is null)
         {
-            return false;
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.NotFound,
+                null);
+        }
+
+        if (await IsExternallyManagedAsync(taskId, cancellationToken))
+        {
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.ExternallyManaged,
+                null);
         }
 
         dbContext.Tasks.Remove(task);
@@ -174,8 +208,17 @@ public sealed class StudyTaskHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return true;
+        return new StudyTaskMutationResult(
+            StudyTaskMutationOutcome.Succeeded,
+            null);
     }
+
+    private Task<bool> IsExternallyManagedAsync(
+        Guid taskId,
+        CancellationToken cancellationToken) =>
+        dbContext.ExternalTaskLinks.AnyAsync(
+            link => link.TaskId == taskId,
+            cancellationToken);
 
     private Task<StudyTask?> GetOwnedTaskAsync(
         Guid ownerId,
@@ -194,7 +237,8 @@ public sealed class StudyTaskHandler(
     }
 
     private static StudyTaskResult ToResult(
-        StudyTask task)
+        StudyTask task,
+        ExternalTaskSourceResult? externalSource = null)
     {
         return new StudyTaskResult(
             task.Id,
@@ -204,6 +248,7 @@ public sealed class StudyTaskHandler(
             task.DueDate,
             task.Status,
             task.CreatedAt,
-            task.UpdatedAt);
+            task.UpdatedAt,
+            externalSource);
     }
 }
