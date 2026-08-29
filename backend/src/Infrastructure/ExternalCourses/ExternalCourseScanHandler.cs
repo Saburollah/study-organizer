@@ -72,9 +72,10 @@ public sealed class ExternalCourseScanHandler(
         dbContext.ScanRuns.Add(scanRun);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var snapshot = await provider.FetchSnapshotAsync(
-            target.ExternalCourseId,
-            cancellationToken);
+        var snapshot = CanonicalizeSnapshot(
+            await provider.FetchSnapshotAsync(
+                target.ExternalCourseId,
+                cancellationToken));
 
         if (!IsValidSnapshot(snapshot, target))
         {
@@ -284,6 +285,26 @@ public sealed class ExternalCourseScanHandler(
         }
 
         return true;
+    }
+
+    private static CourseSnapshot CanonicalizeSnapshot(CourseSnapshot snapshot)
+    {
+        if (snapshot.Contents is null)
+        {
+            return snapshot;
+        }
+
+        return snapshot with
+        {
+            Contents = snapshot.Contents
+                .Select(item => item is null
+                    ? null!
+                    : item with
+                    {
+                        ProviderContentId = item.ProviderContentId?.Trim()!
+                    })
+                .ToArray()
+        };
     }
 
     private static (ExternalContentProcessingState State, ExternalContentReviewReason Reason)

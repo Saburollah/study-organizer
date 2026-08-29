@@ -124,6 +124,73 @@ public sealed class ExternalCourseScanHandlerTests
     }
 
     [Fact]
+    public async Task ScanAsync_ContentIdsCollideAfterCanonicalization_RejectsBeforeMutation()
+    {
+        await using var setup = await ExternalCourseScenario.CreateAsync(
+            subscriberCount: 1);
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial with
+        {
+            Contents =
+            [
+                ExternalCourseSnapshots.Initial.Contents[0],
+                ExternalCourseSnapshots.Initial.Contents[0] with
+                {
+                    ProviderContentId = " exercise-1 ",
+                    Title = "Canonical collision"
+                }
+            ]
+        });
+
+        var result = await setup.Handler.ScanAsync(
+            setup.OwnerIds[0],
+            setup.SubscriptionIds[0]);
+
+        Assert.Equal(CourseScanOutcome.InvalidSnapshot, result.Outcome);
+        Assert.Empty(await setup.Database.Context.ExternalContents.ToListAsync());
+        Assert.Empty(await setup.Database.Context.Tasks.ToListAsync());
+        Assert.Empty(await setup.Database.Context.ExternalTaskLinks.ToListAsync());
+    }
+
+    [Fact]
+    public async Task ScanAsync_KnownContentIdWithWhitespace_RemainsSameIdentityAndIdempotent()
+    {
+        await using var setup = await ExternalCourseScenario.CreateAsync(
+            subscriberCount: 1);
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial);
+        await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
+        var originalContentId = await setup.Database.Context.ExternalContents
+            .Where(content => content.ProviderContentId == "exercise-1")
+            .Select(content => content.Id)
+            .SingleAsync();
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial with
+        {
+            Contents =
+            [
+                ExternalCourseSnapshots.Initial.Contents[0] with
+                {
+                    ProviderContentId = " exercise-1 "
+                },
+                ExternalCourseSnapshots.Initial.Contents[1]
+            ]
+        });
+
+        var result = await setup.Handler.ScanAsync(
+            setup.OwnerIds[0],
+            setup.SubscriptionIds[0]);
+
+        var exercise = await setup.Database.Context.ExternalContents
+            .SingleAsync(content => content.ProviderContentId == "exercise-1");
+        Assert.Equal(CourseScanOutcome.Succeeded, result.Outcome);
+        Assert.Equal(originalContentId, exercise.Id);
+        Assert.Equal(0, result.Summary!.NewContentCount);
+        Assert.Equal(0, result.Summary.ChangedContentCount);
+        Assert.Equal(2, setup.Provider.FetchCount);
+        Assert.Equal(2, await setup.Database.Context.ExternalContents.CountAsync());
+        Assert.Single(await setup.Database.Context.Tasks.ToListAsync());
+        Assert.Single(await setup.Database.Context.ExternalTaskLinks.ToListAsync());
+    }
+
+    [Fact]
     public async Task ScanAsync_BlockedFetch_PersistsLeaseAndInProgressRunBeforeFetchCompletes()
     {
         await using var setup = await ExternalCourseScenario.CreateAsync(
