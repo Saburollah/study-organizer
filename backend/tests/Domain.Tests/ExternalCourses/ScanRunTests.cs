@@ -65,6 +65,19 @@ public sealed class ScanRunTests
         Assert.Equal("external_timeout", run.ErrorCode);
     }
 
+    [Theory]
+    [InlineData("scan_cancelled")]
+    [InlineData("scan_failed")]
+    public void Fail_WithInternalTerminalCode_StoresSafeCode(string errorCode)
+    {
+        var run = CreateRun();
+
+        run.Fail(errorCode, run.StartedAtUtc.AddSeconds(1));
+
+        Assert.Equal(ScanRunStatus.Failed, run.Status);
+        Assert.Equal(errorCode, run.ErrorCode);
+    }
+
     [Fact]
     public void Complete_WhenAlreadyTerminal_Throws()
     {

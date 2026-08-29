@@ -8,7 +8,9 @@ public sealed class ScanRun
         "external_timeout",
         "external_auth_required",
         "invalid_external_response",
-        "unsupported_url"
+        "unsupported_url",
+        "scan_cancelled",
+        "scan_failed"
     };
 
     public Guid Id { get; private set; }

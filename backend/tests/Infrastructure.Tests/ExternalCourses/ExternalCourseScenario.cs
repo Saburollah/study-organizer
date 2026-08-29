@@ -145,13 +145,16 @@ public sealed class ExternalCourseScenario : IAsyncDisposable
 
     public async Task<IReadOnlyList<StudyTask>> TasksForAsync(Guid ownerId)
     {
-        return await Database.Context.Tasks
+        var tasks = await Database.Context.Tasks
             .AsNoTracking()
             .Where(task => Database.Context.Modules.Any(
                 module => module.Id == task.ModuleId && module.OwnerId == ownerId))
+            .ToListAsync();
+
+        return tasks
             .OrderBy(task => task.DueDate)
             .ThenBy(task => task.Id)
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<StudyTask> ReloadTaskAsync(Guid taskId)

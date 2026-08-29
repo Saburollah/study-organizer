@@ -70,26 +70,56 @@ public sealed class ExternalCourseScanHandler(
 
         dbContext.ChangeTracker.Clear();
         dbContext.ScanRuns.Add(scanRun);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        var snapshot = CanonicalizeSnapshot(
-            await provider.FetchSnapshotAsync(
-                target.ExternalCourseId,
-                cancellationToken));
-
-        if (!IsValidSnapshot(snapshot, target))
+        try
         {
-            return new CourseScanResult(
-                CourseScanOutcome.InvalidSnapshot,
-                null,
-                InvalidSnapshotErrorCode);
-        }
+            await dbContext.SaveChangesAsync(cancellationToken);
 
-        return await PersistSuccessfulScanAsync(
-            target,
-            snapshot,
-            scanRun,
-            cancellationToken);
+            CourseSnapshot snapshot;
+            try
+            {
+                snapshot = CanonicalizeSnapshot(
+                    await provider.FetchSnapshotAsync(
+                        target.ExternalCourseId,
+                        cancellationToken));
+            }
+            catch (ExternalCourseProviderException exception)
+            {
+                var errorCode = MapProviderError(exception.Error);
+                await RecordFailedScanAsync(target.CourseId, scanRun, errorCode);
+                return new CourseScanResult(
+                    CourseScanOutcome.ExternalFailure,
+                    null,
+                    errorCode);
+            }
+
+            if (!IsValidSnapshot(snapshot, target))
+            {
+                await RecordFailedScanAsync(
+                    target.CourseId,
+                    scanRun,
+                    InvalidSnapshotErrorCode);
+                return new CourseScanResult(
+                    CourseScanOutcome.InvalidSnapshot,
+                    null,
+                    InvalidSnapshotErrorCode);
+            }
+
+            return await PersistSuccessfulScanAsync(
+                target,
+                snapshot,
+                scanRun,
+                cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            await TryRecordFailedScanAsync(target.CourseId, scanRun, "scan_cancelled");
+            throw;
+        }
+        catch
+        {
+            await TryRecordFailedScanAsync(target.CourseId, scanRun, "scan_failed");
+            throw;
+        }
     }
 
     private async Task<CourseScanResult> PersistSuccessfulScanAsync(
@@ -129,6 +159,12 @@ public sealed class ExternalCourseScanHandler(
                     .Select(subscription => subscription.Id)
                     .Contains(link.CourseSubscriptionId))
                 .ToListAsync(cancellationToken);
+            var linkedTaskIds = existingLinks
+                .Select(link => link.TaskId)
+                .ToArray();
+            var linkedTasksById = await dbContext.Tasks
+                .Where(task => linkedTaskIds.Contains(task.Id))
+                .ToDictionaryAsync(task => task.Id, cancellationToken);
             var linkedPairs = existingLinks
                 .Select(link => (link.CourseSubscriptionId, link.ExternalContentId))
                 .ToHashSet();
@@ -187,6 +223,24 @@ public sealed class ExternalCourseScanHandler(
                     {
                         newTaskEligibleCount++;
                     }
+
+                    if (change.Kind == CourseContentChangeKind.Changed
+                        && processingState == ExternalContentProcessingState.TaskEligible)
+                    {
+                        foreach (var link in existingLinks.Where(
+                                     link => link.ExternalContentId == content.Id))
+                        {
+                            var linkedTask = linkedTasksById[link.TaskId];
+                            if (linkedTask.Status == StudyTaskStatus.Open)
+                            {
+                                linkedTask.SynchronizeFromExternalSource(
+                                    incoming.Title,
+                                    incoming.StructuredDueDateUtc!.Value,
+                                    incoming.Description,
+                                    scannedAtUtc);
+                            }
+                        }
+                    }
                 }
 
                 if (change.Kind == CourseContentChangeKind.New
@@ -238,10 +292,69 @@ public sealed class ExternalCourseScanHandler(
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }
+
+    private async Task RecordFailedScanAsync(
+        Guid courseId,
+        ScanRun scanRun,
+        string errorCode)
+    {
+        dbContext.ChangeTracker.Clear();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            CancellationToken.None);
+        var persistedRun = await dbContext.ScanRuns.SingleOrDefaultAsync(
+            run => run.Id == scanRun.Id,
+            CancellationToken.None);
+        if (persistedRun is null)
+        {
+            persistedRun = scanRun;
+            dbContext.ScanRuns.Add(persistedRun);
+        }
+
+        if (persistedRun.Status == ScanRunStatus.InProgress)
+        {
+            persistedRun.Fail(errorCode, timeProvider.GetUtcNow());
+        }
+
+        var course = await dbContext.ExternalCourses.SingleAsync(
+            item => item.Id == courseId,
+            CancellationToken.None);
+        if (course.ActiveScanRunId == scanRun.Id)
+        {
+            course.MarkScanFailed(scanRun.Id);
+        }
+
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+        await transaction.CommitAsync(CancellationToken.None);
+    }
+
+    private async Task TryRecordFailedScanAsync(
+        Guid courseId,
+        ScanRun scanRun,
+        string errorCode)
+    {
+        try
+        {
+            await RecordFailedScanAsync(courseId, scanRun, errorCode);
+        }
+        catch
+        {
+            dbContext.ChangeTracker.Clear();
+        }
+    }
+
+    private static string MapProviderError(ExternalCourseProviderError error) =>
+        error switch
+        {
+            ExternalCourseProviderError.Timeout => "external_timeout",
+            ExternalCourseProviderError.AuthenticationRequired => "external_auth_required",
+            ExternalCourseProviderError.InvalidResponse => InvalidSnapshotErrorCode,
+            ExternalCourseProviderError.UnsupportedUrl => "unsupported_url",
+            _ => InvalidSnapshotErrorCode
+        };
 
     private static bool IsValidSnapshot(
         CourseSnapshot? snapshot,

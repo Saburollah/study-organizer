@@ -26,6 +26,14 @@ public sealed class ExternalCourseTestDatabase : IAsyncDisposable
 
     public TimeProvider TimeProvider { get; }
 
+    public ApplicationDbContext CreateContext()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(Connection)
+            .Options;
+        return new ApplicationDbContext(options);
+    }
+
     public static async Task<ExternalCourseTestDatabase> CreateAsync()
     {
         var connection = new SqliteConnection("Data Source=:memory:");

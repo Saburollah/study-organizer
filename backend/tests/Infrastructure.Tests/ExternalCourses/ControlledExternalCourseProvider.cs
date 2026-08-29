@@ -13,7 +13,9 @@ public sealed class ControlledExternalCourseProvider : IExternalCourseProvider
 
     private CourseSnapshot _snapshot;
     private ExternalCourseProviderError? _failure;
+    private Exception? _unexpectedFailure;
     private TaskCompletionSource? _blockedFetch;
+    private TaskCompletionSource? _fetchStarted;
 
     private ControlledExternalCourseProvider(CourseSnapshot snapshot)
     {
@@ -63,6 +65,7 @@ public sealed class ControlledExternalCourseProvider : IExternalCourseProvider
         CancellationToken cancellationToken = default)
     {
         FetchCount++;
+        _fetchStarted?.TrySetResult();
 
         var blockedFetch = _blockedFetch;
         if (blockedFetch is not null)
@@ -76,6 +79,11 @@ public sealed class ControlledExternalCourseProvider : IExternalCourseProvider
             throw new ExternalCourseProviderException(failure);
         }
 
+        if (_unexpectedFailure is { } unexpectedFailure)
+        {
+            throw unexpectedFailure;
+        }
+
         return _snapshot;
     }
 
@@ -83,18 +91,32 @@ public sealed class ControlledExternalCourseProvider : IExternalCourseProvider
     {
         _snapshot = snapshot;
         _failure = null;
+        _unexpectedFailure = null;
     }
 
     public void SetFailure(ExternalCourseProviderError error)
     {
         _failure = error;
+        _unexpectedFailure = null;
+    }
+
+    public void SetUnexpectedFailure(Exception exception)
+    {
+        _failure = null;
+        _unexpectedFailure = exception;
     }
 
     public void BlockNextFetch()
     {
         _blockedFetch = new TaskCompletionSource(
             TaskCreationOptions.RunContinuationsAsynchronously);
+        _fetchStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
     }
+
+    public Task WaitForFetchAsync() =>
+        _fetchStarted?.Task
+        ?? throw new InvalidOperationException("No fetch has been blocked.");
 
     public void ReleaseBlockedFetch()
     {

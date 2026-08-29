@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using StudyOrganizer.Application.ExternalCourses;
 using StudyOrganizer.Domain.ExternalCourses;
 using StudyOrganizer.Domain.Modules;
+using StudyOrganizer.Domain.Tasks;
 using StudyOrganizer.Infrastructure.Persistence;
 
 namespace StudyOrganizer.Infrastructure.ExternalCourses;
@@ -110,6 +111,10 @@ public sealed class ExternalCourseRegistrationHandler(
                 timeProvider.GetUtcNow());
             dbContext.Modules.Add(module);
             dbContext.CourseSubscriptions.Add(subscription);
+            await MaterializeSnapshotTasksAsync(
+                course.Id,
+                subscription,
+                cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -153,6 +158,37 @@ public sealed class ExternalCourseRegistrationHandler(
                 discovery,
                 retryOnUniqueConflict: false,
                 cancellationToken);
+        }
+    }
+
+    private async Task MaterializeSnapshotTasksAsync(
+        Guid courseId,
+        CourseSubscription subscription,
+        CancellationToken cancellationToken)
+    {
+        var candidates = await dbContext.ExternalContents
+            .Where(content => content.ExternalCourseId == courseId
+                && content.Visibility == ExternalContentVisibility.Visible
+                && content.ProcessingState == ExternalContentProcessingState.TaskEligible
+                && content.StructuredDueDateUtc != null)
+            .ToListAsync(cancellationToken);
+        var now = timeProvider.GetUtcNow();
+
+        foreach (var content in candidates.Where(
+                     content => content.StructuredDueDateUtc > now))
+        {
+            var task = new StudyTask(
+                subscription.ModuleId,
+                content.Title,
+                content.StructuredDueDateUtc!.Value,
+                content.Description);
+            var link = new ExternalTaskLink(
+                subscription.Id,
+                content.Id,
+                task.Id,
+                now);
+            dbContext.Tasks.Add(task);
+            dbContext.ExternalTaskLinks.Add(link);
         }
     }
 

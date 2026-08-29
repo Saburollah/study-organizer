@@ -10,6 +10,93 @@ namespace StudyOrganizer.Infrastructure.Tests.ExternalCourses;
 public sealed class ExternalCourseRegistrationHandlerTests
 {
     [Fact]
+    public async Task RegisterAsync_AfterSuccessfulScan_MaterializesRelevantSnapshotWithoutFetch()
+    {
+        await using var setup = await ExternalCourseScenario.CreateAsync(subscriberCount: 1);
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.Initial);
+        await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
+        var fetchesBeforeRegistration = setup.Provider.FetchCount;
+        var secondOwner = await setup.Database.CreateUserAsync("second@example.com");
+
+        var result = await setup.RegistrationHandler.RegisterAsync(
+            secondOwner,
+            "https://mock-moodle.local/courses/software-engineering-2026");
+
+        Assert.Equal(CourseRegistrationOutcome.Created, result.Outcome);
+        Assert.Equal(fetchesBeforeRegistration, setup.Provider.FetchCount);
+        var tasks = await setup.TasksForAsync(secondOwner);
+        var task = Assert.Single(tasks);
+        Assert.Equal("Exercise 1", task.Title);
+        Assert.Single(await setup.Database.Context.ExternalTaskLinks
+            .Where(link => link.CourseSubscriptionId == result.Subscription!.Id)
+            .ToListAsync());
+    }
+
+    [Fact]
+    public async Task RegisterAsync_AfterSuccessfulScan_MaterializesOnlyVisibleFutureEligibleContents()
+    {
+        await using var setup = await ExternalCourseScenario.CreateAsync(subscriberCount: 1);
+        setup.Provider.SetSnapshot(new CourseSnapshot(
+            "mock-moodle",
+            "software-engineering-2026",
+            true,
+            [
+                ExternalCourseSnapshots.Initial.Contents[0],
+                ExternalCourseSnapshots.Initial.Contents[0] with
+                {
+                    ProviderContentId = "past-exercise",
+                    Title = "Past exercise",
+                    StructuredDueDateUtc = setup.Database.Now.AddDays(-1)
+                },
+                ExternalCourseSnapshots.Initial.Contents[1]
+            ]));
+        await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
+        setup.Provider.SetSnapshot(ExternalCourseSnapshots.WithoutExerciseOne);
+        await setup.Handler.ScanAsync(setup.OwnerIds[0], setup.SubscriptionIds[0]);
+        var secondOwner = await setup.Database.CreateUserAsync("late@example.com");
+
+        var result = await setup.RegistrationHandler.RegisterAsync(
+            secondOwner,
+            "https://mock-moodle.local/courses/software-engineering-2026");
+
+        Assert.Equal(CourseRegistrationOutcome.Created, result.Outcome);
+        Assert.Empty(await setup.TasksForAsync(secondOwner));
+        Assert.Empty(await setup.Database.Context.ExternalTaskLinks
+            .Where(link => link.CourseSubscriptionId == result.Subscription!.Id)
+            .ToListAsync());
+    }
+
+    [Fact]
+    public async Task RegisterAsync_LateTaskPersistenceFails_RollsBackSubscriptionModuleAndTasks()
+    {
+        await using var setup = await ExternalCourseScenario.CreateScannedAsync(
+            subscriberCount: 1);
+        var secondOwner = await setup.Database.CreateUserAsync("rollback@example.com");
+        await setup.Database.Context.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TRIGGER fail_late_task_insert
+            BEFORE INSERT ON tasks
+            BEGIN
+                SELECT RAISE(ABORT, 'forced late task persistence failure');
+            END;
+            """);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            setup.RegistrationHandler.RegisterAsync(
+                secondOwner,
+                "https://mock-moodle.local/courses/software-engineering-2026"));
+
+        setup.Database.Context.ChangeTracker.Clear();
+        Assert.Single(await setup.Database.Context.CourseSubscriptions.ToListAsync());
+        Assert.Single(await setup.Database.Context.Modules.ToListAsync());
+        Assert.Single(await setup.Database.Context.Tasks.ToListAsync());
+        Assert.Single(await setup.Database.Context.ExternalTaskLinks.ToListAsync());
+        Assert.DoesNotContain(
+            await setup.Database.Context.Modules.ToListAsync(),
+            module => module.OwnerId == secondOwner);
+    }
+
+    [Fact]
     public async Task RegisterAsync_TwoAliases_CreateOneSharedCourseAndOneSubscription()
     {
         await using var database = await ExternalCourseTestDatabase.CreateAsync();
