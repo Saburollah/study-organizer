@@ -55,6 +55,7 @@ describe('ModulesView', () => {
         description: 'Vorlesung im 4. Semester',
         color: '#3366FF',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -94,6 +95,7 @@ describe('ModulesView', () => {
       description: 'SQL und PostgreSQL',
       color: '#FF8800',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     })
 
     const wrapper = mountView()
@@ -130,6 +132,7 @@ describe('ModulesView', () => {
         description: 'SQL',
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -140,6 +143,7 @@ describe('ModulesView', () => {
       description: 'SQL und PostgreSQL',
       color: '#3366FF',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     })
 
     const wrapper = mountView()
@@ -177,6 +181,7 @@ describe('ModulesView', () => {
         description: null,
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -206,6 +211,7 @@ describe('ModulesView', () => {
         description: null,
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -222,6 +228,36 @@ describe('ModulesView', () => {
     expect(wrapper.find('.module-card').exists()).toBe(false)
     expect(wrapper.text()).toContain('Noch keine Lernmodule')
     expect(wrapper.text()).toContain('erfolgreich gelöscht')
+  })
+
+  it('keeps linked modules editable while preventing deletion', async () => {
+    vi.spyOn(moduleService, 'getAll').mockResolvedValue([
+      {
+        id: 'e6ab31a1-292b-4b31-b65b-dab568512b40',
+        name: 'Software Engineering',
+        code: null,
+        description: null,
+        color: null,
+        createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: true,
+      },
+    ])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const card = wrapper.get('.module-card')
+    const deleteButton = card.get('.delete-module-button')
+
+    expect(card.find('.edit-module-button').exists()).toBe(true)
+    expect(deleteButton.attributes('disabled')).toBeDefined()
+    expect(card.get('.linked-module-help').text()).toContain(
+      'Moodle-Kurs kann erst mit einer zukünftigen Abmeldefunktion gelöscht werden.',
+    )
+
+    await deleteButton.trigger('click')
+
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 
   it('shows the module page in English', async () => {

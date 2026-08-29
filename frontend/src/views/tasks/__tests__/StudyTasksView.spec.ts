@@ -23,6 +23,7 @@ const studyModule = {
   description: 'Vorlesung im 4. Semester',
   color: '#3366FF',
   createdAtUtc: '2026-08-12T12:00:00Z',
+  isExternalCourseLinked: false,
 }
 
 function createTask(overrides: Partial<StudyTask> = {}): StudyTask {
@@ -35,6 +36,7 @@ function createTask(overrides: Partial<StudyTask> = {}): StudyTask {
     status: 'Open',
     createdAtUtc: '2026-08-13T08:00:00Z',
     updatedAtUtc: null,
+    externalSource: null,
     ...overrides,
   }
 }
@@ -176,6 +178,35 @@ describe('StudyTasksView', () => {
     expect(updateStatusMock).toHaveBeenCalledWith(moduleId, openTask.id, 'Completed')
     expect(wrapper.get('.status-label').text()).toBe('Erledigt')
     expect(wrapper.text()).toContain('als erledigt markiert')
+  })
+
+  it('shows Moodle provenance and locks source-controlled actions', async () => {
+    mockPageLoad([
+      createTask({
+        externalSource: {
+          providerKey: 'mock-moodle',
+          courseName: 'Software Engineering',
+          sourceUrl: 'https://mock-moodle.local/content/exercise-1',
+        },
+      }),
+    ])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const card = wrapper.get('.task-card')
+    const source = card.get('.external-task-source')
+    const sourceLink = source.get('a')
+
+    expect(source.text()).toContain('Moodle-Quelle: Software Engineering')
+    expect(sourceLink.attributes('href')).toBe(
+      'https://mock-moodle.local/content/exercise-1',
+    )
+    expect(sourceLink.attributes('target')).toBe('_blank')
+    expect(sourceLink.attributes('rel')).toBe('noopener noreferrer')
+    expect(card.find('.edit-task-button').exists()).toBe(false)
+    expect(card.find('.delete-task-button').exists()).toBe(false)
+    expect(card.find('.status-button').exists()).toBe(true)
   })
 
   it('deletes a confirmed task', async () => {

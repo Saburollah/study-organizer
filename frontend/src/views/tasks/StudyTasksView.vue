@@ -356,6 +356,17 @@ function getErrorMessage(error: unknown, fallback: string): string {
             {{ t('tasks.noDescription') }}
           </p>
 
+          <p v-if="task.externalSource" class="external-task-source">
+            {{ t('tasks.externalSource.label', { course: task.externalSource.courseName }) }}
+            <a
+              :href="task.externalSource.sourceUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ t('tasks.externalSource.open') }}
+            </a>
+          </p>
+
           <p class="due-date">
             <strong>
               {{ isOverdue(task) ? t('tasks.due.overdue') : t('tasks.due.due') }}
@@ -365,6 +376,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
           <div class="task-actions">
             <button
+              v-if="!task.externalSource"
               class="edit-task-button"
               type="button"
               :aria-label="t('tasks.actions.editAria', { title: task.title })"
@@ -374,6 +386,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
               {{ t('tasks.actions.edit') }}
             </button>
             <button
+              v-if="!task.externalSource"
               class="delete-task-button"
               type="button"
               :aria-label="t('tasks.actions.deleteAria', { title: task.title })"
@@ -489,6 +502,15 @@ h1 {
   color: #626f86;
   font-size: 1.05rem;
   line-height: 1.6;
+}
+
+.external-task-source {
+  color: #44546f;
+}
+
+.external-task-source a {
+  color: #0c66e4;
+  font-weight: 650;
 }
 
 .add-task-button {

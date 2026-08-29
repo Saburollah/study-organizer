@@ -171,6 +171,8 @@ export default {
       description: 'Erstelle dein erstes Lernmodul, um dein Studium zu organisieren.',
     },
     noDescription: 'Keine Beschreibung vorhanden.',
+    linkedCourseHelp:
+      'Dieser Moodle-Kurs kann erst mit einer zukünftigen Abmeldefunktion gelöscht werden.',
     actions: {
       tasks: 'Aufgaben',
       edit: 'Bearbeiten',
@@ -245,6 +247,10 @@ export default {
       description: 'Erstelle deine erste Aufgabe für dieses Lernmodul.',
     },
     noDescription: 'Keine Beschreibung vorhanden.',
+    externalSource: {
+      label: 'Moodle-Quelle: {course}',
+      open: 'Quelle öffnen',
+    },
     status: {
       open: 'Offen',
       completed: 'Erledigt',

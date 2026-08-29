@@ -20,6 +20,7 @@ const task = {
   status: 'Open' as const,
   createdAtUtc: '2026-08-13T08:00:00Z',
   updatedAtUtc: null,
+  externalSource: null,
 }
 
 describe('HttpTaskService', () => {

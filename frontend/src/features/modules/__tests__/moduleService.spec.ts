@@ -22,6 +22,7 @@ describe('HttpModuleService', () => {
         description: 'Vorlesung',
         color: '#3366FF',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ]
 
@@ -60,6 +61,7 @@ describe('HttpModuleService', () => {
       description: 'SQL und PostgreSQL',
       color: '#FF8800',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     }
 
     const fetchMock = vi
@@ -114,6 +116,7 @@ describe('HttpModuleService', () => {
       description: 'Fortgeschrittenes SQL',
       color: '#3366FF',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     }
 
     const fetchMock = vi

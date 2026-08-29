@@ -113,6 +113,10 @@ async function saveModule(request: SaveModuleRequest): Promise<void> {
 }
 
 function requestModuleDeletion(module: StudyModule): void {
+  if (module.isExternalCourseLinked) {
+    return
+  }
+
   saveErrorMessage.value = ''
   successMessage.value = ''
   modulePendingDeletion.value = module
@@ -278,6 +282,10 @@ function getDeleteErrorMessage(error: unknown): string {
             {{ t('modules.noDescription') }}
           </p>
 
+          <p v-if="module.isExternalCourseLinked" class="linked-module-help">
+            {{ t('modules.linkedCourseHelp') }}
+          </p>
+
           <div class="module-actions">
             <RouterLink
               class="module-tasks-link"
@@ -303,7 +311,7 @@ function getDeleteErrorMessage(error: unknown): string {
               class="delete-module-button"
               type="button"
               :aria-label="t('modules.actions.deleteAria', { name: module.name })"
-              :disabled="deletingModuleId === module.id"
+              :disabled="module.isExternalCourseLinked || deletingModuleId === module.id"
               @click="requestModuleDeletion(module)"
             >
               {{
@@ -415,6 +423,12 @@ h1 {
   color: #626f86;
   font-size: 1.05rem;
   line-height: 1.6;
+}
+
+.linked-module-help {
+  color: #626f86;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .add-module-button {

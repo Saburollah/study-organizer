@@ -171,6 +171,8 @@ export default {
       description: 'Create your first study module to organize your studies.',
     },
     noDescription: 'No description available.',
+    linkedCourseHelp:
+      'This Moodle course can only be deleted through a future unsubscribe flow.',
     actions: {
       tasks: 'Tasks',
       edit: 'Edit',
@@ -245,6 +247,10 @@ export default {
       description: 'Create your first task for this study module.',
     },
     noDescription: 'No description available.',
+    externalSource: {
+      label: 'Moodle source: {course}',
+      open: 'Open source',
+    },
     status: {
       open: 'Open',
       completed: 'Completed',
