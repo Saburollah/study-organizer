@@ -23,8 +23,48 @@ using StudyOrganizer.Api.Profiles;
 using StudyOrganizer.Api.ExternalCourses;
 using StudyOrganizer.Application.ExternalCourses;
 using StudyOrganizer.Infrastructure.ExternalCourses;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var appSettingsPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "appsettings.json");
+
+if (!builder.Environment.ContentRootFileProvider
+        .GetFileInfo("appsettings.json")
+        .Exists
+    && File.Exists(appSettingsPath))
+{
+    var appSettingsProvider = new PhysicalFileProvider(
+        builder.Environment.ContentRootPath,
+        ExclusionFilters.None);
+
+    builder.Configuration
+        .AddJsonFile(
+            appSettingsProvider,
+            "appsettings.json",
+            optional: true,
+            reloadOnChange: true)
+        .AddJsonFile(
+            appSettingsProvider,
+            $"appsettings.{builder.Environment.EnvironmentName}.json",
+            optional: true,
+            reloadOnChange: true);
+
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Configuration.AddUserSecrets<Program>(optional: true);
+    }
+
+    builder.Configuration.AddEnvironmentVariables();
+
+    if (args.Length > 0)
+    {
+        builder.Configuration.AddCommandLine(args);
+    }
+}
 
 const string FrontendCorsPolicy = "FrontendCors";
 

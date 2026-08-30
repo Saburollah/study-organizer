@@ -66,7 +66,8 @@ cd study-organizer
 cp .env.example .env
 ```
 
-Passe `POSTGRES_PASSWORD` in `.env` an. Die Datei `.env` wird nicht in Git gespeichert.
+Setze in `.env` ein eigenes lokales `POSTGRES_PASSWORD`. Die Datei `.env` ist
+ignoriert und darf nicht in Git aufgenommen werden.
 
 ### 2. PostgreSQL starten
 
@@ -77,7 +78,10 @@ docker compose ps
 
 ### 3. Backend-Secrets konfigurieren
 
-Der Wert bei `Password` muss mit `POSTGRES_PASSWORD` aus `.env` übereinstimmen.
+Der Wert bei `Password` in `DefaultConnection` muss exakt mit
+`POSTGRES_PASSWORD` aus `.env` übereinstimmen. `Jwt:SigningKey` bleibt ebenfalls
+ein User Secret; Issuer, Audience und Ablaufzeit werden aus `appsettings.json`
+geladen.
 
 ```bash
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
@@ -93,15 +97,22 @@ dotnet user-secrets set "Jwt:SigningKey" \
 
 ```bash
 dotnet ef database update \
-  --project backend/src/Infrastructure \
-  --startup-project backend/src/Api
+  --project backend/src/Infrastructure/StudyOrganizer.Infrastructure.csproj \
+  --startup-project backend/src/Api/StudyOrganizer.Api.csproj
 ```
+
+Der Befehl muss ohne ausstehende oder fehlgeschlagene Migration enden.
 
 ### 5. Backend starten
 
 ```bash
-dotnet run --project backend/src/Api
+cd backend/src/Api
+dotnet run --launch-profile http
 ```
+
+Der Start aus diesem Verzeichnis stellt sicher, dass die lokalen Appsettings und
+User Secrets verwendet werden. JWT- und CORS-Werte müssen im normalen
+Development-Start nicht zusätzlich als Umgebungsvariablen gesetzt werden.
 
 - API: `http://localhost:5101`
 - Swagger: `http://localhost:5101/swagger`
@@ -118,6 +129,45 @@ pnpm dev
 ```
 
 Das Frontend ist anschließend unter `http://localhost:5173` erreichbar.
+
+### Lokale Altzustände beheben
+
+Wenn EF Core eine Migration als ausstehend meldet, die dazugehörigen Tabellen
+aber bereits existieren, sind Schema und Migrationshistorie der lokalen
+Entwicklungsdatenbank inkonsistent. Nur wenn dort keine benötigten Daten liegen,
+kann das lokale Docker-Volume vollständig neu erstellt werden:
+
+```bash
+docker compose down --volumes
+docker compose up -d
+dotnet ef database update \
+  --project backend/src/Infrastructure/StudyOrganizer.Infrastructure.csproj \
+  --startup-project backend/src/Api/StudyOrganizer.Api.csproj
+```
+
+`docker compose down --volumes` löscht die lokale PostgreSQL-Datenbank
+unwiderruflich. Bei veralteten Vite-Verweisen auf bereits gelöschte Dateien das
+Frontend beenden und einmal mit `pnpm exec vite --force` neu starten.
+
+### Lokalen Moodle-Fixture-Ablauf ausprobieren
+
+Der Moodle-Schnitt verwendet ausschließlich einen deterministischen lokalen
+Mock-Adapter. Er benötigt keine Moodle-Zugangsdaten und führt keine externen
+Netzwerkaufrufe aus.
+
+1. Registriere dich oder melde dich an und öffne `/moodle-courses`.
+2. Registriere den primären Fixture-Link
+   `https://mock-moodle.local/courses/software-engineering-2026`.
+3. Wähle beim Kurs **Jetzt scannen**.
+4. Der Scan erzeugt aus `exercise-1` mit strukturierter Frist eine persönliche
+   Aufgabe. `announcement-1` hat keine verlässliche strukturierte Frist und
+   erscheint deshalb als **Prüfung erforderlich**, nicht als Aufgabe.
+5. Der Link **Persönliches Modul öffnen** führt zum automatisch angelegten
+   Lernmodul und zur Aufgabe mit sichtbarer Moodle-Quelle.
+
+Der Alias-Link `https://mock-moodle.local/course/view.php?id=se-2026` wird auf
+denselben kanonischen Kurs abgebildet. Seine Registrierung erzeugt daher weder
+einen zweiten Kurs noch ein zweites Abonnement.
 
 ## Qualität prüfen
 
