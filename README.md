@@ -58,6 +58,9 @@ study-organizer/
 
 ## Lokal starten
 
+Die folgenden Befehle werden, sofern kein Verzeichniswechsel angegeben ist,
+vom Repository-Root ausgeführt.
+
 ### 1. Repository vorbereiten
 
 ```bash
@@ -106,13 +109,12 @@ Der Befehl muss ohne ausstehende oder fehlgeschlagene Migration enden.
 ### 5. Backend starten
 
 ```bash
-cd backend/src/Api
-dotnet run --launch-profile http
+dotnet run --project backend/src/Api/StudyOrganizer.Api.csproj --launch-profile http
 ```
 
-Der Start aus diesem Verzeichnis stellt sicher, dass die lokalen Appsettings und
-User Secrets verwendet werden. JWT- und CORS-Werte müssen im normalen
-Development-Start nicht zusätzlich als Umgebungsvariablen gesetzt werden.
+Der Development-Start lädt die lokalen Appsettings auch aus einem isolierten,
+versteckten Worktree sowie die User Secrets des API-Projekts. JWT- und CORS-Werte
+müssen deshalb nicht zusätzlich als Umgebungsvariablen gesetzt werden.
 
 - API: `http://localhost:5101`
 - Swagger: `http://localhost:5101/swagger`

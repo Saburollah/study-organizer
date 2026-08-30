@@ -363,10 +363,10 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   Health 200 und CORS-Preflight 204 mit erlaubter Origin. EF listet alle vier
   Migrationen ohne Pending. Final Solution-Build 0 Fehler/zwei `NU1900`,
   Backend 195/195; Frontend Typecheck, Lint, 20 Dateien/97 Tests und Build grün.
-- **Commit:** `0e0c073 fix: load local settings in isolated worktrees`;
-  Evidenzcommit folgt separat.
-- **Review/Fixrunde:** kein Per-Task-Review; genau ein Gesamt-Review folgt nach
-  dem Task-12-Evidenzcommit.
+- **Commits:** `0e0c073 fix: load local settings in isolated worktrees` und
+  `c43caa4 docs: record Moodle slice verification`.
+- **Review/Fixrunde:** kein Per-Task-Review; der einmalige Gesamt-Review ist im
+  folgenden Abschnitt dokumentiert.
 - **Unterbrechungen/Effizienz:** fokussierter API- und voller Solution-Test
   scheiterten je einmal vor Teststart an gesperrten MSBuild-Named-Pipes und
   bestanden nach gezielter Sandboxfreigabe. Docker-Status war wegen gesperrtem
@@ -379,3 +379,37 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   Standard-PhysicalFileProvider unter `.worktrees` aber als nicht existent
   behandelt. Zwei Shell-/Compilekorrekturen betrafen nur temporäre Diagnostik.
   Die ungetrackte 30-Byte-Datei `0` wurde nicht verändert.
+
+### 30. August 2026 — Abschlussreview — Tasks 1–12
+
+- **Ausführung:** einmaliger Inline-Gesamt-Review durch den Main-Agenten; keine
+  Subagents und keine Reviewer-Subagents.
+- **Zweck:** Spezifikationskonformität, Autorisierung, Transaktions-/Lease-
+  Verhalten, relationale Constraints, sichere API-Fehler, Frontend-Provenienz
+  und den korrigierten Development-Start gegen den vollständigen Feature-Diff
+  prüfen.
+- **Inspiziert:** Designspezifikation und Tasks 7–12 des Plans; Registration-,
+  Query- und Scanhandler; Task-/Modulschutz; EF-Konfiguration/Migration;
+  ExternalCourse-API; Kursansicht/-client; `Program.cs`, README und relevante
+  Tests. `git diff --check e7d8b5e..HEAD` war sauber.
+- **Geändert:** README zeigt nun den tatsächlich korrigierten Start direkt vom
+  Repository-Root; dieses Aktivitätslog und das Beobachtungslog wurden um das
+  Review-Ergebnis ergänzt. Kein Produktverhalten wurde im Review geändert.
+- **Entscheidungen/Funde:** keine offenen Critical- oder Important-Funde. Ein
+  Minor-Dokumentationsfund wurde behoben. Drei bekannte, nicht blockierende
+  Minor-Punkte bleiben bewusst unverändert: Dispose nur im Fehlerpfad des
+  SQLite-Testfixtures, eine redundante caller-seitige Tracker-Bereinigung in
+  einem Rollbacktest und die netzwerkbedingten `NU1900`-Hinweise.
+- **Verifikation:** exakter Root-Start ohne JWT-/CORS-Overrides auf Port 5102
+  erfolgreich; Development/korrekter Content-Root, Health 200 und CORS-
+  Preflight 204 mit `Access-Control-Allow-Origin: http://localhost:5173`.
+  Der Testprozess wurde danach sauber beendet. Die bereits unmittelbar zuvor
+  ausgeführten Abschlussprüfungen bleiben Backend 195/195 und Frontend 97/97
+  sowie beide Builds, Typecheck und Lint grün.
+- **Review-/Fixrunden:** genau ein Review mit einer kleinen Dokumentations-
+  korrektur; keine wiederholte Review-/Fixschleife.
+- **Commit:** Dokumentationscommit `docs: record final inline review` (enthält
+  diesen Abschlussreview).
+- **Fehler/Effizienz:** der erste Root-Start hing erneut an der eingeschränkten
+  Sandbox und wurde beendet; derselbe Befehl startete nach der bereits bekannten
+  lokalen Prozessfreigabe sofort. Keine weiteren Produkt- oder Testfehler.

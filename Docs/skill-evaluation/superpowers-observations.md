@@ -30,7 +30,7 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Implementierungsplanaufgaben | 12 | Tasks 1–12 abgeschlossen; Tasks 7–12 vollständig inline ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
 | Neu angelegte automatisierte Tests | 155 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17; Task 9: 4; Task 10: 14; Task 11: 2 |
-| Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
+| Review-Funde nach Schweregrad | 1 / 6 / 4 | Critical / Important / Minor; Critical und Important behoben, ein Dokumentations-Minor im Gesamt-Review behoben, drei nicht blockierende Minor akzeptiert |
 | Geänderte Produktdateien | 84 | `backend/` und `frontend/` gegen `e7d8b5e`: 8.368 Zeilen hinzugefügt, 79 entfernt; Dokumentation/Versuchsmetadaten nicht enthalten |
 
 ## Baseline-Ergebnisse
@@ -172,4 +172,23 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Unnötig oder zu aufwendig:** 23 zusätzliche Sandbox-Eskalationen in Task 12 und mehrere kurzfristige Diagnose-Builds erhöhten den Ausführungsaufwand; zwei Hypothesen zu Launch-Profil beziehungsweise Environment allein reichten nicht.
 - **Vom Skill übersehen:** Der Plan behandelte den vorgeschriebenen versteckten Worktree als isolierte Git-Frage, nicht als Einfluss auf `PhysicalFileProvider` und damit Appsettings/CORS/JWT-Startup. Ebenso fehlten ein Schema-Historiencheck und Vite-Cache-Hinweis im ursprünglichen Walkthrough.
 - **Was ich selbst gelernt habe:** Vom Benutzer praktisch bestätigt: Ein grüner automatisierter Schnitt ersetzt den lokalen Sichtlauf nicht; Environment, Content-Root, FileProvider, Migrationshistorie, Secret-/Passwortabgleich und Frontend-Cache sind getrennte Startgrenzen und müssen jeweils beobachtbar geprüft werden.
-- **Nachweis:** SDD-Ledger; Task-Berichte; Commits bis `0e0c073`; exakte Test-/Buildausgaben und Benutzerbericht zum manuellen Walkthrough
+- **Nachweis:** SDD-Ledger; Task-Berichte; Commits bis `c43caa4`; exakte Test-/Buildausgaben und Benutzerbericht zum manuellen Walkthrough
+
+### Finaler Inline-Gesamtreview
+
+Der genau einmal ausgeführte Abschlussreview fand keine offenen Critical- oder
+Important-Probleme in Spezifikationskonformität, Owner-Scoping, relationalen
+Constraints, sicherer Fehlerabbildung, Scan-/Registrierungsatomizität oder den
+UI-Schutzregeln. Ein Minor in der README wurde unmittelbar korrigiert: Der
+reproduzierbare Backend-Start zeigt jetzt den zuvor fehlerhaften und durch
+`Program.cs` reparierten Befehl direkt vom Repository-Root.
+
+Der exakte Root-Start lief anschließend ohne explizite JWT- oder CORS-
+Umgebungsvariablen auf Port 5102: Development-Environment und Content-Root waren
+korrekt, `/health` antwortete mit HTTP 200 und der CORS-Preflight für
+`http://localhost:5173` mit HTTP 204 samt passendem Allow-Origin-Header. Der
+Prozess wurde danach beendet. Offen bleiben nur drei nicht blockierende Minor-
+Beobachtungen: zwei ausschließlich testinterne Robustheitsdetails
+(Dispose-Fehlerpfad und redundantes Tracker-Clear) sowie `NU1900` bei nicht
+erreichbarer NuGet-Advisory-Quelle. Sie verändern weder Produktverhalten noch
+Abnahmeergebnis.
