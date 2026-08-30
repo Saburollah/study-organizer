@@ -9,6 +9,9 @@ Arbeitsabläufe. Produktumfang, Testzahlen und Codemenge dienen als Kontext,
 weil die Versuche trotz identischem Ausgangscommit unterschiedliche fachliche
 Schnitte umgesetzt haben.
 
+Das daraus abgeleitete eigenständige Paper liegt unter
+[`bewerbungs-paper-agentische-skill-suites.md`](bewerbungs-paper-agentische-skill-suites.md).
+
 Die Aussagen sind als **beobachteter Fakt**, **persönliche Bewertung des
 Benutzers** oder **Interpretation des Agents** gekennzeichnet. Die Kürzel in
 eckigen Klammern verweisen auf den Nachweiskatalog am Dokumentende.

@@ -471,3 +471,28 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
 - **Effizienz:** Exakte, nicht erhobene Matt-Prozesszahlen wurden nicht durch
   weitere externe GitHub-Abfragen rekonstruiert; dies vermeidet Scheingenauigkeit
   und hält den Vergleich auf den archivierten Versuchsnachweisen.
+
+### 30. August 2026 — Bewerbungs-Paper
+
+- **Ausführung:** inline durch den Main-Agenten; keine Subagents.
+- **Zweck:** den belegten Workflowvergleich als eigenständige, verständliche
+  deutsche Fallstudie für eine Bewerbung formulieren.
+- **Inspiziert:** Versuchsprotokoll, beide Beobachtungslogs, Aktivitätslog,
+  Vergleichsdokument sowie die referenzierten Git-Stände `e7d8b5e`, `ab8249c`,
+  `a8801ff` und `866e724`.
+- **Geändert:** neues
+  `Docs/skill-evaluation/bewerbungs-paper-agentische-skill-suites.md`; Link vom
+  Vergleichsdokument auf das Paper; kein Produktcode.
+- **Entscheidungen:** Das Paper beschreibt eine praxisnahe Fallstudie und kein
+  kontrolliertes Benchmark. Der unterschiedliche Feature-Umfang, der Lerneffekt
+  und die einzelne bewertende Person werden ausdrücklich begrenzt. Der
+  Verbesserungsvorschlag kombiniert Superpowers als Standard mit einer
+  risikobasierten Vertiefung durch Matt-Methoden.
+- **Prüfungen:** Quellen und Bewertungswerte abgeglichen; alle lokalen und
+  commitgebundenen Nachweise vorhanden; keine Platzhalter oder Zugangsdaten;
+  `git diff --check` ohne Fund. Die bereits bestätigten Produkttests wurden für
+  diese reine Dokumentationsänderung nicht erneut ausgeführt.
+- **Arbeitsbaum:** Die versehentliche ungetrackte Diagnose-Datei `0` wurde zur
+  Wiederherstellbarkeit nach
+  `/private/tmp/study-organizer-superpowers-diagnostic-0-20260830.txt`
+  verschoben und nicht in das Repository übernommen.
