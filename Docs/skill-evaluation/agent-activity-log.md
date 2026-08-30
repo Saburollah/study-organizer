@@ -436,3 +436,38 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
   hohen Kontingentverbrauch und selbst korrigierte lokale Startprobleme hin.
 - **Effizienz:** der Abschluss-Skill wiederholte die kurz zuvor bereits grüne
   Gesamtsuite; dies erhöht Nachweissicherheit, aber auch Nutzungskosten.
+
+### 30. August 2026 — nach Task 12 — fairer Workflow-Vergleich
+
+- **Ausführung:** inline durch den Main-Agenten; keine Subagents.
+- **Zweck:** Matt und Superpowers workfloworientiert, faktenbasiert und ohne
+  künstlichen Gesamtsieger vergleichen; Grundlage für ein späteres deutsches
+  Bewerbungs-Paper schaffen.
+- **Inspiziert:** Versuchsprotokoll; Matt-Beobachtung und Matt-Protokoll im
+  festgeschriebenen Commit `ab8249c`; Superpowers-Beobachtung, Design, Plan und
+  Aktivitätslog im Stand `a8801ff`; Git-Historien, Merge-Bases, Commit-, Datei-,
+  Zeilen- und Zeitstempelstatistiken.
+- **Geändert:** neue
+  `Docs/skill-evaluation/matt-vs-superpowers-comparison.md` und dieses
+  Aktivitätslog; kein Produktcode.
+- **Entscheidungen:** Workflowvergleich ist primär; unterschiedliche
+  Feature-Schnitte werden als zentrale Einschränkung ausgewiesen. Fakten,
+  Benutzerbewertungen und Agenteninterpretation sind getrennt. Fehlende
+  Matt-Werte bleiben „nicht erhoben“ statt geschätzt.
+- **Tests/Prüfungen:** keine Produktprüfung erforderlich; alle referenzierten
+  Commits/Pfade mit `git cat-file` bestätigt, beide Merge-Bases exakt
+  `e7d8b5e`, Datei-/Zeilen-/Commitwerte reproduziert und `git diff --check`
+  ohne Fund.
+- **Commit:** Dokumentationscommit `docs: compare Matt and Superpowers`
+  (enthält Vergleich und Aktivitätsnachweis).
+- **Review:** Inline-Quellenabgleich gegen beide Logs und das neutrale
+  Protokoll; keine Reviewer-Subagents. Eine Inkonsistenz wurde sichtbar und im
+  Vergleich offengelegt: Matt-Protokoll neun Grillings, Matt-Log zehn
+  nummerierte Entscheidungsdurchläufe.
+- **Fix-/Reviewrunden:** eine Quellenprüfung, keine wiederholte Reviewschleife.
+- **Fehler/Unterbrechungen:** keine. Der Matt-Produktstand lag nicht nur auf
+  `experiment/matt`, sondern über gestapelte Featurebranches im abschließenden
+  Evidenzcommit; `git merge-base` bestätigte dennoch für beide `e7d8b5e`.
+- **Effizienz:** Exakte, nicht erhobene Matt-Prozesszahlen wurden nicht durch
+  weitere externe GitHub-Abfragen rekonstruiert; dies vermeidet Scheingenauigkeit
+  und hält den Vergleich auf den archivierten Versuchsnachweisen.
