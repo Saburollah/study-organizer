@@ -24,14 +24,14 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | Subagent-Aufrufe | 22 | Tasks 1–3: acht; Task 4: fünf; Task 5: fünf; Task 6: Implementierung, Review, beendeter Fixturn und gestoppter Verifikationsturn |
 | Rückfragen an den Benutzer | 20 | Eine S0-Reflexionsfrage, siebzehn S1-Entscheidungs-/Freigabefragen, eine schriftliche Spec-Review-Frage und die S2-Auswahl der Ausführungsform |
 | Davon Produkt-/Architekturfragen | 17 | Zehn Klärungsfragen, eine Ansatzwahl, fünf Designfreigaben und eine Konsistenzfrage |
-| Umgebungsfreigaben | 3 | Sandbox-Ausnahme für Build und Tests; Lockfile-Installation |
-| Vom Benutzer korrigierte Annahmen | 0 |  |
+| Umgebungsfreigaben | 30 | Baseline-/Commit-Ausnahmen sowie Named-Pipe-, Prozess-, Socket- und redigierte Startup-Diagnosen im eingeschränkten Worktree |
+| Vom Benutzer korrigierte Annahmen | 1 | Der nur scheinbar aktive `.csproj`-Start wurde zu früh als erfolgreicher Development-Start bewertet; der manuelle Walkthrough widerlegte dies |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
-| Implementierungsplanaufgaben | 12 | Tasks 1–11 abgeschlossen; Task 12 wird inline ausgeführt |
+| Implementierungsplanaufgaben | 12 | Tasks 1–12 abgeschlossen; Tasks 7–12 vollständig inline ausgeführt |
 | Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 | Task 4: erster GREEN-Lauf scheiterte in zwei Tests an SQLite-`DateTimeOffset`-Sortierung; verworfener Parallel-Context-Ansatz für deterministische Race-Tests |
 | Neu angelegte automatisierte Tests | 155 | Task 1: 35; Task 2: 6; Task 3: 5; Task 4: 26; Task 5: 16; Task 6: 19; Task 7: 11; Task 8: 17; Task 9: 4; Task 10: 14; Task 11: 2 |
 | Review-Funde nach Schweregrad | 1 / 6 / 3 | Critical / Important / Minor; Critical und Important behoben, drei Minor für den Gesamt-Review vorgemerkt |
-| Geänderte Produktdateien | Laufend | Wird nach Task 12 aus dem finalen Feature-Diff gezählt |
+| Geänderte Produktdateien | 84 | `backend/` und `frontend/` gegen `e7d8b5e`: 8.368 Zeilen hinzugefügt, 79 entfernt; Dokumentation/Versuchsmetadaten nicht enthalten |
 
 ## Baseline-Ergebnisse
 
@@ -142,10 +142,10 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Was ich selbst gelernt habe:** Nach der Planübergabe vom Benutzer zu ergänzen
 - **Nachweis:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md`; verknüpfter Worktree `/Users/saburollahsafari/Documents/study-organizer/.worktrees/superpowers`; Branch `experiment/superpowers`; `e7d8b5e` ist Vorfahr von `HEAD`
 
-### Superpowers S3 — Implementierung und TDD (laufend)
+### Superpowers S3 — Implementierung und TDD (abgeschlossen)
 
-- **Beginn/Ende:** 28. August 2026, 12:47 CEST / laufend
-- **Verwendete Skills:** `subagent-driven-development`, `test-driven-development`; bestehende Isolation erneut gemäß `using-git-worktrees` bestätigt
+- **Beginn/Ende:** 28. August 2026, 12:47 CEST / 30. August 2026, 06:39 CEST; ca. 41 h 52 min Wandzeit, aktive Benutzerzeit nicht separat gemessen
+- **Verwendete Skills:** `subagent-driven-development` für Tasks 1–6; `executing-plans` inline für Tasks 7–12; durchgehend `test-driven-development`, bei Fehlern `systematic-debugging`; bestehende Isolation gemäß `using-git-worktrees`
 - **Erzeugte Artefakte:** Git-ignorierter, planspezifischer SDD-Ledger unter `.superpowers/sdd/2026-08-28-moodle-end-to-end/`; Task-Briefs, Implementierungsberichte und Review-Pakete folgen dort
 - **Gestellte Rückfragen:** Der Benutzer wählte Ausführungsform 1, die empfohlene subagentengesteuerte Umsetzung. Der Skill läuft danach ohne routinemäßige Zwischenfreigaben weiter.
 - **Wichtige Entscheidungen:** Vor Task 1 wurden alle taskübergreifend geteilten Dateien und Schnittstellen sowie die innere Konsistenz jeder Aufgabe tabellarisch geprüft. Drei Rulings sind im Ledger festgehalten: Application-Platzierung des portnahen Snapshot-Diffs, keine Produktionsabhängigkeit auf spätere Test-Fixtures und ein einheitlicher Test-Helper-Propertyname.
@@ -166,9 +166,10 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Task-Nachweise:** Task 9 inline: `1e41522 feat: add Moodle course client`; erwartetes fehlendes-Service-Import-RED; anschließend 4/4 exakte HTTP-Routentests und vollständiger Frontend-Typecheck grün. Keine Wiederholungs- oder Debugrunde.
 - **Task-Nachweise:** Task 10 inline: `0fc36cc feat: add Moodle course workflow`; erwartetes Komponenten-Import-RED, danach 12/12 Komponenten- und 8/8 Routertests. Ein abschließender Planabgleich deckte die zunächst nicht angezeigte fünfte Scan-Kennzahl auf; ein gezieltes RED und minimales GREEN ergänzten sie. Final 24/24 relevante Frontendtests sowie Typecheck und Lint grün.
 - **Task-Nachweise:** Task 11 inline: `5ec8b3d feat: identify Moodle-managed tasks`; erwartetes View-RED 2 fehlgeschlagen/17 bestanden, danach 19/19 fokussierte Viewtests und 10/10 angepasste Service-/Dashboardtests. Vollständig 20 Testdateien/97 Tests sowie Typecheck, Lint und Build grün. Externe Tasks zeigen Provenienz bei erhaltenem Statuswechsel; verknüpfte Module bleiben editierbar und sind gegen Löschung gesperrt.
-- **Korrekturen durch den Benutzer:** Keine
-- **Besonders hilfreich:** Noch zu bewerten
-- **Unnötig oder zu aufwendig:** Noch zu bewerten
-- **Vom Skill übersehen:** Noch zu bewerten
-- **Was ich selbst gelernt habe:** Nach Abschluss von S3 vom Benutzer zu ergänzen
-- **Nachweis:** SDD-Ledger; Task-Berichte; Task- und Review-Commits werden fortlaufend ergänzt
+- **Task-Nachweise:** Task 12 inline: `0e0c073 fix: load local settings in isolated worktrees`. Der Benutzer bestätigte den vollständigen Browser-Walkthrough Ende-zu-Ende. Lokale Hindernisse waren fehlende `.env`, abweichendes PostgreSQL-Passwort, inkonsistentes Docker-Volume/Migrationshistorie und Vite-Cache. Repositorybefund: Der Standard-PhysicalFileProvider sah Appsettings unter `.worktrees` trotz vorhandener Dateien nicht; vorhandener CORS-Test RED 0/2, nach gezieltem Fallback 2/2. Kontrollierter Development-Start ohne explizite JWT-/CORS-Werte: Health 200, Preflight 204 mit `Access-Control-Allow-Origin`. ExternalCourse-API 17/17, API gesamt 65/65, Backend gesamt 195/195, Frontend 97/97, Builds/Typecheck/Lint grün. Alle vier EF-Migrationen angewendet. Gegen `e7d8b5e`: 84 Produktdateien, +8.368/−79 Zeilen.
+- **Korrekturen durch den Benutzer:** Nach Task 6 ersetzte der Benutzer die zuvor gewählte subagentengesteuerte Ausführung ausdrücklich durch Inline-Ausführung für Tasks 7–12; Task 6 durfte nicht neu implementiert werden. In Task 12 korrigierte der manuelle Walkthrough die zu frühe Agentenaussage, der Root-Start mit exaktem `.csproj` und Launch-Profil lade die Konfiguration bereits korrekt.
+- **Besonders hilfreich:** Die Kombination aus bestehendem fokussiertem CORS-Test, redigierter Provider-Diagnostik und vom Benutzer ausgeführtem Sichtlauf trennte Produktlücke, Testreihenfolge und lokale Datenzustände nachvollziehbar.
+- **Unnötig oder zu aufwendig:** 23 zusätzliche Sandbox-Eskalationen in Task 12 und mehrere kurzfristige Diagnose-Builds erhöhten den Ausführungsaufwand; zwei Hypothesen zu Launch-Profil beziehungsweise Environment allein reichten nicht.
+- **Vom Skill übersehen:** Der Plan behandelte den vorgeschriebenen versteckten Worktree als isolierte Git-Frage, nicht als Einfluss auf `PhysicalFileProvider` und damit Appsettings/CORS/JWT-Startup. Ebenso fehlten ein Schema-Historiencheck und Vite-Cache-Hinweis im ursprünglichen Walkthrough.
+- **Was ich selbst gelernt habe:** Vom Benutzer praktisch bestätigt: Ein grüner automatisierter Schnitt ersetzt den lokalen Sichtlauf nicht; Environment, Content-Root, FileProvider, Migrationshistorie, Secret-/Passwortabgleich und Frontend-Cache sind getrennte Startgrenzen und müssen jeweils beobachtbar geprüft werden.
+- **Nachweis:** SDD-Ledger; Task-Berichte; Commits bis `0e0c073`; exakte Test-/Buildausgaben und Benutzerbericht zum manuellen Walkthrough

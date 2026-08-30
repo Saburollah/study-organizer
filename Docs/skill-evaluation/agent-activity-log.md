@@ -337,3 +337,45 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
 - **Unterbrechungen/Effizienz:** erster Commitversuch scheiterte an der
   Worktree-`index.lock`-Sandboxgrenze und wurde nach gezielter Freigabe einmal
   wiederholt. Die volle Frontend-Suite lief genau einmal nach fokussiertem GREEN.
+
+### 30. August 2026 — Task 12 — Dokumentation und Gesamtabnahme
+
+- **Ausführung:** inline durch den Main-Agenten; keine Subagents und kein
+  Per-Task-Reviewer.
+- **Zweck:** lokalen Fixture-Ablauf reproduzierbar dokumentieren und die
+  vollständigen Protokollprüfungen ausführen.
+- **Inspiziert:** Task-12-Planabschnitt, README, Mock-Provider, API-Startup/CORS,
+  Appsettings/Launch-Profil, User-Secrets nur als gesetzte Schlüssel/Längen,
+  `.env`-Ignore, EF-Migrationsstatus, laufende Ports und finaler Feature-Diff.
+- **Geändert:** `Program.cs` lädt die zwei bekannten Appsettings in versteckten
+  Content-Roots mit einem nicht-ausschließenden FileProvider und stellt danach
+  Secrets-/Environment-/Command-Line-Priorität wieder her; README und beide
+  Versuchslogs wurden korrigiert und vervollständigt.
+- **Entscheidungen:** kein synthetischer Test für menschliche README-Prosa;
+  primärer Link und Alias werden als ein kanonischer, vollständig lokaler Kurs
+  dokumentiert. Kein externer Browser-Skill; der Benutzer führte den Sichtlauf
+  selbst vollständig erfolgreich aus. Lokale DB-/Volume-/Passwort- und Vite-
+  Cache-Zustände sind Setup-Probleme; der JSON-Provider-Ausschluss im versteckten
+  `.worktrees`-Pfad war eine reproduzierbare Repository-Startlücke.
+- **Tests:** vorhandener CORS-/Startup-Test als RED 0/2 wegen früher JWT-
+  Validierung, nach Fix 2/2; ExternalCourse-API 17/17, gesamte API 65/65.
+  Kontrollierter Start ohne JWT-/CORS-Overrides: Kestrel Development aktiv,
+  Health 200 und CORS-Preflight 204 mit erlaubter Origin. EF listet alle vier
+  Migrationen ohne Pending. Final Solution-Build 0 Fehler/zwei `NU1900`,
+  Backend 195/195; Frontend Typecheck, Lint, 20 Dateien/97 Tests und Build grün.
+- **Commit:** `0e0c073 fix: load local settings in isolated worktrees`;
+  Evidenzcommit folgt separat.
+- **Review/Fixrunde:** kein Per-Task-Review; genau ein Gesamt-Review folgt nach
+  dem Task-12-Evidenzcommit.
+- **Unterbrechungen/Effizienz:** fokussierter API- und voller Solution-Test
+  scheiterten je einmal vor Teststart an gesperrten MSBuild-Named-Pipes und
+  bestanden nach gezielter Sandboxfreigabe. Docker-Status war wegen gesperrtem
+  Socket und fehlender lokaler `.env` nicht verfügbar; auf nachträgliche Browser-
+  oder E2E-Installation wurde verzichtet. Der manuelle Start mit dem bisherigen
+  README-Verzeichnispfad reproduzierte die JWT-Ausnahme; Secrets waren vorhanden
+  und der Key 64 Zeichen lang. Eine erste Diagnose deutete den nur scheinbar
+  laufenden Prozess fälschlich als erfolgreichen `.csproj`-Start. Redigierte
+  Provider-Diagnostik belegte danach: Appsettings-Dateien existierten, wurden vom
+  Standard-PhysicalFileProvider unter `.worktrees` aber als nicht existent
+  behandelt. Zwei Shell-/Compilekorrekturen betrafen nur temporäre Diagnostik.
+  Die ungetrackte 30-Byte-Datei `0` wurde nicht verändert.
