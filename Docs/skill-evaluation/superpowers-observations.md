@@ -22,9 +22,9 @@ Der Setup-Commit liegt direkt auf dem gemeinsamen Ausgangscommit. Sein Diff änd
 | --- | ---: | --- |
 | Agentensitzungen | 1 | Beginn von S0 und S1 in derselben Sitzung |
 | Subagent-Aufrufe | 22 | Tasks 1–3: acht; Task 4: fünf; Task 5: fünf; Task 6: Implementierung, Review, beendeter Fixturn und gestoppter Verifikationsturn |
-| Rückfragen an den Benutzer | 20 | Eine S0-Reflexionsfrage, siebzehn S1-Entscheidungs-/Freigabefragen, eine schriftliche Spec-Review-Frage und die S2-Auswahl der Ausführungsform |
+| Rückfragen an den Benutzer | 31 | Zwanzig Fragen bis S2, eine S4-Integrationsentscheidung sowie sieben S5-Bewertungsfragen und drei Rückfragen für konkrete Beispiele beziehungsweise eine verständlichere Erklärung |
 | Davon Produkt-/Architekturfragen | 17 | Zehn Klärungsfragen, eine Ansatzwahl, fünf Designfreigaben und eine Konsistenzfrage |
-| Umgebungsfreigaben | 30 | Baseline-/Commit-Ausnahmen sowie Named-Pipe-, Prozess-, Socket- und redigierte Startup-Diagnosen im eingeschränkten Worktree |
+| Umgebungsfreigaben | 33 | Baseline-/Commit-Ausnahmen sowie Named-Pipe-, Prozess-, Socket-, Startup- und finale Testfreigaben im eingeschränkten Worktree |
 | Vom Benutzer korrigierte Annahmen | 1 | Der nur scheinbar aktive `.csproj`-Start wurde zu früh als erfolgreicher Development-Start bewertet; der manuelle Walkthrough widerlegte dies |
 | Planungs- und Entscheidungsdokumente | 2 | Bestätigte Moodle-Designspezifikation und ausführbarer Implementierungsplan; das Beobachtungslog wird nicht mitgezählt |
 | Implementierungsplanaufgaben | 12 | Tasks 1–12 abgeschlossen; Tasks 7–12 vollständig inline ausgeführt |
@@ -74,11 +74,14 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Was ich selbst gelernt habe:** **Vom Benutzer bestätigt:** „Ich habe gelernt, dass ein eigener Worktree den Superpowers-Versuch vom Matt-Versuch und von main trennt. Die Baseline-Prüfung zeigt, dass das Projekt vor der neuen Implementierung funktioniert, sodass spätere Fehler eindeutig unseren Änderungen zugeordnet werden können.“
 - **Nachweis:** Branch `experiment/superpowers`; Ausgangscommit `e7d8b5e`; Setup-Commit `1c4b35a`; Skill-Commit `a419016`; obige Testausgaben; dieses Dokument
 
-## Noch ausstehende Benutzerangaben für S0
+## Abschließende Einordnung von S0
 
-- Tatsächliche manuelle Arbeitszeit des Benutzers:
-- Was war an Isolation und Baseline verständlich oder unverständlich?
-- War der Freigabeaufwand angemessen?
+- Die tatsächliche manuelle Arbeitszeit des Benutzers wurde nicht separat
+  gemessen und wird im Vergleich deshalb als „nicht erhoben“ ausgewiesen.
+- Die eigene Erklärung des Benutzers zu Worktree-Isolation und Baseline zeigt,
+  dass beide Zwecke verständlich waren.
+- Der Benutzer bewertete den Gesamtaufwand in S5 mit 5/5. Die häufigen
+  Sandbox-Freigaben bleiben dennoch als agentenseitige Ineffizienz dokumentiert.
 
 ### Superpowers S1 — Brainstorming (abgeschlossen)
 
@@ -124,7 +127,11 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Besonders hilfreich:** Die abschnittsweisen Freigaben hielten Produktentscheidungen sichtbar; der vorgeschriebene Spec-Self-Review fand die zuvor nicht geregelte Löschung des verknüpften persönlichen Moduls.
 - **Unnötig oder zu aufwendig:** **Agentenentwurf:** Die fünf abschnittsweisen Freigaben erhöhten die Zahl der Interaktionen deutlich; sie schufen jedoch nachvollziehbare Entscheidungspunkte für den Versuch.
 - **Vom Skill übersehen:** **Agentenentwurf:** Die Löschregel für das automatisch verknüpfte persönliche Modul wurde nicht durch eine Skill-Frage entdeckt, sondern erst durch den verpflichtenden Konsistenz-Self-Review der fertigen Spezifikation.
-- **Was ich selbst gelernt habe:** Nach Abschluss von S1 vom Benutzer zu ergänzen
+- **Was ich selbst gelernt habe:** **Vom Benutzer bestätigt:** Der lokale
+  End-to-End-Schnitt prüft den vollständigen Ablauf von der Kursregistrierung
+  bis zur Aufgabe. Der Mock hält ihn reproduzierbar und unabhängig von echten
+  Moodle-Zugangsdaten, ohne Architektur, UI und Deduplizierung getrennt zu
+  betrachten.
 - **Nachweis:** `Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md`; Commit `3dc5ff5`
 
 ### Superpowers S2 — Arbeitsumgebung und Plan (abgeschlossen)
@@ -132,14 +139,20 @@ Der API-Testfehler bestand vor jeder Moodle-Implementierung im isolierten Superp
 - **Beginn/Ende:** 28. August 2026, nach Bestätigung der Spezifikation bis ca. 12:45 CEST
 - **Verwendete Skills:** `writing-plans`; `using-git-worktrees` zur erneuten Prüfung der bereits bestehenden Isolation
 - **Erzeugte Artefakte:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md` mit 12 geordneten Aufgaben
-- **Gestellte Rückfragen:** Auswahl zwischen subagentengesteuerter und Inline-Ausführung bei der Planübergabe; Antwort ausstehend
+- **Gestellte Rückfragen:** Auswahl zwischen subagentengesteuerter und
+  Inline-Ausführung bei der Planübergabe; zunächst Option 1
+  (subagentengesteuert), nach Task 6 auf ausdrücklichen Benutzerwunsch Wechsel
+  zur Inline-Ausführung für Tasks 7–12
 - **Wichtige Entscheidungen:** Der Plan führt Domain, Provider-Port und Snapshot-Diff, relationale Persistenz, Registrierung, gemeinsamen Scan, Fehler- und Nebenläufigkeitsverhalten, Schutz quellengesteuerter Daten, API, Frontend und Abschlussnachweise in dieser Abhängigkeitsreihenfolge ein. Jede Produktänderung beginnt mit einem fehlschlagenden Test. Zwei exakte Mock-URLs, feste Snapshot-Termine und öffentliche Test-Helper-Schnittstellen beseitigen Zufalls- und Interpretationsspielraum. Der bekannte JWT-Baseline-Fehler bleibt als separater Vergleichspunkt sichtbar.
 - **Fehlversuche oder Blocker:** Keine Implementierungsversuche; die Plan-Selbstprüfung fand und beseitigte drei Dokumentationsunschärfen: eine unvollständig erklärte Test-Szenario-API, einen nicht eigenständig ausführbaren Frontend-Testbefehl und einen nur relativ beschriebenen Mock-Termin. Ein erster rein lesender Verifikationsbefehl scheiterte an fehlerhafter Shell-Quotierung und wurde korrigiert wiederholt. Eine zunächst zu einfache Pfadprüfung meldete sechs gültige `Modify`-Pfade, die laut Aufgabenreihenfolge erst zuvor erstellt werden; die sequenzbewusste Wiederholung bestätigte null ungültige Pfade.
 - **Korrekturen durch den Benutzer:** Keine
 - **Besonders hilfreich:** Die Vorgabe kleiner Red-Green-Schritte zwang den Plan, Verhalten, betroffene Dateien, Schnittstellen, Prüfbefehle und Commitgrenzen gemeinsam sichtbar zu machen. Dadurch kann ein frischer Kontext jede Aufgabe ohne Zugriff auf Matt-Artefakte aufnehmen.
 - **Unnötig oder zu aufwendig:** **Agentenentwurf:** Der 12-Aufgaben-Plan ist mit mehr als 1.500 Zeilen sehr ausführlich. Diese Detailtiefe verbessert Reproduzierbarkeit, erhöht aber Lese- und Pflegeaufwand und muss im Vergleich mit dem Matt-Versuch ausdrücklich bewertet werden.
 - **Vom Skill übersehen:** **Agentenentwurf:** `writing-plans` erfasst keine Experimentmetriken und kennt den vorbestehenden JWT-Baseline-Fehler nicht; beides musste aus dem projektspezifischen Versuchsprotokoll ergänzt werden.
-- **Was ich selbst gelernt habe:** Nach der Planübergabe vom Benutzer zu ergänzen
+- **Was ich selbst gelernt habe:** Kein separates persönliches Lernergebnis nur
+  für S2 wurde erhoben. In S5 nannte der Benutzer übergreifend das Zusammenspiel
+  von Backend, Datenbank und Frontend; außerdem bewertete er die eigene Kontrolle
+  über Architektur und Ausführungsform positiv.
 - **Nachweis:** `Docs/superpowers/plans/2026-08-28-moodle-end-to-end.md`; verknüpfter Worktree `/Users/saburollahsafari/Documents/study-organizer/.worktrees/superpowers`; Branch `experiment/superpowers`; `e7d8b5e` ist Vorfahr von `HEAD`
 
 ### Superpowers S3 — Implementierung und TDD (abgeschlossen)
@@ -192,3 +205,76 @@ Beobachtungen: zwei ausschließlich testinterne Robustheitsdetails
 (Dispose-Fehlerpfad und redundantes Tracker-Clear) sowie `NU1900` bei nicht
 erreichbarer NuGet-Advisory-Quelle. Sie verändern weder Produktverhalten noch
 Abnahmeergebnis.
+
+### Superpowers S4 — Review und Branch-Abschluss (abgeschlossen)
+
+- **Beginn/Ende:** 30. August 2026, nach Task 12 bis ca. 13:06 CEST
+- **Verwendete Skills:** `requesting-code-review` als Inline-Prüfraster wegen
+  des ausdrücklichen Subagent-Verbots, `verification-before-completion` und
+  `finishing-a-development-branch`
+- **Erzeugte Artefakte:** Abschlussreview im Aktivitäts- und Beobachtungslog;
+  README-Korrektur; Commits `b6c9642` und die vorherigen Task-12-Commits
+- **Gestellte Rückfragen:** drei vorgegebene Integrationsoptionen nach frischem
+  Testlauf
+- **Wichtige Entscheidungen:** Der Benutzer wählte Option 3. Branch
+  `experiment/superpowers` und Worktree `.worktrees/superpowers` bleiben
+  isoliert; kein Merge nach `main`, kein Push und kein Pull Request vor
+  Reflexion und fairem Matt-Vergleich.
+- **Fehlversuche oder Blocker:** Der kontrollierte Root-Start hing zunächst in
+  der Sandbox und lief nach der bekannten lokalen Prozessfreigabe. Keine
+  Produkt- oder Testfehler.
+- **Korrekturen durch den Benutzer:** Keine neue Produktkorrektur; die bereits
+  dokumentierte Startup-Korrektur blieb Grundlage der README-Abnahme.
+- **Besonders hilfreich:** Der exakte, zuvor problematische Root-Befehl wurde
+  ohne JWT-/CORS-Overrides mit Health 200 und CORS 204 nachgewiesen.
+- **Unnötig oder zu aufwendig:** Der Abschluss-Skill verlangte trotz der kurz
+  zuvor abgeschlossenen Verifikation einen weiteren vollständigen Testlauf.
+- **Vom Skill übersehen:** Der Skill kennt die experimentelle Forderung, beide
+  Branches bis zum Vergleich getrennt zu halten, nicht; deshalb war Option 3
+  fachlich klar vorzuziehen.
+- **Was ich selbst gelernt habe:** **Vom Benutzer bestätigt:** Der manuelle
+  End-to-End-Test war der wichtigste Vertrauensnachweis; gleichzeitig musste der
+  lokale Start mehrere getrennte Konfigurations- und Datenzustände berücksichtigen.
+- **Nachweis:** Backend erneut 195/195, Frontend erneut 97/97; Branchentscheidung
+  des Benutzers; Commit `b6c9642`
+
+### Superpowers S5 — Benutzerreflexion (abgeschlossen)
+
+- **Beginn/Ende:** 30. August 2026, unmittelbar nach S4
+- **Verwendete Skills:** `using-superpowers` zur Einordnung des nächsten
+  Protokollschritts
+- **Erzeugte Artefakte:** vollständig ausgefüllte subjektive Bewertung
+- **Gestellte Rückfragen:** sieben Kriterien einzeln; drei kurze Rückfragen für
+  Beispiele oder eine verständlichere Erklärung
+- **Wichtige Entscheidungen:** Die Antworten wurden sprachlich bereinigt, aber
+  inhaltlich nicht erweitert. Anpassbarkeit wurde nach Erklärung des Kriteriums
+  vom zunächst ohne Verständnis genannten Wert 4 auf 3 korrigiert.
+- **Fehlversuche oder Blocker:** Die Bedeutung von „Anpassbarkeit“ war zunächst
+  nicht verständlich und wurde anhand des Inline-Wechsels, Browser-Walkthroughs
+  und Startup-Problems neu erklärt.
+- **Korrekturen durch den Benutzer:** Anpassbarkeit final 3/5 statt 4/5.
+- **Besonders hilfreich:** Einzelne Fragen machten jede Bewertung mit einem
+  konkreten Beispiel nachvollziehbar.
+- **Unnötig oder zu aufwendig:** Für drei Kriterien war eine zusätzliche
+  Rückfrage nötig, weil zunächst nur die Zahl genannt wurde.
+- **Vom Skill übersehen:** Das Versuchsprotokoll definiert die Skala, liefert
+  aber keine leicht verständlichen, projektnahen Beispiele für jedes Kriterium.
+- **Was ich selbst gelernt habe:** **Vom Benutzer bestätigt:** Besonders klar
+  wurde das Zusammenspiel von Backend, Datenbank und Frontend. Der strukturierte
+  Ablauf war hilfreich, verbrauchte aber viel Agentenkontingent; beim lokalen
+  Start musste der Benutzer mehrere Fehler selbst korrigieren.
+- **Nachweis:** Antworten des Benutzers in dieser Sitzung
+
+| Kriterium | Wert | Konkretes Beispiel des Benutzers |
+| --- | ---: | --- |
+| Verständlichkeit | 5 | Der Arbeitsablauf war kurz, sauber und leicht nachvollziehbar. |
+| Kontrolle | 4 | Architektur und Ausführungsform konnten selbst bestimmt werden. |
+| Lerngewinn | 4 | Das Zusammenspiel von Backend, Datenbank und Frontend wurde verständlicher. |
+| Angemessener Aufwand | 5 | Superpowers nutzte eine sehr gute Struktur. |
+| Vertrauen | 5 | Der manuelle End-to-End-Test bestätigte, dass alles sehr gut funktioniert. |
+| Wiederaufnahme | 4 | Die Fortsetzung wurde erleichtert, verbrauchte aber viel Agentenkontingent. |
+| Anpassbarkeit | 3 | Das Backend ließ sich zunächst nicht starten; mehrere lokale Fehler mussten selbst korrigiert werden. |
+
+**Mittelwert:** 4,29 von 5 Punkten. Der Mittelwert dient nur als kompakte
+Übersicht; die konkreten Beispiele und Unterschiede zwischen den Kriterien sind
+für den Vergleich aussagekräftiger.
