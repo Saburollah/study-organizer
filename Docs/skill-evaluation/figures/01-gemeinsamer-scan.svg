@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="940" height="455" preserveAspectRatio="xMinYMin meet" viewBox="0 0 940 455" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="940" height="455"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-455)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="940" height="455" rx="14" ry="14" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="24" y="416" style="font-family: BodyBold; font-size: 21px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,832) scale(1,-1)">EIN KURS. EIN GEMEINSAMER ABRUF. DREI PERSÖNLICHE AUFGABEN.</text>
+			<rect x="24" y="249" width="220" height="133" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="24" y="375" width="220" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="42" y="346" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,692) scale(1,-1)">Mock-Quelle</text>
+			<text x="42" y="317" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,634) scale(1,-1)">PDF / Link / Aktivität</text>
+			<text x="42" y="292" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,584) scale(1,-1)">kontrollierte Zustände</text>
+			<rect x="284" y="249" width="278" height="133" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="284" y="375" width="278" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="302" y="346" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,692) scale(1,-1)">Adapter + Validierung</text>
+			<text x="302" y="317" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,634) scale(1,-1)">stabile Kurs- und Inhalts-ID</text>
+			<text x="302" y="292" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,584) scale(1,-1)">vollständiger Zustand</text>
+			<rect x="602" y="249" width="312" height="133" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="602" y="375" width="312" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="620" y="346" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,692) scale(1,-1)">Gemeinsamer Scan</text>
+			<text x="620" y="317" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,634) scale(1,-1)">mit altem Zustand vergleichen</text>
+			<text x="620" y="292" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,584) scale(1,-1)">atomar übernehmen</text>
+			<path d="M 244,313 L 284,313 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="284 313, 274 318, 274 308" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 562,313 L 602,313 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="602 313, 592 318, 592 308" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 758,249 L 758,208 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<path d="M 171,208 L 770,208 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<path d="M 171,208 L 171,167 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="171 167, 166 177, 176 177" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 470,208 L 470,167 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="470 167, 465 177, 475 177" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 770,208 L 770,167 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="770 167, 765 177, 775 177" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="24" y="225" style="font-family: BodyBold; font-size: 16px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,450) scale(1,-1)">NUR FÜR BERECHTIGTE ABONNEMENTS</text>
+			<rect x="24" y="40" width="290" height="125" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="24" y="158" width="290" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="42" y="129" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,258) scale(1,-1)">Benutzer A</text>
+			<text x="42" y="100" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,200) scale(1,-1)">eigenes Modul</text>
+			<text x="42" y="75" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,150) scale(1,-1)">genau eine persönliche Aufgabe</text>
+			<rect x="324" y="40" width="290" height="125" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="324" y="158" width="290" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="342" y="129" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,258) scale(1,-1)">Benutzer B</text>
+			<text x="342" y="100" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,200) scale(1,-1)">eigenes Modul</text>
+			<text x="342" y="75" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,150) scale(1,-1)">genau eine persönliche Aufgabe</text>
+			<rect x="624" y="40" width="290" height="125" rx="10" ry="10" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="624" y="158" width="290" height="7" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="642" y="129" style="font-family: BodyBold; font-size: 20px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,258) scale(1,-1)">Benutzer C</text>
+			<text x="642" y="100" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,200) scale(1,-1)">eigenes Modul</text>
+			<text x="642" y="75" style="font-family: Body; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,150) scale(1,-1)">genau eine persönliche Aufgabe</text>
+			<text x="24" y="16" style="font-family: Body; font-size: 16px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,32) scale(1,-1)">Bei einem aufgabenfähigen Inhalt; erneuter identischer Scan erzeugt keine Duplikate.</text>
+		</g>
+	</g>
+</svg>
