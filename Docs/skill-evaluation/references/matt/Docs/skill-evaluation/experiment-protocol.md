@@ -13,7 +13,7 @@ Das Ergebnis des Experiments ist die Tatsachengrundlage für ein deutschsprachig
 
 ## Test-Feature
 
-Studierende registrieren einen externen Moodle-Kurs im Study Organizer. Das System erkennt neue oder geänderte Kursinhalte, verhindert Duplikate und stellt erkannte Lerninhalte den Abonnenten des Kurses bereit.
+Studierende registrieren einen External Course im Study Organizer. Das System erkennt neue oder geänderte External Learning Contents, verhindert Duplikate und stellt sie Benutzern mit aktiver Course Subscription als Imported Study Tasks bereit.
 
 Die Architekturfragen sind in [`../moodle-architecture-notes.md`](../moodle-architecture-notes.md) dokumentiert. Diese Notiz ist eine neutrale fachliche Eingabe für beide Skill-Suites und keine fertige Spezifikation.
 
@@ -22,16 +22,11 @@ Die Architekturfragen sind in [`../moodle-architecture-notes.md`](../moodle-arch
 | Merkmal | Wert |
 | --- | --- |
 | Projekt-Branch für den Matt-Versuch | `experiment/matt` |
-| Projekt-Branch für den Superpowers-Versuch | `experiment/superpowers` |
 | Ausgangscommit vor den neuen Dokumenten | `2f38578d63f988b18a749ac7c0045158fd0ed45b` |
-| Gemeinsamer Feature-Ausgangscommit | `e7d8b5ecc3fe75a38655f16c4636328bb1598d57` |
 | Zentrales Skills-Repository | `https://github.com/Saburollah/agent-skills.git` |
 | Matt-Skill-Commit | `f6de92c45098088741afdba6dbb275199803cf78` |
 | Matt-Version | `matt-v1.0` |
-| Superpowers-Version | `superpowers-v6.3.0` |
-| Superpowers-Skill-Commit | `a41901651ce44a66c2fea78dda4f81e8a3815fbe` |
-| Superpowers-Upstream | `obra/superpowers` Tag `v6.3.0` |
-| Beginn des Superpowers-Versuchs | 27. August 2026 |
+| Superpowers-Version | Vor dem Superpowers-Versuch festschreiben |
 | Datum | 20. August 2026 |
 
 Vor dem ersten Feature-Code werden die neutralen Experimentdokumente committed und der endgültige gemeinsame Ausgangscommit notiert. Der Superpowers-Versuch startet nach Möglichkeit von demselben Commit in einem getrennten Branch oder Worktree.
@@ -122,6 +117,10 @@ Wayfinder benennt das Ziel des Moodle-Vorhabens, erstellt eine Entscheidungsland
 
 **Abgeschlossen, wenn:** Review-Funde bearbeitet oder begründet akzeptiert, Abschlussprüfungen protokolliert und alle Bewertungsfelder ausgefüllt sind.
 
+#### Technischer Abschlussstand
+
+Am 27.08.2026 waren 225 Backend-Tests erfolgreich. Der Benutzer bestätigte außerdem erfolgreiche Läufe von `pnpm exec vitest run`, `pnpm lint` und `pnpm build`. Ein zuvor aufgetretener `ETIMEDOUT`-Fehler stammte vom macOS File Provider des Projektordners und nicht von einem fehlgeschlagenen Test. Offen bleibt nur die persönliche Bewertung des Benutzers; sie wird nicht durch eine Agenteneinschätzung ersetzt.
+
 ## Superpowers-Versuch
 
 Vor diesem Versuch wird eine feste Superpowers-Version im zentralen Skills-Repository veröffentlicht und im Projektbranch festgeschrieben. Matt-Skills sind in diesem Versuch nicht aktiv.
@@ -158,19 +157,19 @@ Für jeden Versuch werden folgende Werte erfasst:
 
 | Messwert | Matt | Superpowers |
 | --- | ---: | ---: |
-| Agentensitzungen |  |  |
-| Rückfragen an den Benutzer |  |  |
-| Vom Benutzer korrigierte Annahmen |  |  |
-| Planungs- und Entscheidungsdokumente |  |  |
-| Implementierungstickets beziehungsweise Planaufgaben |  |  |
-| Fehlgeschlagene oder wiederholte Implementierungsversuche |  |  |
-| Neu angelegte automatisierte Tests |  |  |
-| Review-Funde nach Schweregrad |  |  |
-| Nicht erfüllte Akzeptanzkriterien beim ersten Review |  |  |
-| Gesamte verstrichene Arbeitszeit |  |  |
-| Manuelle Arbeitszeit des Benutzers |  |  |
-| Geänderte Dateien |  |  |
-| Hinzugefügte und entfernte Codezeilen |  |  |
+| Agentensitzungen | Nicht zuverlässig erfasst |  |
+| Rückfragen an den Benutzer | Neun dokumentierte Entscheidungs-Grillings; Einzelfragen nicht zuverlässig summiert |  |
+| Vom Benutzer korrigierte Annahmen | Nicht zuverlässig erfasst |  |
+| Planungs- und Entscheidungsdokumente | 11: Architekturnotiz, `CONTEXT.md`, 7 ADRs, Protokoll und Beobachtungslog |  |
+| Implementierungstickets beziehungsweise Planaufgaben | 7: sechs Feature-Tickets und ein Deployment-Follow-up |  |
+| Fehlgeschlagene oder wiederholte Implementierungsversuche | 2 wesentliche Korrekturschleifen: Produktionsmigration und fehlender Cleanup |  |
+| Neu angelegte automatisierte Tests | Nettozahl nicht zuverlässig erfasst; Abschlussstand 225 Backend-Tests plus Frontend und Playwright |  |
+| Review-Funde nach Schweregrad | Erstprüfung: Standards 2 klare Abweichungen und 4 Ermessensfunde, Spezifikation 1 P1-Fund; Re-Review: 2 P2-Standardsfunde |  |
+| Nicht erfüllte Akzeptanzkriterien beim ersten Review | 2 Matrixzeilen: Cleanup-Frist und Cleanup/Reaktivierungs-Rennen |  |
+| Gesamte verstrichene Arbeitszeit | Nicht zuverlässig erfasst |  |
+| Manuelle Arbeitszeit des Benutzers | Nicht zuverlässig erfasst |  |
+| Geänderte Dateien | 139 gegenüber `e7d8b5e` (einschließlich generierter Migrationen und Dokumentation) |  |
+| Hinzugefügte und entfernte Codezeilen | +18.843 / −219 gegenüber `e7d8b5e` |  |
 
 Codezeilen und Dateizahl beschreiben nur den Umfang. Sie sind kein eigenständiges Qualitätsmaß.
 
@@ -180,13 +179,13 @@ Der Benutzer vergibt nach jedem Versuch Werte von 1 bis 5:
 
 | Kriterium | Bedeutung | Matt | Superpowers |
 | --- | --- | ---: | ---: |
-| Verständlichkeit | Ich konnte den Prozess und die Entscheidungen nachvollziehen. |  |  |
-| Kontrolle | Ich konnte wichtige Entscheidungen selbst treffen. |  |  |
-| Lerngewinn | Ich verstehe Architektur und Implementierung danach besser. |  |  |
-| Angemessener Aufwand | Der Prozess war für die Aufgabe weder zu leicht noch zu schwer. |  |  |
-| Vertrauen | Tests und Nachweise geben mir Vertrauen in das Ergebnis. |  |  |
-| Wiederaufnahme | Ein frischer Agent konnte die Arbeit leicht fortsetzen. |  |  |
-| Anpassbarkeit | Der Workflow ließ sich sinnvoll an das Projekt anpassen. |  |  |
+| Verständlichkeit | Ich konnte den Prozess und die Entscheidungen nachvollziehen. | 4 |  |
+| Kontrolle | Ich konnte wichtige Entscheidungen selbst treffen. | 4 |  |
+| Lerngewinn | Ich verstehe Architektur und Implementierung danach besser. | 5 |  |
+| Angemessener Aufwand | Der Prozess war für die Aufgabe weder zu leicht noch zu schwer. | 3 |  |
+| Vertrauen | Tests und Nachweise geben mir Vertrauen in das Ergebnis. | 4 |  |
+| Wiederaufnahme | Ein frischer Agent konnte die Arbeit leicht fortsetzen. | 4 |  |
+| Anpassbarkeit | Der Workflow ließ sich sinnvoll an das Projekt anpassen. | 4 |  |
 
 Bewertungsskala:
 
@@ -246,11 +245,11 @@ Diese Einschränkungen werden im Paper berücksichtigt und nicht als Ergebnis de
 
 Der Matt-Versuch beginnt erst, wenn folgende Punkte bestätigt sind:
 
-- [ ] Neutrale Feature-Beschreibung und Architektur-Arbeitsnotiz sind vorhanden.
-- [ ] Gemeinsamer Ausgangscommit ist festgeschrieben.
-- [ ] Matt-Version ist festgeschrieben.
-- [ ] Baseline-Prüfungen wurden ausgeführt und protokolliert.
-- [ ] Beobachtungslog für Matt ist angelegt.
-- [ ] Der Benutzer versteht, dass Wayfinder Entscheidungen vorbereitet und noch keinen Feature-Code schreibt.
+- [x] Neutrale Feature-Beschreibung und Architektur-Arbeitsnotiz sind vorhanden.
+- [x] Gemeinsamer Ausgangscommit ist festgeschrieben.
+- [x] Matt-Version ist festgeschrieben.
+- [x] Baseline-Prüfungen wurden ausgeführt und protokolliert.
+- [x] Beobachtungslog für Matt ist angelegt.
+- [x] Der Benutzer versteht, dass Wayfinder Entscheidungen vorbereitet und noch keinen Feature-Code schreibt.
 
 Der Superpowers-Versuch beginnt später mit derselben Checkliste und einer festgeschriebenen Superpowers-Version.

@@ -1,0 +1,75 @@
+{
+  "purpose": "Unmodified historical evidence; integrity hashes are not truth certificates.",
+  "sources": [
+    {
+      "group": "matt",
+      "commit": "ab8249cf6345dd765714bbf87f649d55c0bcefe7",
+      "original": "Docs/skill-evaluation/matt-observations.md",
+      "export": "Docs/skill-evaluation/references/matt/Docs/skill-evaluation/matt-observations.md",
+      "sha256": "572119d3ad5eaa59dd535c5e22af4bc037a13799ab6cc0e60b606220bf5d8a0f"
+    },
+    {
+      "group": "matt",
+      "commit": "ab8249cf6345dd765714bbf87f649d55c0bcefe7",
+      "original": "Docs/skill-evaluation/experiment-protocol.md",
+      "export": "Docs/skill-evaluation/references/matt/Docs/skill-evaluation/experiment-protocol.md",
+      "sha256": "cbfff9c180a4b89e04b5db61acbc3a512ede9d174efcda38433256a8bc5eda19"
+    },
+    {
+      "group": "matt",
+      "commit": "ab8249cf6345dd765714bbf87f649d55c0bcefe7",
+      "original": "Docs/moodle-architecture-notes.md",
+      "export": "Docs/skill-evaluation/references/matt/Docs/moodle-architecture-notes.md",
+      "sha256": "220d6f5156c15bb54bc9ba4a04276c9e9afe5a5e029b67a9634547684e6c6e78"
+    },
+    {
+      "group": "matt",
+      "commit": "ab8249cf6345dd765714bbf87f649d55c0bcefe7",
+      "original": "CONTEXT.md",
+      "export": "Docs/skill-evaluation/references/matt/CONTEXT.md",
+      "sha256": "3eec9786554a6194d65d20310a2beaa908524b33a13edc218267fc17d339d1ba"
+    },
+    {
+      "group": "superpowers",
+      "commit": "a8801ff3727a24864bc198d53305a1938c4fdb41",
+      "original": "Docs/skill-evaluation/superpowers-observations.md",
+      "export": "Docs/skill-evaluation/references/superpowers/Docs/skill-evaluation/superpowers-observations.md",
+      "sha256": "9ff026cf46717b49ca410f7c06d27f54ba61370d9ede37b0de4958ca9456faf2"
+    },
+    {
+      "group": "superpowers",
+      "commit": "a8801ff3727a24864bc198d53305a1938c4fdb41",
+      "original": "Docs/skill-evaluation/agent-activity-log.md",
+      "export": "Docs/skill-evaluation/references/superpowers/Docs/skill-evaluation/agent-activity-log.md",
+      "sha256": "09cc13fd60c93adbc7daac67a64a9cfbe6422f74943210050a851b856c78ad71"
+    },
+    {
+      "group": "superpowers",
+      "commit": "a8801ff3727a24864bc198d53305a1938c4fdb41",
+      "original": "Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md",
+      "export": "Docs/skill-evaluation/references/superpowers/Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md",
+      "sha256": "5969b1cafa259cc4d22f8cdae587f79c4f38b542f4611df16a4ca228114ad225"
+    },
+    {
+      "group": "comparison",
+      "commit": "866e724e59286c5e25531350e7bb18218b80f240",
+      "original": "Docs/skill-evaluation/matt-vs-superpowers-comparison.md",
+      "export": "Docs/skill-evaluation/references/comparison/Docs/skill-evaluation/matt-vs-superpowers-comparison.md",
+      "sha256": "e0e89bc7b41f9f64e0f695f96fb1c62f4dff4c65309b34991ef3246d77d606ab"
+    },
+    {
+      "group": "protocol",
+      "commit": "a8801ff3727a24864bc198d53305a1938c4fdb41",
+      "original": "Docs/skill-evaluation/experiment-protocol.md",
+      "export": "Docs/skill-evaluation/experiment-protocol.md",
+      "sha256": "b89f01d096fa6074f6e5da6627dd67e9a19433f1d11e5ae0e4b3427a72647809"
+    },
+    {
+      "group": "protocol",
+      "commit": "a8801ff3727a24864bc198d53305a1938c4fdb41",
+      "original": "Docs/moodle-architecture-notes.md",
+      "export": "Docs/moodle-architecture-notes.md",
+      "sha256": "b5f04c01ec6338017f59a55f7e753423f6f74cda65f904ba3a74f5b894ea7ec6"
+    }
+  ]
+}
