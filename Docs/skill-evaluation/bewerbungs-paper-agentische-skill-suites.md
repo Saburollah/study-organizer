@@ -1,212 +1,142 @@
-# Agentische Skill-Suites in der Softwareentwicklung
+# Von der Feature-Idee zur verlässlichen Software
 
-## Eine Fallstudie mit Matt Pocock Skills und Obras Superpowers
+## Matt Pocock Skills und Superpowers im Praxiseinsatz
 
-**Saburollah Safari | Study Organizer | Überarbeitete Fassung: 31. August 2026**
+**Saburollah Safari | Projektstudie: Study Organizer**
 
-## Kurzfassung
+Wie lässt sich KI so in die Softwareentwicklung einbinden, dass nicht nur Code entsteht, sondern ein nachvollziehbares Ergebnis? Am Beispiel einer Moodle-nahen Kursintegration habe ich zwei Entwicklungsworkflows erprobt. Im Mittelpunkt standen Architekturentscheidungen, überprüfbare Anforderungen und die Frage, wie viel Prozess ein Feature tatsächlich braucht.
 
-Wie helfen Agent Skills dabei, aus einer unscharfen Feature-Idee überprüfbare Software zu entwickeln? Untersucht wurden zwei aufeinanderfolgende Entwicklungsversuche einer Moodle-nahen Kursintegration: zuerst mit Matt Pococks Skills, danach ausschließlich mit Obras Superpowers. Gemeinsame Grundlage waren ein festgeschriebener Codezustand und eine kontrollierte Mock-Quelle. Die tatsächlich umgesetzten Funktionsumfänge unterschieden sich jedoch.
+## 1. Ein Kurs, viele Nutzer - eine robuste Lösung
 
-Die Fallstudie verbindet versionierte Artefakte, dokumentierte Tests und Reviews mit der Bewertung eines einzelnen Benutzers. Matt machte komplexe Fachentscheidungen ausführlich nachvollziehbar; Superpowers strukturierte den kleineren End-to-End-Schnitt klar. Daraus folgt keine allgemeine Rangfolge. Die Empfehlung lautet, Prozessumfang und Reviewtiefe am Risiko auszurichten. Funktionale und nichtfunktionale Anforderungen, Bewertungsgrenzen und ein vollständiges Quellenpaket machen die Herleitung prüfbar. Das ausführliche Fazit steht bewusst vor den persönlichen Lernerfahrungen.
+Studierende sollen einen Kurs verbinden und neue Lernaufgaben in ihrem persönlichen Planer sehen. Dahinter stehen drei Herausforderungen: Inhalte ändern sich, wiederholte Scans dürfen keine Duplikate erzeugen, und gemeinsam genutzte Kursdaten müssen von persönlichen Aufgaben getrennt bleiben.
 
-## 1. Problemstellung und Architekturidee
+![Abbildung 1: Ein gemeinsamer Abruf verarbeitet Kursänderungen und versorgt drei persönliche Aufgabenbereiche.](figures/01-gemeinsamer-scan.png)
 
-### 1.1 Vom Kurslink zur persönlichen Aufgabe
+*Abbildung 1. Architekturprinzip des Mock-Features: einmal abrufen, Änderungen prüfen, berechtigte Nutzer getrennt versorgen. Beispiel mit einem aufgabenfähigen Inhalt und drei Abonnenten.*
 
-Der Study Organizer verwaltet persönliche Lernmodule und Aufgaben. Die Erweiterung soll einen externen Kurs registrieren, Inhalte wiederholt abrufen und neue Lernaufgaben für Abonnenten bereitstellen. Aus Sicht des Benutzers bedeutet dies: Kurs verbinden, Scan starten und relevante Aufgaben im eigenen Modul sehen.
+Die entscheidende Trennung liegt zwischen **externer Quelle, gemeinsamer Verarbeitung und persönlicher Nutzung**. Ein Adapter vereinheitlicht PDF-, Link- und Aktivitätsinhalte. Stabile Inhalts-IDs ermöglichen den Vergleich mit dem letzten erfolgreichen Stand. Erst ein validierter Scan wird übernommen; bei einem Fehler bleiben vorhandene Daten erhalten.
 
-Schwierig ist nicht die Anzahl der REST-Endpunkte. Entscheidend sind wechselnde Inhaltsformen, stabile Identität, Zugriffsrechte und die Verarbeitung von Änderungen. Ein anderer Titel oder Link darf keine neue Aufgabe erzeugen, wenn die externe Inhaltsidentität gleich bleibt. Drei berechtigte Abonnenten sollen gemeinsame Quelldaten nutzen, ihre persönlichen Aufgaben aber getrennt behalten.
+**Mein Beitrag:** Ich traf und bewertete Produktentscheidungen, prüfte den sichtbaren Benutzerablauf und verglich die Ergebnisse. KI-Agenten unterstützten Architekturarbeit, Implementierung, Tests und Dokumentation. Die Integration wurde bewusst mit einer kontrollierten Mock-Quelle entwickelt; eine reale Moodle-Anbindung war nicht Teil des Versuchs.
 
-Eine offizielle Schnittstelle könnte den Zugriff vereinfachen; sie würde diese fachlichen Regeln nicht ersetzen. Im Versuch wurde deshalb zuerst die interne Verarbeitung mit einem Mock geprüft. Eine reale Moodle-Anbindung und LLM-Erkennung wurden nicht implementiert. Aussagen über deren Zuverlässigkeit wären durch diesen Versuch nicht gedeckt. [Q1, Q2, Q5]
+<!-- pagebreak -->
 
-### 1.2 Gemeinsame Daten, persönliche Verarbeitung
+## 2. Anforderungen und Versuchsaufbau
 
-![Abbildung 1: Ein gemeinsamer Scan erzeugt getrennte persönliche Aufgaben für drei berechtigte Abonnenten.](figures/01-gemeinsamer-scan.png)
+Die vollständigen sieben FR und sieben NFR beschreiben den gemeinsamen Vergleichskern. Der Anhang ergänzt Variantenregeln und Prüfbelege; die Matrix fasst die historischen Anforderungen nachträglich zusammen.
 
-*Abbildung 1. Konzeptioneller gemeinsamer Kern beider Versuche. Ein aufgabenfähiger Inhalt führt bei drei berechtigten Abonnenten zu je einer persönlichen Aufgabe. Die genaue Aufgabenfähigkeit und die Synchronisierung unterscheiden sich zwischen den Varianten. Eigene Darstellung nach Q2, Q3 und Q5; kein Nachweis realer Moodle-Kompatibilität.*
+**Funktionale Anforderungen - was die Anwendung leisten soll**
 
-Der Adapter übersetzt die Quelle in normalisierte Inhalte. Ein vollständiges, validiertes Ergebnis wird mit dem bisherigen Zustand verglichen und atomar übernommen. Die gemeinsame Speicherung spart Abrufe; das persönliche Abonnement bleibt die Zugriffsgrenze. Wiederholungssicherheit und Datenbank-Eindeutigkeit verhindern Duplikate. Die Architektur trennt damit Quellenformat, gemeinsame Identität und persönliche Nutzung.
-
-## 2. Versuchsaufbau und Anforderungen
-
-### 2.1 Isolierung und tatsächliche Vergleichsbedingungen
-
-Beide Versuche gingen vom Produktcommit `e7d8b5e` aus. Die Skills wurden aus dem zentralen Repository `Saburollah/agent-skills` über ein Git-Submodul eingebunden: Matt mit `matt-v1.0` und Skill-Commit `f6de92c`, Superpowers mit `superpowers-v6.3.0` und `a419016`. Maßgeblich ist der im Projekt gespeicherte Submodul-Commit; ein später bewegter Branch aktualisiert ein Projekt nicht von selbst. Diese Trennung ermöglicht gemeinsame Pflege bei projektspezifisch kontrollierten Updates. [Q1]
-
-![Abbildung 2: Getrennte Versuche ab demselben Ausgangscommit und Zusammenführung ausschließlich der Nachweise.](figures/02-versuchsaufbau.png)
-
-*Abbildung 2. Die Zweige zeigen getrennte Codehistorien, keine gleichzeitige Durchführung. Matt wurde zeitlich zuerst verwendet. Unterschiedliche Umfänge und der Lernübertrag bleiben Vergleichseinschränkungen. Eigene Darstellung nach Q1 bis Q6.*
-
-Das Protokoll sah gleiche Produktentscheidungen und Akzeptanzkriterien vor. Diese Vorgabe wurde nicht vollständig eingehalten: Matt realisierte mehr Lebenszyklus- und Betriebsverhalten; Superpowers einen engeren Schnitt. Auch die Umgebung war nicht identisch: Im versteckten Superpowers-Worktree scheiterten bereits vor der Feature-Implementierung API-Tests am Konfigurationszugriff. Deshalb handelt es sich um eine vergleichende Fallstudie, nicht um ein kontrolliertes A/B-Experiment. [Q1, Q4]
-
-### 2.2 Funktionale Anforderungen (FR)
-
-Die folgende Matrix rekonstruiert den gemeinsamen Vergleichskern aus Protokoll, Logs und bestätigtem Design. Sie ist **keine nachträglich als vorab vereinbart ausgegebene Spezifikation**. Jede FR beschreibt beobachtbares Verhalten und ein überprüfbares Abnahmeszenario. Variantenregeln stehen anschließend separat.
-
-| ID | Anforderung | Abnahmeszenario |
+| ID | Anforderung | Prüfkriterium |
 | --- | --- | --- |
-| FR-01 | Ein angemeldeter Benutzer muss einen unterstützten Mock-Kurs mit einem persönlichen Abonnement verbinden können. | Gültiger Kurslink erzeugt eine Zuordnung zum eigenen Modul; unbekannter Link wird ohne fachliche Teilanlage abgelehnt. |
-| FR-02 | Bekannte Links auf denselben Kurs müssen auf dieselbe externe Kursidentität abgebildet werden. | Zwei Alias-Links ergeben genau einen gemeinsamen Kurs; erneute Registrierung desselben Benutzers erzeugt kein zweites Abonnement. |
-| FR-03 | Ein berechtigter Benutzer muss einen manuellen Scan auslösen können. | Ein aufgabenfähiger Inhalt erzeugt bei drei aktiven Abonnenten je eine persönliche Aufgabe; der gemeinsame Scan ruft die Quelle nur einmal ab. |
-| FR-04 | Neue, geänderte und unveränderte Inhalte müssen anhand stabiler externer Schlüssel unterschieden werden. | Unveränderter Wiederholungsscan erzeugt keine zusätzliche Aufgabe; Umbenennung erhält die Inhaltsidentität. |
-| FR-05 | PDF- und Nicht-PDF-Inhalte müssen innerhalb des normalisierten Quellenmodells berücksichtigt werden. | Fixtures decken unterschiedliche Inhaltsarten ab; die Dateiendung allein entscheidet nicht über die Aufgabenerzeugung. |
-| FR-06 | Ein Scanfehler muss sichtbar gemeldet werden, ohne den letzten erfolgreichen Kurszustand durch Fehlerdaten zu ersetzen. | Timeout oder ungültige Antwort ergibt einen sicheren Fehlerzustand; bisherige Inhalte und persönliche Aufgaben bleiben erhalten. |
-| FR-07 | Registrierung, Scanergebnis und persönliche Aufgaben müssen über die Weboberfläche nachvollziehbar sein. | Der Benutzer kann den Ablauf vom Kurslink bis zur persönlichen Aufgabe durchlaufen und deren externe Herkunft erkennen. |
+| FR-01 | Unterstützten Mock-Kurs persönlich abonnieren. | Gültiger Link verbindet Kurs und eigenes Modul; unbekannter Link wird abgelehnt. |
+| FR-02 | Kurslinks auf eine stabile Identität abbilden. | Alias-Links ergeben denselben Kurs; erneute Anmeldung kein zweites Abo. |
+| FR-03 | Gemeinsamen Scan manuell starten. | Ein Abruf liefert bei einem geeigneten Inhalt drei Abonnenten je eine Aufgabe. |
+| FR-04 | Neue, geänderte und gleiche Inhalte unterscheiden. | Umbenennung erhält die ID; identischer Scan erzeugt keine zusätzliche Aufgabe. |
+| FR-05 | PDF- und Nicht-PDF-Inhalte berücksichtigen. | Fixtures decken verschiedene Arten ab; Dateiendung allein entscheidet nicht. |
+| FR-06 | Scanfehler sichtbar und ohne Datenverlust melden. | Timeout oder ungültige Antwort wird gemeldet; letzter gültiger Stand bleibt erhalten. |
+| FR-07 | Den vollständigen Ablauf in der Webapp anbieten. | Kurs verbinden, scannen und persönliche Aufgabe mit Quellenbezug öffnen. |
 
-**Verbindliche Varianten statt scheinbar identischer Anforderungen:**
+**Nichtfunktionale Anforderungen - welche Qualität dabei gelten muss**
 
-| Fachliche Entscheidung | Matt | Superpowers |
+| ID | Qualitätsziel | Prüfkriterium |
 | --- | --- | --- |
-| Modulzuordnung | Vorhandenes persönliches Modul auswählen. | Persönliches Modul automatisch anlegen. |
-| Aufgabenerzeugung | Importierte Aufgaben dürfen ohne Frist existieren. | Automatisch nur Assignment plus strukturierte Frist; sonst „Prüfung erforderlich“. |
-| Änderungen | Quelldaten überschreiben persönliche Planungsfelder nicht; getrennte Source Updates. | Offene quellengesteuerte Aufgaben werden synchronisiert; erledigte bleiben unverändert. |
-| Scan und Lebenszyklus | Asynchroner Scan mit Statusabfrage, Historie, Reaktivierung und Cleanup. | Synchroner manueller Scan; Abmeldung, Cleanup und Scheduler ausgeschlossen. |
+| NFR-01 | Zugriffsschutz | Ohne passendes eigenes Abo sind Lesen und Scannen nicht erlaubt. |
+| NFR-02 | Datenkonsistenz | Änderungen werden vollständig übernommen oder bei Fehlern zurückgerollt. |
+| NFR-03 | Wiederholungs- und Parallelitätssicherheit | Höchstens ein Scan je Kurs gleichzeitig; gleiche Wiederholung ohne Duplikate. |
+| NFR-04 | Reproduzierbare Tests | Zeit, Quellzustand und Fehler sind ohne echten Moodle-Kurs steuerbar. |
+| NFR-05 | Datenschutz | Gemeinsame Daten und Fehlerausgaben enthalten keine persönlichen Zugangsdaten. |
+| NFR-06 | Nachvollziehbarkeit | Wichtige Entscheidungen sind mit Regel, Umsetzung und Prüfbeleg verknüpft. |
+| NFR-07 | Lokale Ausführbarkeit | Build, Typprüfung, Lint und Tests bestehen; der dokumentierte Start ist bedienbar. |
 
-Diese Unterschiede stammen aus Q2 bis Q5. Insbesondere sind tägliches Moodle-Polling, echte Zugänge, LLM-Aufrufe und automatische Benachrichtigungen **kein Ergebnis beider Versuche**.
+<!-- pagebreak -->
 
-### 2.3 Nichtfunktionale Anforderungen (NFR)
+### Vergleichbare Ausgangsbasis, unterschiedliche Schwerpunkte
 
-NFR beschreiben Qualitätsbedingungen. Sie werden nicht mit unscharfen Wörtern wie „schnell“ oder „sicher“ bewertet, sondern mit konkreten Prüfkriterien. Die Nachweisarten beziehen sich auf dokumentierte Abschlussstände; für diese Paper-Revision wurden keine Produkttests erneut ausgeführt.
+![Abbildung 2: Gemeinsame Ausgangsbasis mit getrennten Versuchen und unterschiedlichen Funktionsumfängen.](figures/02-versuchsaufbau.png)
 
-| ID / Qualitätsziel | Prüfkriterium | Dokumentierter Nachweis / Grenze |
-| --- | --- | --- |
-| NFR-01 Autorisierung | Ein Benutzer ohne passendes eigenes Abonnement darf Inhalte weder lesen noch scannen; fremde Kennungen geben keine persönlichen Daten preis. | Owner-Prüfungen und negative API-Tests. Q2, Q4, Q5 |
-| NFR-02 Konsistenz | Ein erfolgreicher Scan übernimmt zusammengehörige Änderungen vollständig; ein Fehler darf keine halben Aufgabenbestände hinterlassen. | Transaktions-, Rollback- und Fehlerfälle. Q2, Q4 |
-| NFR-03 Wiederholung und Parallelität | Identische Wiederholung erzeugt null zusätzliche Aufgaben; pro Kurs läuft höchstens ein Scan gleichzeitig. | Deduplizierungs- und Konkurrenztests; Matt mit PostgreSQL, Superpowers unter anderem mit SQLite-Testfixtures. Keine identischen Datenbanknachweise. Q2, Q4 |
-| NFR-04 Testbarkeit | Zeit, Quellzustand und Fehler müssen im Test steuerbar sein, ohne einen echten laufenden Moodle-Kurs zu benötigen. | Deterministische Fixtures, injizierte Zeit und kontrollierte Fehlerszenarien. Q2, Q5 |
-| NFR-05 Datenschutz | Geteilte Kursdaten und Fehlerausgaben dürfen keine persönlichen Tokens oder realen Zugangsdaten enthalten. | Fiktive Fixtures, sichere Fehlercodes, Reviews. Kein Penetrationstest und keine vollständige Sicherheitszertifizierung. Q2, Q4 |
-| NFR-06 Nachvollziehbarkeit | Eine wichtige Entscheidung muss auf Regel, Implementierungsstand und Prüfbeleg zurückgeführt werden können. | Matt: Issues, ADRs, Matrix. Superpowers: Spezifikation, Plan, Task-Ledger und Logs. Q2 bis Q6 |
-| NFR-07 Lokale Ausführbarkeit | Build, Typprüfung, Lint und Tests müssen erfolgreich sein; der dokumentierte Start muss zum bedienbaren Ablauf führen. | Abschlusslogs und Sichtabnahme. Anfangs gab es Umgebungsfehler; „grün“ bedeutete nicht durchgehend warnungsfrei. Q2, Q4, Q6 |
+*Abbildung 2. Gleicher Start, getrennte Umsetzung. Reihenfolge und Umfang begrenzen die Vergleichbarkeit.*
 
-Die FR/NFR sind über diese Verweise rückverfolgbar, jedoch kein neu ausgeführtes Abnahmeprotokoll. Für Antwortzeit, Durchsatz und maximalen Speicherverbrauch wurden weder gemeinsame Grenzwerte noch Lastmessungen erhoben. Eine Performancebewertung wäre daher unbelegt.
+Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Verglichen werden Arbeitsweisen; echte Moodle-Zugänge, Polling und LLM-Erkennung waren ausgeschlossen.
 
-## 3. Beobachtete Ergebnisse
+## 3. Was die beiden Arbeitsweisen leisten
 
-### 3.1 Matt: Entscheidungstiefe mit Verwaltungsaufwand
+### 3.1 Beobachtete Arbeitsweisen
 
-Wayfinder machte aus der offenen Moodle-Idee eine GitHub-Landkarte. Grilling behandelte Identität, Berechtigungen, Aufgabenlebenszyklus, Fehler und Nebenläufigkeit. Domain Modeling hielt Begriffe und sieben Architekturentscheidungen fest; ein Wegwerfprototyp erlaubte den Vergleich von drei UI-Abläufen. Das Log enthält zehn nummerierte Entscheidungsdurchläufe, während das Protokoll neun Grillings nennt. Diese Zählabweichung bleibt offen und wird nicht zu einem exakten Frageaufwand umgerechnet. [Q2, Q3]
+![Abbildung 3: Zwei Wege von der Klärung zur Abnahme - Matt vertieft Entscheidungen, Superpowers strukturiert die Umsetzung.](figures/02-workflowvergleich.png)
 
-Der getrennte Spezifikationsreview fand zwei fehlende Cleanup-Kriterien trotz bereits geschlossenem Haupt-Issue. Zusätzlich wurde eine Produktionsmigrationslücke korrigiert. Der Abschluss dokumentiert 225 erfolgreiche Backendtests sowie vom Benutzer bestätigte Frontendtests, Lint und Build. Ein automatisierter Playwright-Pfad gehörte zum Umfang. Die fehlende unabhängige finale Spezifikationsantwort wegen eines Nutzungslimits wurde durch einen agentenseitigen Selbstabgleich ersetzt, nicht als unabhängiger Review ausgegeben. [Q2]
+*Abbildung 3. Beobachtete Schwerpunkte: Matt macht offene Entscheidungen sichtbar; Superpowers organisiert die Umsetzung. Beide nutzen Tests und Reviews.*
 
-### 3.2 Superpowers: ausführbarer Plan mit Umgebungsgrenzen
+<!-- pagebreak -->
 
-Brainstorming führte zu einem bestätigten Design; der Implementierungsplan enthielt zwölf Aufgaben. Die ersten sechs wurden subagentengesteuert bearbeitet, die restlichen auf Benutzerwunsch inline. Das Log dokumentiert 22 Subagent-Aufrufe und 33 Umgebungsfreigaben. Diese Zähler sind keine Tokenmessung und erlauben keinen direkten Kostenvergleich mit Matt. [Q4]
+### 3.2 Persönliche Bewertung mit konkreten Gründen
 
-Am Abschluss standen 195 erfolgreiche Backendtests und 97 erfolgreiche Frontendtests, dazu Build, Typecheck und Lint. Die Zahlen beschreiben Gesamtbestände, nicht ausschließlich neu erzeugte Tests. Beim manuellen Browser-Walkthrough wurden lokale Startprobleme sichtbar. Eine zunächst zu optimistische Startdiagnose wurde korrigiert; der nachgewiesene Fix betraf das Laden von Appsettings im versteckten Worktree. PostgreSQL-Zustand und Frontend-Cache verursachten weitere lokale Schwierigkeiten. [Q4, Q6]
+Ich bewertete beide Abläufe nach denselben sieben Kriterien: **1 = sehr schlecht, 3 = gemischt, 5 = sehr gut**; 2 und 4 sind die Zwischenstufen. Die Punkte beschreiben meine nach Klärung der Kriterien bestätigte Erfahrung, keine objektive Codequalität.
 
-## 4. Bewertung: Herkunft, Begründung und Reproduzierbarkeit
-
-### 4.1 Wer bewertete was?
-
-Die sieben Punktewerte stammen vom Benutzer und Autor dieser Fallstudie, nicht vom Agenten oder von Testsoftware. Matt wurde am 27. August, Superpowers am 30. August 2026 bewertet. Der Agent strukturierte die Fragen und formulierte Erklärungen aus; diese Unterstützung kann die Bewertung beeinflusst haben. Die Beispiele dokumentieren Erlebnisse und Vorgänge, keine unabhängige Fremdbewertung. [Q2, Q4]
-
-Die vorher festgelegte Skala lautete: **1 = sehr schlecht, 2 = eher schlecht, 3 = gemischt, 4 = gut, 5 = sehr gut**. Es gab damals keine kriterienspezifischen, numerischen Schwellen wie „vier Punkte bei höchstens fünf Rückfragen“. Eine solche Regel wird jetzt nicht rückwirkend erfunden.
-
-Bewertet wurden Verständlichkeit des Prozesses, Kontrolle über Entscheidungen, eigener Lerngewinn, Angemessenheit des Aufwands, Vertrauen in die Nachweise, Wiederaufnahme und Anpassbarkeit. Die Originalwerte bleiben unverändert. Ein fehlender Wert würde als „nicht erhoben“ gelten, nicht als null oder drei.
-
-### 4.2 Begründung je Punktwert
-
-In der folgenden Tabelle stehen Originalpunktwert, dokumentierte Grundlage und die Grenze der Interpretation nebeneinander. Die Erläuterungen sind Paraphrasen aus Q2 und Q4, keine erfundenen Interviewzitate.
-
-| Kriterium | Matt: Punkte und Grundlage | Superpowers: Punkte und Grundlage | Einordnung |
+| Kriterium | Matt | Superpowers | Beobachtung hinter den Punkten |
 | --- | --- | --- | --- |
-| Verständlichkeit | **4**: Wayfinder, ADRs und Akzeptanzmatrix machten Entscheidungen nachlesbar. | **5**: Der Benutzer erlebte den Ablauf als klar, sauber und leicht nachvollziehbar. | Eindruck einer Person; keine Messung von Verständnisfehlern. |
-| Kontrolle | **4**: Produktentscheidungen wurden selbst getroffen; eine falsche Prototyp-Auswahl wurde korrigiert. | **4**: Architektur und Wechsel von Subagenten zu Inline-Ausführung konnten selbst bestimmt werden. | Gleiche Wertung bedeutet nicht gleich viele Eingriffe. |
-| Lerngewinn | **5**: Verständnis von Adapter, Identität, gemeinsamem Scan und persönlicher Projektion. | **4**: Zusammenspiel von Backend, Datenbank und Frontend wurde klarer. | Kein Wissenstest; Matt war zuerst und vermittelte Vorwissen für Versuch zwei. |
-| Angemessener Aufwand | **3**: Viele Entscheidungsrunden, Issues und Reviews erschienen für den Mock-Schnitt aufwendig. | **5**: Die Struktur wurde für den kleineren Schnitt als sehr passend empfunden. | Kein Zeit- oder Tokenvergleich; der Funktionsumfang unterscheidet sich. |
-| Vertrauen | **4**: Tests und Abschlussprüfungen überzeugten; die unabhängige finale Spezifikationsantwort fehlte. | **5**: Der selbst durchgeführte End-to-End-Test war der wichtigste Vertrauensbeleg. | Subjektives Vertrauen ist weder Fehlerfreiheit noch Security-Score. |
-| Wiederaufnahme | **4**: Issues, ADRs, Glossar und Logs halfen bei getrennten Sitzungen. | **4**: Plan und Logs halfen bei der Fortsetzung; der Kontingentverbrauch blieb spürbar. | Kein standardisierter Neustartversuch mit gleicher Zeitmessung. |
-| Anpassbarkeit | **4**: Integration mit GitHub, Projektregeln, PostgreSQL-Tests und Mock-Adapter. | **3**: Lokale Startprobleme und eigene Korrekturen prägten das Urteil. | Bei Superpowers teilweise Umgebungsbewertung statt reiner Workflowflexibilität. |
+| Verständlichkeit | **4** | **5** | Matt machte Entscheidungen nachlesbar; Superpowers führte mich klarer durch den Arbeitsablauf. |
+| Kontrolle | **4** | **4** | In beiden Versuchen konnte ich fachliche Entscheidungen und die Ausführung beeinflussen. |
+| Lerngewinn | **5** | **4** | Matt vertiefte mein Architekturverständnis; Superpowers verdeutlichte das Zusammenspiel der Anwendungsschichten. |
+| Angemessener Aufwand | **4** | **3** | Matts Klärungsaufwand war für mich angemessen; bei Superpowers standen einer hilfreichen Struktur wiederholte kontingentbedingte Wartezeiten gegenüber. |
+| Vertrauen | **5** | **4** | Matts gezielte Rückfragen gaben mir zusätzliche Sicherheit; bei Superpowers stärkte der erfolgreiche Praxistest mein Vertrauen. |
+| Wiederaufnahme | **4** | **4** | Issues und ADRs beziehungsweise Plan und Logs erleichterten die Fortsetzung. |
+| Anpassbarkeit | **4** | **4** | Beide Arbeitsweisen ließen sich an meine Vorgaben anpassen: Matt an die Projektregeln, Superpowers an die gewünschte Ausführungsform. |
 
-Bei Superpowers wurde „Anpassbarkeit“ zunächst ohne ausreichendes Verständnis mit vier bewertet. Nach Erklärung wurde der Wert ausdrücklich auf drei korrigiert; genau dieser bestätigte Endwert wird verwendet. Das ist eine dokumentierte Korrektur, keine nachträgliche Optimierung zugunsten einer Suite. [Q4, Abschnitt S5]
+Obwohl Matts Ablauf umfangreicher war, empfand ich seinen Aufwand als angemessen, weil die Rückfragen unmittelbar riskante Fachregeln klärten. Bei Superpowers belasteten dagegen wiederholte Wartezeiten den erlebten Aufwand.
 
-### 4.3 Was ist deterministisch, was nicht?
+![Abbildung 4: Persönliche Bewertungen von Matt und Superpowers im Vergleich über alle sieben Kriterien.](figures/03-bewertungsvergleich.png)
 
-**Deterministisch ist die Auswertung vorhandener Werte.** Die Reihenfolge der Kriterien ist fest. Alle sieben Werte werden gleich gewichtet; es werden keine Kriterien ausgelassen und keine Werte nachträglich angepasst. Die Summen betragen 28 und 30. Daraus ergeben sich 28 / 7 = **4,00** für Matt und 30 / 7 = **4,29** für Superpowers, auf zwei Dezimalstellen gerundet. Dieselben Eingaben ergeben dieselbe Tabelle und Rechnung.
+*Abbildung 4. Bestätigte persönliche Bewertungen, 1 bis 5; höher ist günstiger. Keine Messung objektiver Softwarequalität.*
 
-**Nicht deterministisch ist das persönliche Urteil.** Andere Personen oder derselbe Benutzer zu einem anderen Zeitpunkt könnten anders bewerten. Die Skala ist ordinal: Der Abstand zwischen drei und vier ist nicht nachweislich genauso groß wie zwischen vier und fünf. Der Mittelwert ist deshalb nur eine deskriptive Orientierung, kein Siegerwert, keine Prozentangabe und kein statistischer Beweis.
+**Technische Nachweise:** Matt dokumentiert 225 erfolgreiche Backendtests sowie erfolgreiche Frontendprüfungen. Superpowers dokumentiert 195 Backend- und 97 Frontendtests, Builds, Typprüfung, Lint und die manuelle Sichtabnahme. Die unterschiedlichen Testbestände begründen keinen Qualitätssieger.
 
-Für eine zukünftige Wiederholung sollten Kriterienanker vorher vereinbart werden. Beispielsweise könnte bei „Kontrolle“ eine dokumentierte, erfolgreich umgesetzte Benutzerkorrektur als Beobachtungsbeleg dienen; bei „Wiederaufnahme“ ein identischer Neustartauftrag mit messbarer Zeit bis zum ersten korrekten Arbeitsschritt. Das wäre eine Verbesserung des nächsten Versuchs, keine neue Berechnung der historischen Punkte.
+<!-- pagebreak -->
 
-## 5. Fazit und Handlungsempfehlungen
+## 4. Fazit: Den Prozess am Risiko ausrichten
 
-### 5.1 Antwort auf die Untersuchungsfrage
+**Mein Ergebnis ist keine Rangliste, sondern eine belastbare Auswahlregel: Für ein klar begrenztes Produktinkrement würde ich mit Superpowers beginnen. Sobald Fehler an Datenidentität, Berechtigungen oder Lebenszyklus schwer rückgängig zu machen sind, würde ich gezielt Matts stärkere Architekturklärung und Spezifikationsprüfung ergänzen.**
 
-Die untersuchten Skill-Suites halfen in diesem Projekt auf unterschiedliche Weise: Matt strukturierte vor allem die Entdeckung und Dokumentation schwieriger Entscheidungen; Superpowers die Umsetzung eines begrenzten, bestätigten Entwurfs. Beide Versuche führten zu lauffähigen lokalen Ergebnissen mit dokumentierten Tests. Die Daten reichen jedoch nicht aus, eine Suite allgemein als schneller, günstiger oder qualitativ überlegen zu erklären. Dafür fehlen identischer Funktionsumfang, unabhängige Wiederholungen und vollständige Zeit- sowie Tokenmessungen.
+Die persönliche Bewertung stützt diese Entscheidung: Matt liegt bei Lerngewinn, angemessenem Aufwand und Vertrauen vorn; Superpowers bei Verständlichkeit. Kontrolle, Wiederaufnahme und Anpassbarkeit bewerte ich gleich. Entscheidend ist daher nicht, welche Suite allgemein „besser“ ist, sondern welcher Prozess das konkrete Projektrisiko am wirksamsten reduziert.
 
-Der praktische Wert liegt somit nicht im Unterschied von 0,29 Bewertungspunkten. Er liegt in den beobachteten Mechanismen: explizite Entscheidungsklärung, kleine überprüfbare Umsetzungsschritte, sichtbare Benutzerkorrekturen und Abgleich gegen Anforderungen. Diese Mechanismen lassen sich auf neue Aufgaben übertragen. Die konkreten Resultate bleiben an dieses Projekt, diesen Benutzer und die verwendete Umgebung gebunden.
+### 4.1 Matt: Entscheidungstiefe mit höherem Prozessgewicht
 
-### 5.2 Wann die Matt-Methoden besonders nützlich erscheinen
+**Stärke.** Wayfinder, Grilling und ADRs machten fachliche Abhängigkeiten früh sichtbar. Das war bei stabiler Kursidentität und persönlichen Aufgaben besonders wertvoll: Eine falsche Regel hätte Duplikate erzeugen oder Benutzerdaten falsch zuordnen können. Die Akzeptanzmatrix verband Entscheidungen mit prüfbaren Kriterien. Der spätere Spezifikationsreview fand tatsächlich fehlende Cleanup-Regeln, obwohl das Haupt-Issue bereits geschlossen war. Damit zeigte der Ansatz einen konkreten Qualitätsnutzen über grüne Tests hinaus.
 
-Für Integrationen mit geteilter Identität, persönlichen Daten und langfristigem Lebenszyklus würde ich eine gezielte Matt-Vertiefung bevorzugen. Hier sind scheinbar kleine Entscheidungen dauerhaft wirksam: Was identifiziert einen Kurs? Darf ein Source Update persönliche Daten überschreiben? Was geschieht nach dem letzten Abonnement? Wann darf ein Cleanup Daten entfernen? Werden solche Fragen erst während der Implementierung geklärt, können Datenmodell, API und Tests gleichzeitig verändert werden müssen.
+**Risiko.** Die vielen Klärungs- und Dokumentationsschritte vergrößerten den Prozess und passen nicht automatisch zu jeder kleinen Änderung. Entscheidungstiefe kann in Überplanung kippen, wenn risikoarme Fragen genauso ausführlich behandelt werden wie irreversible Architekturentscheidungen. Matt ist deshalb für mich besonders stark, wenn mehrere Schichten betroffen sind oder Datenregeln langfristig tragen müssen - nicht als pauschales Pflichtprogramm für jedes Feature.
 
-Wayfinder, Grilling und ADRs machten diese Beziehungen in meinem Versuch sichtbar. Besonders aussagekräftig war der Cleanup-Fund im Spezifikationsreview: Eine grüne Teilimplementierung genügte nicht, weil vereinbartes Verhalten fehlte. Die Akzeptanzmatrix erlaubte, die Lücke konkret zu benennen und nachzuprüfen. Daraus leite ich einen Nutzen der dokumentierten Soll-Ist-Prüfung ab, nicht die Behauptung, nur diese Suite könne fachliche Vollständigkeit prüfen.
+### 4.2 Superpowers: Umsetzungsfluss im engeren Versuchsrahmen
 
-Die Grenze ist die Gefahr einer übergroßen ersten Version. Jede zusätzliche Antwort kann neue Zustände, Tabellen oder Betriebsregeln auslösen. Gerade ein lernender Benutzer kann überzeugend formulierte Empfehlungen übernehmen, ohne die Kosten ausreichend abzuwägen. Ich würde deshalb für jede Vertiefung eine Stop-Regel verlangen: Welche Entscheidung ist für das aktuelle Inkrement wirklich nötig, und welche wird mit dokumentiertem Risiko vertagt? Gute Architekturarbeit ist nicht identisch mit maximaler Vorabplanung.
+**Stärke.** Brainstorming, bestätigtes Design, Plan und TDD führten klar von der Idee zum ausführbaren vertikalen Schnitt. Der zusammenhängende Weg von der Kursregistrierung bis zur sichtbaren persönlichen Aufgabe war leicht nachzuvollziehen und praktisch abnehmbar. Für einen klar definierten Umfang bietet Superpowers daher einen überzeugenden Standardprozess: kleine Schritte, unmittelbare Tests und ein sichtbares Ergebnis.
 
-### 5.3 Wann Superpowers der passendere Ausgangspunkt erscheint
+**Grenze des Versuchs.** Die gute Struktur garantiert weder geringe Kosten noch vollständige fachliche Abdeckung. Kontingentbedingte Wartezeiten bremsten die Ausführung; beim Wechsel auf Inline-Arbeit entfiel zudem eine unabhängige Reviewperspektive. Der Versuch umfasste bewusst keinen vollständigen Cleanup- und Reaktivierungslebenszyklus. Deshalb belegt das Ergebnis die Eignung für diesen engeren Schnitt, aber nicht, dass derselbe Ablauf Matts größeren und risikoreicheren Umfang schneller oder vollständiger geliefert hätte.
 
-Für einen überschaubaren vertikalen Schnitt würde ich mit dem hier erprobten Superpowers-Ablauf beginnen: Ziel klären, Entwurf bestätigen, einen ausführbaren Plan schreiben, testgetrieben umsetzen und den sichtbaren Gesamtweg abnehmen. Diese Folge war für mich gut verständlich. Sie verband Backend, Persistenz und Frontend, ohne den gesamten späteren Moodle-Betrieb vorwegzunehmen. Das begründet meine persönliche Präferenz für ähnliche Aufgaben, aber keinen universellen Standard.
+<!-- pagebreak -->
 
-Auch dieser Weg braucht Grenzen. Ein sehr langer Implementierungsplan, viele Subagent-Aufrufe und wiederholte Gesamttests können erheblichen Aufwand verursachen. Der Wechsel zur Inline-Ausführung zeigte, dass die Ausführungsform bewusst gesteuert werden muss. Er reduzierte die Zahl weiterer delegierter Schritte, beseitigte aber zugleich einen Teil der unabhängigen Reviewperspektive. Ohne gemessene Token- und Zeitdaten lässt sich daraus keine belastbare Einsparquote ableiten.
+### 4.3 Was der Vergleich über Qualität zeigt
 
-Ein kompakterer Funktionsumfang darf außerdem nicht mit höherer Qualität verwechselt werden. Superpowers musste im Versuch beispielsweise keinen vollständigen Cleanup- und Reaktivierungslebenszyklus liefern. Matt deswegen seine größere Code- oder Testmenge vorzuwerfen, wäre methodisch ebenso falsch, wie Superpowers für weniger Dateien zum Effizienzsieger zu erklären. Verglichen werden müssen passende Anforderungen und deren Nachweise, nicht die bloße Größe des Ergebnisses.
+Grüne Tests allein genügten in keinem Versuch. Bei Matt fehlte zunächst vereinbartes Lebenszyklusverhalten; bei Superpowers scheiterte der lokale Start zunächst an Konfigurationsproblemen. Erst der Review gegen die Anforderungen beziehungsweise der reale Benutzerablauf machte diese Lücken sichtbar. Mein wichtigster Qualitätsmaßstab ist deshalb eine Nachweiskette aus **Regeltest, Spezifikationsreview und sichtbarer End-to-End-Abnahme**. Ein Feature ist erst abgeschlossen, wenn diese Nachweise zusammenpassen.
 
-### 5.4 Was beide Workflows verbessern sollten
+### 4.4 Mein Verbesserungsvorschlag für künftige Projekte
 
-Der wichtigste gemeinsame Verbesserungsbedarf liegt an den Übergängen: vom bestätigten Entwurf zur vollständigen Implementierung und von grünen Tests zur tatsächlich nutzbaren Umgebung. Im Matt-Versuch waren Produktionsmigration und Cleanup kritische Übergänge. Im Superpowers-Versuch betraf es unter anderem Appsettings im versteckten Worktree. Ein gestarteter Prozess war zunächst zu früh als erfolgreicher Start eingeordnet worden. Erst ein konkreter Funktionsnachweis korrigierte diese Einschätzung.
+Ich würde beide Arbeitsweisen nicht vollständig mischen, sondern abhängig vom Risiko kombinieren:
 
-Deshalb würde ich eine frühe Umgebungsabnahme vorsehen: Ein kleiner, dokumentierter Ablauf startet die Anwendung mit dem vorgesehenen Konfigurationsweg, prüft Datenbank und Migrationen und öffnet eine geschützte Funktion im Browser. Am Ende wird genau dieser Ablauf erneut geprüft. Das ersetzt keine fachlichen Tests, ergänzt aber eine bisher zu spät sichtbare Grenze. Fehler werden getrennt als Produkt-, Umgebungs- oder Ausführungsfehler dokumentiert.
+1. **Früh einen lauffähigen Weg herstellen.** Backend, Datenbank und Frontend werden verbunden, bevor der Umfang wächst. So fallen Konfigurations- und Migrationsprobleme früh auf.
+2. **Architekturklärung nach Risiko vertiefen.** Bei Identität, Berechtigungen, Nebenläufigkeit oder schwer änderbaren Regeln ergänze ich Grilling, ADR und Akzeptanzkriterien; bei risikoarmen Änderungen genügt ein kompakter Entwurf.
+3. **In überprüfbaren Schritten liefern.** Plan und TDD verbinden jeden Schritt mit einem fachlichen Ergebnis und Testbeleg.
+4. **Abschluss an Nachweise binden.** Ohne Test, Reviewbeleg oder Sichttest bleibt eine Anforderung offen - auch wenn der Agent „fertig“ meldet.
 
-Ebenso wichtig ist eine Abschlussmatrix. Jede freigegebene FR und NFR erhält einen passenden Beleg oder den Status „offen“. Ein geschlossenes Issue, eine positive Agentenaussage oder ein grüner Build darf diesen Nachweis nicht ersetzen. Review muss daher zwei Fragen beantworten: Ist die Implementierung technisch vertretbar, und erfüllt sie den vereinbarten Umfang? Ein Selbstreview bleibt als solcher sichtbar, wenn ein unabhängiger Review wegen Kontingentmangels ausfällt.
+Dieser risikobasierte Prozess ist mein Verbesserungsvorschlag. Er folgt aus beiden Versuchen, wurde aber noch nicht separat evaluiert.
 
-### 5.5 Konkreter Vorschlag für den nächsten Projekteinsatz
+### 4.5 Reichweite der Empfehlung
 
-Ich schlage einen risikobasierten kombinierten Prozess vor. Dieser Vorschlag wurde **noch nicht als dritter Versuch getestet**; im Superpowers-Experiment wurden keine Matt-Skills beigemischt.
+Der Vergleich ist praxisnah, aber kein kontrolliertes Benchmark. Matts Umfang war breiter; Superpowers wurde später und mit mehr Domänenwissen eingesetzt. Tokenlimits begrenzten unabhängige Reviews, eine Mock-Quelle ersetzte Moodle. Die Empfehlung gilt deshalb für diesen Projektkontext. Ein Folgeversuch sollte Umfang und Ausgangsinformationen angleichen sowie Zeit- und Tokenkosten messen.
 
-1. **Eingang klären:** Ein kleines Ziel, seine FR/NFR und ausgeschlossene Funktionen schriftlich festlegen. Unklare Begriffe vor der Umsetzung erklären.
-2. **Risiko prüfen:** Bei geteilter Identität, Autorisierung, Nebenläufigkeit, Datenaufbewahrung oder schwer änderbaren Schnittstellen gezielte Entscheidungsfragen und bei Bedarf ein ADR ergänzen.
-3. **Klein ausführen:** Einen vertikalen Ablauf testgetrieben umsetzen. Delegation nur dort einsetzen, wo Aufgaben wirklich unabhängig sind oder eine zusätzliche Reviewperspektive benötigt wird.
-4. **Evidenz schließen:** Anforderungen mit Tests, Review und einem sichtbaren Benutzerpfad verbinden. Fehlende Nachweise offen ausweisen.
-5. **Erfahrung sichern:** Entscheidungen, bestätigte Bewertungen, Versionsstände und verbleibende Risiken in einem vollständigen Übergabepaket speichern.
+## 5. Was ich persönlich mitnehme
 
-Für die Wirksamkeit dieses Vorschlags wären in einer Folgeuntersuchung derselbe Feature-Schnitt, vergleichbare Umgebungen und vorab definierte Bewertungsanker notwendig. Besonders interessant wäre, ob gezielte Architekturvertiefung die Zahl späterer Korrekturen senkt, ohne den ersten Lieferumfang unverhältnismäßig zu vergrößern. Genau das wurde in der vorliegenden Fallstudie noch nicht quantitativ gemessen.
+Fachlich kann ich nun begründen, warum Kurs, externer Inhalt und persönliche Aufgabe getrennte Identitäten und Lebenszyklen brauchen. Methodisch lernte ich, KI-Vorschläge nicht mit Produktentscheidungen gleichzusetzen: Annahmen, Risiken und Folgen muss ich selbst bewerten.
 
-### 5.6 Grenzen und abschließende Entscheidung
+Mein größter Lernschritt war der Wechsel vom „Code erzeugen lassen“ zum **gezielten Steuern, Begründen und Prüfen**. Ich schärfte Anforderungen, bestätigte Architekturentscheidungen und nahm das Ergebnis im Browser ab. Agenten verbesserten Tempo und Struktur; die Verantwortung für Umfang, Qualität und Freigabe blieb bei mir.
 
-Die Versuche fanden nacheinander statt. Das Wissen aus Matt beeinflusste den späteren Superpowers-Versuch, und dieselbe Person entschied Anforderungen und bewertete die Ergebnisse. Modellverhalten, Agentenumgebung, Sandbox und Skill-Suite sind keine unabhängig kontrollierten Faktoren. Auch die unterschiedliche Bedeutung, die ich bei „Anpassbarkeit“ einzelnen Startproblemen gab, begrenzt den Vergleich dieser Punkte.
+## Nachweise
 
-Hinzu kam das begrenzte Token- beziehungsweise Nutzungskontingent. Deshalb konnten nicht beliebig viele unabhängige Ausführungen und Reviews durchgeführt werden. Die Logs belegen einen ausgefallenen Matt-Re-Review sowie unterbrochene beziehungsweise umgestellte Superpowers-Ausführung. Eine vollständige Tokenbilanz wurde nicht erhoben. Weder eine exakte Budgetzahl noch eine Kosteneinsparung wird nachträglich behauptet. Die sichtbaren Beschränkungen sind Teil des Ergebnisses.
-
-Meine Schlussentscheidung lautet: Für das nächste ähnlich begrenzte Feature würde ich Superpowers als Ausgangspunkt wählen und komplexe Architekturfragen bewusst vertiefen. Für eine langfristige Integrationsplattform würde ich von Beginn an mehr Entscheidungshistorie und Spezifikationsreview einplanen. Ausschlaggebend sind die Risiken des Produkts und die prüfbaren Nachweise, nicht die Marke der Suite. Ein Mock beweist dabei nur den getesteten lokalen Ablauf; echte Moodle-Kompatibilität, Lastverhalten und ein wiederholter Vergleich bleiben weitere Arbeit.
-
-## 6. Persönliche Lernerfahrungen
-
-### 6.1 Architektur selbst verstehen
-
-Vor dem Versuch dachte ich vor allem an einen Kurslink und eine neue PDF. Jetzt kann ich erklären, warum Quellenformat, stabile Identität und persönliche Aufgabe verschiedene Dinge sind. Ein Adapter schützt das interne Modell vor wechselnden Zugangswegen. Ein gemeinsamer Scan spart nur dann sinnvoll Arbeit, wenn Berechtigungen und persönliche Zustände trotzdem getrennt bleiben. Diese Erkenntnisse erklären meinen hohen Lernwert im Matt-Versuch.
-
-### 6.2 Vorschläge nicht mit Entscheidungen verwechseln
-
-Ich habe gelernt, technische Empfehlungen nicht nur mit einer Antwortoption zu bestätigen. Ich muss den Grund und die Auswirkung auf den Umfang verstehen. Auch ein LLM-Vorschlag wäre nicht automatisch fachlich richtig. Die Diskussion über strukturierte Fristen machte eine überprüfbare Vertrauensgrenze verständlich; eine LLM-Integration selbst habe ich in diesem Versuch nicht getestet.
-
-### 6.3 Verantwortung und begrenztes Kontingent
-
-Ich hatte nur ein begrenztes Token- beziehungsweise Nutzungskontingent zur Verfügung und konnte deshalb nicht so viele unabhängige Ausführungen durchführen, wie für einen belastbaren Benchmark wünschenswert wären. Das zwang mich, Prioritäten zu setzen und die Ausführungsform mitzuentscheiden. Der manuelle Browser-Test blieb besonders wichtig: Ich prüfte selbst, ob das Ergebnis tatsächlich funktioniert, statt eine grüne Zusammenfassung allein zu übernehmen.
-
-Der Agent unterstützte Implementierung, Auswertung und sprachliche Überarbeitung dieses Papers. Die persönlichen Punktwerte stammen von mir; automatisierte Nachweise, meine Eindrücke und spätere methodische Vorschläge bleiben getrennt. Für künftige Projekte möchte ich Anforderungen früher begrenzen und meine Gründe direkt beim Entscheiden dokumentieren.
-
-## Quellen und mitgelieferte Nachweise
-
-Alle Q-Quellen liegen im Quellenpaket als Markdown-Dateien. Die Originalstände sind unveränderte Git-Exporte; `references/source-manifest.json` dokumentiert vollständige Commit-IDs und SHA-256-Prüfsummen. Die FR/NFR-Zusammenstellung, Abbildungen und Erläuterungen zur Bewertungsmethodik sind Ergänzungen dieser Überarbeitung, keine nachträglich veränderten Versuchslogs.
-
-- **Q1:** [Versuchsprotokoll](experiment-protocol.md), Stand `a8801ff`. Enthält Forschungsziel, ursprüngliche Vergleichsregeln, Versionen und Bewertungsskala. Die darin erwartete Umfangsgleichheit wurde nicht erreicht.
-- **Q2:** [Matt-Beobachtungsprotokoll](references/matt/Docs/skill-evaluation/matt-observations.md), Stand `ab8249c`. Maßgeblich: Entscheidungsdurchläufe, Review und Korrekturen, Bewertung durch den Benutzer.
-- **Q3:** [Matt-Domänenmodell](references/matt/CONTEXT.md) und [Matt-Versuchsprotokoll](references/matt/Docs/skill-evaluation/experiment-protocol.md), Stand `ab8249c`.
-- **Q4:** [Superpowers-Beobachtungslog](references/superpowers/Docs/skill-evaluation/superpowers-observations.md), Stand `a8801ff`. Maßgeblich: Baseline, Tasks 1 bis 12, S5 und Bewertungstabelle.
-- **Q5:** [Bestätigtes Superpowers-Design](references/superpowers/Docs/superpowers/specs/2026-08-27-moodle-end-to-end-design.md), Stand `a8801ff`. Enthält Scope, Vertrauensregeln und 15 Akzeptanzkriterien.
-- **Q6:** [Superpowers-Aktivitätslog](references/superpowers/Docs/skill-evaluation/agent-activity-log.md), Stand `a8801ff`. Maßgeblich: Task 12, Abschlussreview und S5.
-- **Q7:** [Faktenvergleich](references/comparison/Docs/skill-evaluation/matt-vs-superpowers-comparison.md), Stand `866e724`. Ergänzende Git-Messwerte und explizite Vergleichsgrenzen; sekundäre Auswertung, kein Ersatz für Q1 bis Q6.
-
-[Lesereihenfolge, Paketinhalt und Reproduktionshinweise](PAPER-README.md)
+Die Aussagen stützen sich auf das [Versuchsprotokoll](experiment-protocol.md), die Beobachtungslogs beider Versuche und dokumentierte Test- und Reviewstände. [Methodik, Variantenregeln und Quellen](PAPER-ANHANG.md) liegen getrennt im Quellenpaket. Dort bleiben auch Versionsstände und die ausführliche Bewertungsgrundlage zugänglich.

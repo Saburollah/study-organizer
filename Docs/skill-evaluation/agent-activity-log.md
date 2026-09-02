@@ -524,3 +524,183 @@ Produktarbeit inline durch den Main-Agenten oder durch einen Subagenten erfolgte
 - **Abgrenzung:** kein neuer Produktversuch und keine Wiederholung der
   Produkttests; technische Zahlen bleiben historische Abschlussnachweise.
   Kein Push, Merge oder Pull Request.
+
+### Redaktionelle Verdichtung zur fünfseitigen Bewerbungsfassung
+
+- **Anlass:** Der Benutzer wünscht eine verständliche, bewerbungsrelevante
+  Projektstudie statt ausführlicher interner Bewertungs- und Prüfdetails.
+- **Änderung:** Hauptpapier von elf auf fünf Seiten verdichtet. Im Mittelpunkt
+  stehen Problem, Architekturentscheidungen, nachvollziehbare Bewertung und
+  konkrete Handlungsempfehlungen. Kalenderdaten, die Anekdote zur korrigierten
+  Bewertung und ausführliche Mittelwertrechnungen entfallen im Haupttext.
+- **Struktur:** Vier zentrale FR und vier NFR mit Prüfkriterien im Artikel;
+  vollständige Matrix, Methodik und Quellen in `PAPER-ANHANG.md`. Das Fazit
+  bleibt der längste Hauptabschnitt und steht vor den eigenen Lernerfahrungen.
+- **Gestaltung:** Architekturdiagramm vollständig neu gestaltet; ein neues
+  Workflowdiagramm veranschaulicht die beobachteten Schwerpunkte beider Suiten.
+  Feste Seitenkomposition mit konsistenter Typografie und kompakten Tabellen.
+- **Integrität:** Alle Originalbewertungen und historischen Quellen unverändert.
+  Unterschiedlicher Scope, Lerneffekt, begrenztes Tokenkontingent und Mock-Grenze
+  bleiben benannt. Keine neuen Testzahlen oder Leistungsversprechen.
+- **Prüfung:** Fünf Seiten gerendert und visuell kontrolliert; alle lokalen
+  Artikel- und Anhangslinks sowie zwei PDF-Links geprüft. Quellenpaket mit
+  Protokoll, Anhang und Prüfsummen vollständig neu erstellt. Separater Neuaufbau
+  aus dem ZIP ohne Git-Historie erzeugt ein byteidentisches PDF.
+- **Abgrenzung:** Nur Dokumentation und abgeleitete Artefakte; keine Produkttests,
+  Produktcodeänderungen, Pushes oder Merges. Vorhandene entpackte Quellenpakete
+  des Benutzers wurden nicht verändert.
+
+### Quellenpaket auf die relevanten Lesedokumente reduziert
+
+- **Anlass:** Der Benutzer möchte keine technischen Hilfsdateien und
+  umfangreichen Arbeitsarchive im Bewerbungspaket.
+- **Ergebnis:** Das ZIP enthält nur noch vier Dateien auf einer Ebene:
+  Paper-PDF, `Anhang.md`, `experiment-protocol.md` und `Nachweise.md`.
+  Die Nachweise bündeln Abschlussbefunde, Originalbewertungen und Q1 bis Q7.
+- **Entfernt aus der Auslieferung:** Builder, Manifeste, doppelte Paper- und
+  Diagrammquellen, vollständige Logs und ältere Protokollstände. Alle
+  Repository-Originale und vom Benutzer entpackten Ordner bleiben erhalten.
+- **Verweise:** Die zwei PDF-Links und lokalen Markdown-Verweise passen zur
+  flachen Paketstruktur. Ausgelassene Originale sind über festgeschriebene
+  GitHub-Stände erreichbar, sofern der Leser Repository-Zugriff hat. Das
+  archivierte Versuchsprotokoll ist bis auf angepasste Linkziele vollständig.
+- **Prüfung:** ZIP-Inhalt per Vier-Dateien-Allowlist, lokale Links und
+  Q-Verweisziele geprüft; alle 14 Bewertungen unverändert. PDF-Text und
+  Rendering sämtlicher fünf Seiten stimmen mit der bisherigen Ausgabe überein;
+  zusätzlich wurde die entpackte Fassung gerendert und visuell kontrolliert.
+- **Wiederholbarkeit:** `build_paper.py --package-only` erstellt künftig nur
+  das kompakte Paket; auch der vollständige Builder verwendet diese Auswahl.
+  Keine Produkttests, Skill-Wechsel, Commits, Pushes oder Merges.
+
+### Benutzerbewertung nach gemeinsamer Kriterienklärung aktualisiert
+
+- **Bestätigung:** Nach Erklärung aller sieben Kriterien wurden Vertrauen
+  (Matt 5 / Superpowers 4), Anpassbarkeit (4 / 4) und angemessener Aufwand
+  (4 / 3) neu festgelegt. Verständlichkeit, Kontrolle, Lerngewinn und
+  Wiederaufnahme bleiben auf ausdrücklichen Benutzerwunsch unverändert.
+- **Dokumentation:** `PAPER-BEWERTUNG.md` hält die aktuelle Bestätigung und ihre
+  Abgrenzung von den historischen Werten fest. Paper und kompakte Nachweise
+  verwenden die neuen Reihen; der Anhang erklärt die nachträgliche persönliche
+  Neubewertung. Die archivierten Logs und technischen Ergebnisse bleiben erhalten.
+- **Formulierung:** Kurze vergleichende Begründungen für beide Suiten; keine
+  Behauptung eines gemessenen Tokenverbrauchs oder genereller Fehlerfreiheit.
+  Insbesondere wird aus der Erinnerung an Wartezeiten nicht abgeleitet, dass
+  im Matt-Versuch grundsätzlich kein Nutzungslimit aufgetreten sei.
+- **Prüfung:** Alle 14 aktuellen Werte gegen die separate Bestätigung geprüft;
+  historische Quell-Prüfsummen unverändert. PDF weiterhin fünf Seiten, Tabelle
+  und Seitenübersicht visuell geprüft. ZIP weiterhin genau vier Dateien mit
+  gültigen lokalen Verweisen und identischem sichtbarem PDF-Inhalt.
+- **Abgrenzung:** Keine Produkttests, keine Änderung der übrigen vier Kriterien,
+  keine Änderung alter entpackter Quellenpakete und keine Git-Veröffentlichung.
+
+### Vollständige Anforderungen und grafische Einordnung ergänzt
+
+- **Benutzerauftrag:** Alle Anforderungen im Hauptpapier, das gemeinsame
+  Ausgangsbasis-Diagramm an der passenden Stelle, kürzere Beschreibungen,
+  ein grafischer Bewertungsvergleich im Fazit und angepasste Nachweise.
+- **Umsetzung:** Hauptpapier enthält FR-01 bis FR-07 und NFR-01 bis NFR-07 mit
+  kompakten Prüfkriterien. Das verkürzte Versuchsdiagramm ersetzt den bisherigen
+  Workflowvergleich. Es zeigt die gemeinsame Basis, feste Suite-Versionen,
+  getrennte Umsetzungen und unterschiedliche Umfänge.
+- **Visualisierung:** Das Fazit enthält einen gepaarten Punktvergleich mit
+  Kreis/Raute und einer vollständigen 1-bis-5-Skala. Verbindungen bestehen nur
+  innerhalb eines Kriteriums, nicht als künstlicher Verlauf zwischen Kriterien.
+  Sämtliche Punkte werden aus den unveränderten bestätigten Benutzerwerten
+  erzeugt; keine neue Bewertung oder Behauptung objektiver Überlegenheit.
+- **Dokumentation:** Anhang und Nachweisdatei erläutern die drei Abbildungen,
+  deren Quellen und Aussagegrenzen sowie die vollständige Anforderungsmatrix.
+  Der Begleittext und einzelne Fazitabsätze wurden gestrafft; das Fazit bleibt
+  der längste Hauptabschnitt, persönliche Lernerfahrungen folgen danach.
+- **Prüfung:** PDF weiterhin fünf Seiten; alle 14 Anforderungs-IDs, 14
+  Bewertungswerte und drei Abbildungen geprüft. Diagramme, Tabellen und
+  Seitenansichten gerendert und visuell kontrolliert. ZIP weiterhin vier
+  Dateien mit gültigen lokalen Verweisen und gleichem sichtbarem PDF-Inhalt.
+- **Abgrenzung:** Keine Produkttests, Änderungen historischer Quellen oder
+  Bearbeitung zuvor entpackter Benutzerordner; kein Commit, Push oder Merge.
+
+### Gewünschten Workflowvergleich zusätzlich wiederhergestellt
+
+- **Benutzerkorrektur:** Das Diagramm „Zwei Wege von der Klärung zur Abnahme“
+  sollte zusätzlich zum neuen Versuchsaufbau erhalten bleiben, nicht ersetzt
+  werden. Die bisherige Interpretation wurde korrigiert.
+- **Umsetzung:** Originaler Workflowvergleich mit gleicher Gestaltung und
+  Überschrift „3. Was die beiden Arbeitsweisen leisten“ wieder eingefügt.
+  Architektur, Versuchsaufbau, Bewertungstabelle, Punktvergleich und alle
+  14 Anforderungen bleiben erhalten. Der Plot ist jetzt Abbildung 4.
+- **Ausgabe:** Sechs statt fünf Seiten, damit die zusätzliche Abbildung und
+  die vollständige Tabelle nicht verkleinert werden müssen. Die Nachweise
+  beschreiben alle vier Abbildungen; das ZIP enthält weiterhin vier Dateien.
+- **Prüfung:** Sechs Seiten gerendert, wiederhergestelltes Diagramm und
+  Seitenübersicht visuell geprüft; alle aktuellen Punkte und historischen
+  Quellen unverändert, Paketverweise gültig. Kein Produktcode und keine
+  bestehenden entpackten Benutzerordner verändert; kein Commit oder Push.
+
+### Versuchsdiagramm nach der ursprünglichen Vorlage korrigiert
+
+- **Benutzerkorrektur:** Das Ausgangsbasis-Diagramm soll die ursprüngliche
+  Anordnung und Beschriftung behalten. Nur die dort wiederholten Arbeitsweisen
+  sollen entfallen, weil diese im separaten Workflowvergleich stehen.
+- **Umsetzung:** Gemeinsamer Start `e7d8b5e`, beide Skill-Versionen samt
+  Skill-Commits, unterschiedliche Umfänge und Nachweisstände wiederhergestellt.
+  Orange-/Türkis-Gestaltung und Hinweis auf die eingeschränkte Vergleichbarkeit
+  erhalten; ausschließlich die zwei Workflow-Zeilen je Suite entfernt.
+  Der Workflowvergleich darunter bleibt unverändert.
+- **Prüfung:** PDF weiterhin sechs Seiten. Seite 3 mit Poppler gerendert und
+  visuell geprüft; gemeinsame Basis und alle vier Skill-/Nachweis-Commits im
+  PDF kontrolliert. Bewertung, Anforderungen und historische Quellen bleiben
+  unverändert. Quellenpaket neu erzeugt und weiterhin auf vier Dateien begrenzt.
+  Kein Produktcode, keine Benutzerordner, kein Commit, Push oder Merge.
+
+### Bewertungsdiagramm direkt unter die Bewertungstabelle verschoben
+
+- **Benutzerauftrag:** Das persönliche Bewertungsprofil soll im Abschnitt
+  „Bewertung mit konkreten Gründen“ unmittelbar nach der Tabelle stehen.
+- **Umsetzung:** Abbildung 4 mit unveränderter Bildunterschrift vom Fazit auf
+  Seite 4 verschoben. Alle Punkte, Begründungen und übrigen Diagramme bleiben
+  unverändert; das Fazit behält seinen vollständigen Text.
+- **Prüfung:** Bewertungstabelle und Diagramm stehen zusammen auf Seite 4.
+  Seiten 4 und 5 mit Poppler gerendert und visuell geprüft. PDF weiterhin sechs
+  Seiten, Quellenpaket weiterhin genau vier Dateien; Quellen und Werte geprüft.
+  Kein Commit, Push, Merge oder Produkttest.
+
+### Fazit fachlich und sprachlich professionalisiert
+
+- **Benutzerauftrag:** Den wichtigsten Paper-Abschnitt erneut prüfen und so
+  überarbeiten, dass Unterschiede, Stärken, Schwächen, Verbesserungen und eigene
+  Erfahrung deutlich, nachvollziehbar und professionell dargestellt sind.
+- **Fachliche Prüfung:** Aussagen mit Anhang, Nachweisen, Versuchsprotokoll und
+  Beobachtungslog abgeglichen. Keine Rangfolge aus unterschiedlichen Umfängen
+  abgeleitet; Mock-Grenze, Reihenfolge, Domänenwissen und Tokenlimits bleiben als
+  Einschränkungen sichtbar.
+- **Überarbeitung:** Klare risikobasierte Auswahlregel formuliert. Für Matt und
+  Superpowers jeweils Stärke und Schwäche mit konkretem Versuchsbeleg getrennt.
+  Qualitätsaussage als Nachweiskette aus Regeltest, Spezifikationsreview und
+  End-to-End-Abnahme präzisiert. Vier umsetzbare Verbesserungsmaßnahmen und ein
+  kontrollierter Folgeversuch vorgeschlagen. Eigene Lern- und
+  Verantwortungsübernahme knapper und professioneller beschrieben.
+- **Prüfung:** Fazit bleibt mit 573 Wörtern der längste Hauptabschnitt. PDF auf
+  sechs Seiten gehalten; Seiten 5 und 6 sowie Gesamtübersicht gerendert und
+  visuell geprüft. Quellenpaket weiterhin genau vier Dateien, bestätigte Punkte
+  und historische Nachweise unverändert. Kein Produktcode, Commit, Push oder
+  Merge.
+
+### Vier abschließende Qualitätsverbesserungen umgesetzt
+
+- **Benutzerfreigabe:** Die vier empfohlenen Schlusskorrekturen sollten in die
+  finale Bewerbungsfassung übernommen werden.
+- **Struktur:** Abschnitt 3 um die konsistente Nummerierung „3.1 Beobachtete
+  Arbeitsweisen“ und „3.2 Persönliche Bewertung mit konkreten Gründen“ ergänzt.
+- **Methodische Präzision:** Fazitüberschriften und Hervorhebungen unterscheiden
+  nun klar zwischen beobachteter Stärke, Prozessrisiko und Grenze des engeren
+  Superpowers-Versuchs. Dadurch wird eine unbelegte allgemeine Eigenschaft der
+  Skill-Suite vermieden.
+- **Bewertung:** Der scheinbare Widerspruch zwischen Matts breiterem Ablauf und
+  der günstigeren persönlichen Aufwandsbewertung wird unmittelbar nach der
+  Tabelle erklärt; die bestätigten Punkte bleiben unverändert.
+- **Gestaltung:** Versuchsaufbau und Workflowvergleich auf Seite 3 um acht
+  Prozent vergrößert und zentriert. Beschriftungen sind besser lesbar, ohne die
+  Seitenränder oder den übrigen Aufbau zu verändern.
+- **Prüfung:** PDF weiterhin sechs Seiten und vier Abbildungen; Seiten 3 bis 6
+  sowie Gesamtübersicht gerendert und visuell geprüft. Fazit bleibt der längste
+  Hauptabschnitt. Quellenpaket weiterhin vier valide Dateien. Kein Produktcode,
+  Commit, Push oder Merge.

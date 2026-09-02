@@ -1,68 +1,54 @@
-# Paper und Quellenpaket
+# Paper und kompaktes Quellenpaket
 
-## Lesen und weitergeben
+## Weitergeben
 
-1. Für die Lektüre: `output/pdf/agent-skills-fallstudie.pdf` vom Repository-Root.
-2. Für die Überprüfung: `output/pdf/agent-skills-fallstudie-quellenpaket.zip`.
-3. Das ZIP vollständig entpacken. Es enthält das PDF, die überarbeitete
-   Markdown-Datei, beide Diagramme und sämtliche im Paper als Q1 bis Q7
-   referenzierten Nachweise. Die Verzeichnisstruktur darf für relative Links
-   nicht verändert werden.
+`output/pdf/agent-skills-fallstudie-quellenpaket.zip` enthält ausschließlich:
 
-Im ZIP liegt das PDF direkt im Hauptverzeichnis. Die Markdown-Quelle befindet
-sich unter `Docs/skill-evaluation/bewerbungs-paper-agentische-skill-suites.md`.
-Das bisher bei der Einzelweitergabe fehlende `experiment-protocol.md` liegt
-direkt daneben. Auch die darin verlinkte Architektur-Arbeitsnotiz ist enthalten.
-Ein GitHub-Zugang ist zum Lesen der mitgelieferten Nachweise nicht erforderlich.
+1. `agent-skills-fallstudie.pdf` - sechsseitige Projektstudie mit allen 14 Anforderungen und vier Abbildungen.
+2. `Anhang.md` - vollständige Anforderungen und Bewertungsmethode.
+3. `experiment-protocol.md` - das vollständige archivierte Versuchsprotokoll.
+4. `Nachweise.md` - relevante Abschlussbefunde, bestätigte Bewertungen und Quellenübersicht.
 
-## Quellenstatus
+Alle vier Dateien liegen direkt im ZIP, ohne verschachtelte Ordner. Zum Lesen
+das ZIP vollständig entpacken. Die beiden PDF-Links zeigen auf den Anhang und
+das Protokoll daneben. Der sichtbare PDF-Inhalt bleibt gegenüber der separaten
+Ausgabe unverändert. Je nach PDF-Programm müssen Markdown-Dateien manuell
+geöffnet werden.
 
-Die historischen Logs wurden für diese Überarbeitung nicht umgeschrieben.
-`references/` enthält Exporte aus festgeschriebenen Git-Commits. Die vollständigen
-Commit-IDs, Originalpfade, Exportpfade und SHA-256-Prüfsummen stehen in
-`references/source-manifest.json`. `package-manifest.json` im ZIP prüft zusätzlich
-die mitgelieferten Dateien. Diese Prüfsummen sichern Dateiintegrität, nicht die
-inhaltliche Wahrheit einer Beobachtung.
+## Bewusst nicht enthalten
 
-Die FR/NFR-Matrix und die Erklärung der Bewertung sind nachträgliche
-Zusammenstellungen aus den historischen Quellen. Die alten Punktewerte und
-Versuchslogs bleiben unverändert. Die Skala war subjektiv; nur Übernahme,
-Gewichtung und Berechnung der Punkte sind reproduzierbar.
+Erzeugungsskripte, Prüfsummen-Manifeste, die Markdown-Doppelung des Papers,
+separate PNG-/SVG-Diagramme, vollständige Arbeitslogs und ältere Protokollstände
+werden nicht mitgeliefert. Die Diagramme sind bereits im PDF enthalten.
 
-## Umsetzung des Feedbacks
+Diese Originalunterlagen werden nicht gelöscht: Sie bleiben im Repository.
+Die kompakte Nachweisdatei fasst die relevanten Befunde zusammen und verlinkt
+festgeschriebene GitHub-Stände. Für die vollständigen Originale können Internet
+und Repository-Berechtigung erforderlich sein. Das Paket ist eine Leseausgabe,
+kein vollständiges Offline-Archiv aller Entwicklungsschritte.
 
-| Rückmeldung | Änderung |
-| --- | --- |
-| Mindestens zwei Diagramme | Gemeinsamer Scan mit persönlichen Aufgaben; isolierter Versuchsaufbau mit getrennten Feature-Umfängen. PNG für Markdown, SVG als Vektorquelle, Vektoren im PDF. |
-| Saubere FR und NFR | Abschnitt 2 enthält identifizierbare Anforderungen, Abnahmeszenarien und Quellen; Unterschiede der Varianten bleiben sichtbar. |
-| Bewertung erklären | Abschnitt 4 nennt Herkunft, Zeitpunkt, Skala, Begründung aller 14 Werte und die Grenzen des Determinismus. |
-| Fehlendes Protokoll | Das vollständige ZIP enthält `experiment-protocol.md` sowie die weiteren zitierten Markdown-Nachweise. |
-| Fazit vor Lernerfahrungen; Tokenlimit | Abschnitt 5 vor Abschnitt 6; begrenztes Kontingent und fehlende vollständige Tokenbilanz sind ausdrücklich benannt. |
-| Fazit länger und strukturiert | Sechs Fazit-Unterabschnitte; längster nummerierter Hauptabschnitt des Papers. |
-| Fließtext strukturieren | Kurze Absätze, präzise Zwischenüberschriften, Anforderungs- und Begründungstabellen, nummerierte Handlungsempfehlung. |
+## Paket und Quellen pflegen
 
-## Reproduktion
+Die Paketkopien bekommen passende relative Links. Verweise auf ausgelassene
+Originaldokumente führen auf deren festgeschriebene GitHub-Stände. Das gilt auch
+für die Architektur-Arbeitsnotiz im Versuchsprotokoll; dessen übriger Inhalt
+bleibt unverändert. Historische Nachweise werden nicht verändert. Die aktuelle
+Benutzerbewertung ist von den ursprünglichen Urteilen getrennt dokumentiert;
+ihre Bestätigung steht im Repository unter `PAPER-BEWERTUNG.md`.
 
-Voraussetzungen: Python 3, `reportlab`, `pypdf`, `pypdfium2` und `Pillow` sowie
-lokale Liberation-Sans-Schriftdateien (Regular, Bold, Italic und BoldItalic).
-`PAPER_FONT_DIR` kann auf deren Verzeichnis zeigen. Der Builder sucht sonst in
-der lokalen Codex-Laufzeit und gängigen Systemverzeichnissen. Es erfolgen keine
-Netzwerkaufrufe und keine Produktcodeänderungen.
-
-Vom Repository-Root:
+Im Repository erzeugt dieser Befehl nur das kompakte ZIP neu:
 
 ```bash
-python3 Docs/skill-evaluation/tools/build_paper.py
+python3 Docs/skill-evaluation/tools/build_paper.py --package-only
 ```
 
-Im ursprünglichen Repository werden historische Quellen aus den dokumentierten
-Commits exportiert. Im entpackten ZIP werden vorhandene Exporte gegen ihre
-SHA-256-Prüfsummen geprüft; eine Git-Historie ist dort nicht erforderlich.
+Ohne `--package-only` werden zusätzlich PDF und Diagramme neu erzeugt. Der
+Builder ist absichtlich nicht Teil des Bewerbungspakets. Er benötigt die
+historischen Quellen im Repository und Python mit ReportLab, pypdf, pypdfium2
+und Pillow; der vollständige PDF-Neuaufbau außerdem Liberation-Sans-Schriften.
 
-Der Builder prüft Referenzen, unveränderte Ratings, Kapitelreihenfolge und
-Fazitlänge. Er erstellt Diagramme, PDF, Seitenrenderings, das Quellen-ZIP und
-einen maschinenlesbaren Prüfbericht. Die Seitenrenderings unter `tmp/pdfs/`
-dienen der visuellen Kontrolle und werden nicht mitgeliefert.
-
-Die PDF-Layoutprüfung ersetzt keine erneute Produktprüfung. Die Testzahlen im
-Paper stammen ausdrücklich aus den historischen Abschlusslogs.
+Die Paketprüfung kontrolliert die vier erlaubten Dateien, lokale Links,
+bestätigte Bewertungen und pixelgleichen PDF-Inhalt nach Anpassung der Links.
+Der vollständige Builder prüft außerdem alle sieben FR und NFR im Hauptpapier
+und verwendet für den Punktvergleich dieselben Werte wie für die Tabellen.
+Es werden keine Produkttests oder Netzwerkabfragen ausgeführt.
