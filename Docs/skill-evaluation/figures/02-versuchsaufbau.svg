@@ -37,11 +37,10 @@
 			<text x="512" y="178" style="font-family: Body; font-size: 19px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,356) scale(1,-1)">Nachweisstand: a8801ff</text>
 			<path d="M 235,138 L 235,105 Z" style="stroke: rgb(69%,36%,22%); stroke-linecap: butt; stroke-width: 2.4;"/>
 			<path d="M 235,105 L 470,105 Z" style="stroke: rgb(69%,36%,22%); stroke-linecap: butt; stroke-width: 2.4;"/>
-			<path d="M 470,105 L 470,78 Z" style="stroke: rgb(69%,36%,22%); stroke-linecap: butt; stroke-width: 2.4;"/>
-			<polygon points="470 78, 465 88, 475 88" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(69%,36%,22%); fill-rule: evenodd;"/>
 			<path d="M 705,138 L 705,105 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
 			<path d="M 705,105 L 470,105 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
-			<polygon points="470 105, 480 110, 480 100" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 470,105 L 470,78 Z" style="stroke: rgb(8%,17%,25%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="470 78, 465 88, 475 88" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(8%,17%,25%); fill-rule: evenodd;"/>
 			<text x="163.1005859375" y="51" style="font-family: BodyBold; font-size: 21px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,102) scale(1,-1)">Vergleich von Abläufen und Nachweisen - kein Produktmerge</text>
 			<text x="151.54052734375" y="20" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,40) scale(1,-1)">Nacheinander durchgeführt; Umfang, Umgebung und Vorwissen sind nicht identisch.</text>
 		</g>

@@ -40,13 +40,15 @@ OUT = ROOT / 'output/pdf'
 QA = ROOT / 'tmp/pdfs/skill-paper'
 PAPER = BASE / 'bewerbungs-paper-agentische-skill-suites.md'
 PDF_NAME = 'agent-skills-fallstudie.pdf'
-PAGE_COUNT = 6
+PAGE_COUNT = 7
 INK = colors.HexColor('#162C40')
 TEAL = colors.HexColor('#087F82')
 MATT = colors.HexColor('#6257A5')
 MUTED = colors.HexColor('#526579')
 PALE = colors.HexColor('#F1F5F7')
 LINE = colors.HexColor('#D5DFE5')
+MATT_PALE = colors.HexColor('#E9E7F5')
+TEAL_PALE = colors.HexColor('#DFF1F0')
 CRITERIA = ['Verständlichkeit', 'Kontrolle', 'Lerngewinn', 'Angemessener Aufwand',
             'Vertrauen', 'Wiederaufnahme', 'Anpassbarkeit']
 
@@ -241,8 +243,14 @@ def experiment():
              'Nachweisstand: a8801ff']
     for i, label in enumerate(left): text(d, 42, 236-i*29, label, 19, MUTED)
     for i, label in enumerate(right): text(d, 512, 236-i*29, label, 19, MUTED)
-    arrow(d, [(235, 138), (235, 105), (470, 105), (470, 78)], setup_matt)
-    arrow(d, [(705, 138), (705, 105), (470, 105)], TEAL)
+    # Join both experiment paths without overlapping arrowheads. The shared
+    # neutral arrow makes the convergence readable at PDF scale and avoids
+    # visually assigning the common comparison step to either suite.
+    d.add(Line(235, 138, 235, 105, strokeColor=setup_matt, strokeWidth=2.4))
+    d.add(Line(235, 105, 470, 105, strokeColor=setup_matt, strokeWidth=2.4))
+    d.add(Line(705, 138, 705, 105, strokeColor=TEAL, strokeWidth=2.4))
+    d.add(Line(705, 105, 470, 105, strokeColor=TEAL, strokeWidth=2.4))
+    arrow(d, [(470, 105), (470, 78)], INK)
     text(d, 470, 51, 'Vergleich von Abläufen und Nachweisen - kein Produktmerge', 21, bold=True, anchor='middle')
     text(d, 470, 20, 'Nacheinander durchgeführt; Umfang, Umgebung und Vorwissen sind nicht identisch.', 17, MUTED, anchor='middle')
     return d
@@ -345,7 +353,7 @@ def build_pdf(figures):
                                    textColor=TEAL, spaceAfter=14),
         'h2': ParagraphStyle('h2', fontName='BodyBold', fontSize=16, leading=20,
                              textColor=INK, spaceBefore=14, spaceAfter=8, keepWithNext=True),
-        'h3': ParagraphStyle('h3', fontName='BodyBold', fontSize=12, leading=15,
+        'h3': ParagraphStyle('h3', fontName='BodyBold', fontSize=14, leading=18,
                              textColor=TEAL, spaceBefore=10, spaceAfter=6, keepWithNext=True),
         'cell': ParagraphStyle('cell', fontName='Body', fontSize=9.2, leading=12.2, textColor=INK),
         'head': ParagraphStyle('head', fontName='BodyBold', fontSize=9, leading=12, textColor=colors.white),
@@ -355,7 +363,17 @@ def build_pdf(figures):
                                textColor=INK, leftIndent=13, firstLineIndent=-11, spaceAfter=7),
     }
     width = A4[0] - 96
+    styles['review_body'] = ParagraphStyle('review_body', parent=styles['body'],
+                                           fontSize=11.5, leading=16.5, spaceAfter=12)
+    styles['review_h3'] = ParagraphStyle('review_h3', parent=styles['h3'],
+                                         fontSize=14, leading=18, spaceAfter=10)
+    styles['review_cell'] = ParagraphStyle('review_cell', parent=styles['cell'],
+                                           fontSize=10.5, leading=14.5)
+    styles['review_head'] = ParagraphStyle('review_head', parent=styles['head'],
+                                           fontSize=10.5, leading=14)
     story = []
+    in_code_review = False
+    in_git_facts = False
     lines = PAPER.read_text().splitlines()
     i = 0
     while i < len(lines):
@@ -372,17 +390,19 @@ def build_pdf(figures):
         elif line.startswith('## Matt Pocock Skills'):
             story.append(Paragraph(inline(line[3:]), styles['subtitle']))
         elif line.startswith('## '):
+            in_git_facts = False
             heading = line[3:]
             story.append(Paragraph(inline(heading), styles['h2']))
         elif line.startswith('### '):
-            story.append(Paragraph(inline(line[4:]), styles['h3']))
+            in_code_review = line.startswith('### 3.2 Codeprüfung')
+            in_git_facts = line.startswith('### Git-Fakten')
+            story.append(Paragraph(inline(line[4:]), styles['review_h3' if in_code_review else 'h3']))
         elif line.startswith('!['):
             match = re.match(r'!\[.*\]\(([^)]+)\)', line)
             stem = Path(match[1]).stem
             drawing = figures[stem]
-            # The two workflow/setup diagrams benefit from slightly larger type.
-            # They may use part of the normal margin while remaining centered.
-            target_width = width * (1.08 if stem in {'02-versuchsaufbau', '02-workflowvergleich'} else 1)
+            # Align every figure with the same left edge as headings and body text.
+            target_width = width
             scale = target_width / drawing.width
             scaled = Drawing(target_width, drawing.height * scale)
             scaled.add(drawing)
@@ -410,23 +430,40 @@ def build_pdf(figures):
             count = len(raw[0])
             if raw[0][0] == 'ID':
                 widths = [56, 193, width-249]
+            elif raw[0] == ['Variante', 'Bestätigte Lücke', 'Verbesserung']:
+                widths = [80, 235, width-315]
+            elif raw[0] == ['Git-Messwert', 'Matt', 'Superpowers']:
+                widths = [215, (width-215)/2, (width-215)/2]
             elif count == 3:
                 widths = [116, (width-116)/2, (width-116)/2]
             else:
                 widths = [103, 36, 76, width-215]
-            rows = [[Paragraph(inline(c), styles['head' if r == 0 else 'cell'])
+            review_table = raw[0] == ['Variante', 'Bestätigte Lücke', 'Verbesserung']
+            large_table = review_table or raw[0] == ['Git-Messwert', 'Matt', 'Superpowers']
+            rows = [[Paragraph(inline(c), styles[('review_head' if r == 0 else 'review_cell')
+                                                if large_table else ('head' if r == 0 else 'cell')])
                      for c in row] for r, row in enumerate(raw)]
             table = Table(rows, colWidths=widths, repeatRows=1, hAlign='LEFT')
             commands = [('BACKGROUND', (0,0), (-1,0), INK),
                         ('VALIGN', (0,0), (-1,-1), 'TOP'),
                         ('LEFTPADDING', (0,0), (-1,-1), 8),
                         ('RIGHTPADDING', (0,0), (-1,-1), 8),
-                        ('TOPPADDING', (0,0), (-1,-1), 5),
-                        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+                        ('TOPPADDING', (0,0), (-1,-1), 10 if review_table else 5),
+                        ('BOTTOMPADDING', (0,0), (-1,-1), 10 if review_table else 5),
                         ('LINEBELOW', (0,0), (-1,0), 1, TEAL)]
             for row in range(1, len(rows)):
                 commands += [('BACKGROUND', (0,row), (-1,row), PALE if row % 2 else colors.white),
                              ('LINEBELOW', (0,row), (-1,row), .35, LINE)]
+            if raw[0][:3] == ['Kriterium', 'Matt', 'Superpowers']:
+                for row, values in enumerate(raw[1:], 1):
+                    matt = int(re.search(r'[1-5]', values[1]).group())
+                    superpowers = int(re.search(r'[1-5]', values[2]).group())
+                    if matt > superpowers:
+                        commands += [('BACKGROUND', (1,row), (1,row), MATT_PALE),
+                                     ('BOX', (1,row), (1,row), .7, MATT)]
+                    elif superpowers > matt:
+                        commands += [('BACKGROUND', (2,row), (2,row), TEAL_PALE),
+                                     ('BOX', (2,row), (2,row), .7, TEAL)]
             table.setStyle(TableStyle(commands))
             story += [Spacer(1, 5), table, Spacer(1, 12)]
             continue
@@ -438,7 +475,8 @@ def build_pdf(figures):
             para = ' '.join(paragraph)
             is_list = bool(re.match(r'^(- |\d+\. )', para))
             if para.startswith('- '): para = '• ' + para[2:]
-            story.append(Paragraph(inline(para), styles['list' if is_list else 'body']))
+            story.append(Paragraph(inline(para), styles['list' if is_list else
+                                                       'review_body' if in_code_review or in_git_facts else 'body']))
         i += 1
 
     def frame(canvas, doc):
@@ -499,7 +537,8 @@ def verify_sources_and_paper(manifest):
     assert len(re.findall(r'^!\[', content, re.M)) == 4
     assert '## 3. Was die beiden Arbeitsweisen leisten' in content
     assert '### 3.1 Beobachtete Arbeitsweisen' in content
-    assert '### 3.2 Persönliche Bewertung mit konkreten Gründen' in content
+    assert '### 3.2 Codeprüfung: Stärken und verbleibende Lücken' in content
+    assert '### 3.3 Persönliche Bewertung mit konkreten Gründen' in content
     assert '(figures/02-workflowvergleich.png)' in content
     appendix = (BASE / 'PAPER-ANHANG.md').read_text()
     assert set(re.findall(r'\| (FR-\d+)', content)) == {f'FR-{i:02}' for i in range(1,8)}
@@ -534,14 +573,19 @@ def render_qa(report):
     joined = '\n'.join(text_pages)
     expected_ids = [f'{prefix}-{i:02}' for prefix in ['FR', 'NFR'] for i in range(1,8)]
     for key in expected_ids + ['Abbildung 3.', 'Abbildung 4.', 'Offene Fragen klären',
-                               'Gesamtweg abnehmen', '4.5 Reichweite', '5. Was ich persönlich', 'Nachweise']:
+                               'Gesamtweg abnehmen', '4.5 Ausblick', '5. Was ich persönlich', 'Nachweise']:
         assert key in joined, key
     setup_page = text_pages[2]
     for key in ['Gemeinsamer Start: e7d8b5e', 'Skill f6de92c', 'Skill a419016',
                 'Nachweisstand: ab8249c', 'Nachweisstand: a8801ff']:
         assert key in setup_page, key
-    evaluation_page = text_pages[3]
-    assert evaluation_page.index('3.2 Persönliche Bewertung mit konkreten Gründen') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
+    review_page = text_pages[3]
+    assert '3. Was die beiden Arbeitsweisen leisten' in review_page
+    assert 'Abbildung 3.' in review_page
+    assert '3.2 Codeprüfung' in review_page
+    assert 'Git-Messwert' in setup_page
+    evaluation_page = text_pages[4]
+    assert evaluation_page.index('3.3 Persönliche Bewertung mit konkreten Gründen') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
     assert evaluation_page.index('Anpassbarkeit') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
     assert 'Abbildung 4.' in evaluation_page
     pdf = pdfium.PdfDocument(str(OUT / PDF_NAME))

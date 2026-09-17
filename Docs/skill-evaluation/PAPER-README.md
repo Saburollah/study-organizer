@@ -4,7 +4,7 @@
 
 `output/pdf/agent-skills-fallstudie-quellenpaket.zip` enthält ausschließlich:
 
-1. `agent-skills-fallstudie.pdf` - sechsseitige Projektstudie mit allen 14 Anforderungen und vier Abbildungen.
+1. `agent-skills-fallstudie.pdf` - siebenseitige Projektstudie mit allen 14 Anforderungen, vier Abbildungen und ergänzender Codeprüfung.
 2. `Anhang.md` - vollständige Anforderungen und Bewertungsmethode.
 3. `experiment-protocol.md` - das vollständige archivierte Versuchsprotokoll.
 4. `Nachweise.md` - relevante Abschlussbefunde, bestätigte Bewertungen und Quellenübersicht.
