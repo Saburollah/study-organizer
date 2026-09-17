@@ -20,6 +20,11 @@ eine unabhängige oder objektive Bewertung der Softwarequalität.
 
 ## Grundlage der Überarbeitung
 
+Für die Begründungen im Paper gilt: 5 bezeichnet eine sehr gute Erfahrung ohne
+relevante Einschränkung, 4 eine sehr gute Erfahrung mit einer konkret benannten
+Einschränkung und 3 eine gemischte Erfahrung. Damit erklärt jede Begründung
+nicht nur die Stärke, sondern bei Werten unter 5 auch den Punktabzug.
+
 - **Vertrauen:** Der Benutzer bestätigte, dass Matts gezielte Rückfragen ihm
   halfen, übersehene Anforderungen und Risiken zu erkennen. Bei Superpowers
   stärkte der erfolgreiche Praxistest das Vertrauen. Bestätigt: Matt 5,
@@ -33,7 +38,9 @@ eine unabhängige oder objektive Bewertung der Softwarequalität.
   als gemischte Erfahrung abzubilden. Matts hilfreiche Klärung bewertete er mit 4.
 - **Übrige Kriterien:** Nach Erklärung von Verständlichkeit, Kontrolle,
   Lerngewinn und Wiederaufnahme bestätigte der Benutzer mit „das bleiben so“
-  die bestehenden Werte.
+  die bestehenden Werte. Die Einschränkungen ergeben sich aus den protokollierten
+  Abläufen: verteilte Entscheidungsrunden, ein engerer Lernumfang und erneuter
+  Orientierungsbedarf trotz vorhandener Dokumentation.
 
 ## Historische Abgrenzung
 

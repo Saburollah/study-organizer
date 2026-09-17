@@ -5,7 +5,7 @@ redaktionelle Zusammenfassung, kein neues Testprotokoll. Die technischen
 Abschlusszahlen bleiben unverändert; die persönliche Bewertung wurde nach
 erneuter Klärung der Kriterien durch den Benutzer überarbeitet.
 
-Das kompakte Paket enthält das sechsseitige Paper, den Anhang, das vollständige
+Das kompakte Paket enthält das Paper, den Anhang, das vollständige
 Versuchsprotokoll und diese Nachweise. Quellcode, Erzeugungsskripte, doppelte
 Diagrammdateien und vollständige Arbeitslogs sind bewusst nicht enthalten.
 Die vier Abbildungen sind bereits im Paper eingebettet.
@@ -15,14 +15,99 @@ Die vier Abbildungen sind bereits im Paper eingebettet.
 | Nachweis | Matt | Superpowers |
 | --- | --- | --- |
 | Backendtests | 225 erfolgreich: 111 Domain, 63 API, 51 Infrastructure. | 195 erfolgreich. |
-| Frontend | Tests, Lint und Build als erfolgreich bestätigt; Typprüfung ohne Fehler. | 97 Tests sowie Typprüfung, Lint und Build erfolgreich. |
-| Sichtbarer Ablauf | Dokumentierter Playwright-Golden-Path. | Vom Benutzer bestätigter manueller Browser-Walkthrough. |
+| Frontendtests und Prüfungen | 94 Vitest-Tests in 20 Testdateien; Type-Check, Lint und Build erfolgreich. | 97 Vitest-Tests sowie Type-Check, Lint und Build erfolgreich. |
+| Sichtbarer Ablauf | Ein dokumentierter Playwright-End-to-End-Test. | Vom Benutzer bestätigter manueller Browser-Walkthrough. |
 | Relevante Korrektur | Fehlende Produktionsmigration sowie Cleanup und dessen Zusammenspiel mit Reaktivierung wurden nachgebessert. | Lokale Startkonfiguration und im Review gefundene Implementierungs- beziehungsweise Testlücken wurden korrigiert. |
 
 Grundlage: Q2, Q4 und Q6; der Golden-Path und die Vergleichsgrenzen sind auch in
 Q7 zusammengeführt. Unterschiedliche Funktionsumfänge und Testbestände erlauben
 keine Rangliste anhand der Testanzahl. Für die Paper-Überarbeitung wurden keine
 neuen Produkttests ausgeführt.
+
+Das historische Matt-Protokoll bestätigte den erfolgreichen Vitest-Lauf, erfasste
+aber keine Anzahl. Die 94 Tests in 20 Dateien wurden nachträglich mit
+`vitest list` am gegenüber dem Matt-Abschlusscommit unveränderten Frontendstand
+gezählt und als rekonstruierter Abschlussstand ausgewiesen.
+
+## Git-Fakten und Zählregeln
+
+Die Werte wurden direkt aus den festgeschriebenen Git-Ständen erneut ermittelt,
+nicht aus älteren Zwischenständen der Logs übernommen. Die beiden Diffs sind
+`e7d8b5e..ab8249c` und `e7d8b5e..a8801ff`.
+
+| Messwert | Matt | Superpowers |
+| --- | --- | --- |
+| Commits ohne Merge-Commits | 32 | 28 |
+| Merge-Commits, separat | 8 | 0 |
+| Alle geänderten Dateien | 139 | 92 |
+| Handgeschriebene Produktdateien | 71 | 50 |
+| Produktcode hinzugefügt / entfernt | +6.555 / -121 Zeilen | +3.240 / -70 Zeilen |
+
+**Reproduzierbare Zählung:** `git rev-list --count --no-merges <Bereich>`
+zählt erreichbare Nicht-Merge-Commits; `git diff --shortstat <Bereich>` liefert
+alle geänderten Dateien. Die Produktcode-Zeile summiert `git diff --numstat`
+für `backend/src/` ohne `Infrastructure/Persistence/Migrations/` sowie
+`frontend/src/` ohne `__tests__` und `.spec.`-Dateien. Sie umfasst Änderungen
+zwischen den Endständen, nicht kumulierte Bearbeitungsschritte, gesamte LOC
+oder ausschließlich neues Feature-Verhalten. Tests, Dokumentation, Build- und
+Konfigurationsdateien sowie generierte EF-Migrationen gehören nicht zu dieser
+Produktcode-Zeile. Die Gesamtdateizahl umfasst dagegen alle geänderten Dateien.
+
+Die Git-Historie zeigt bei Matt den Entscheidungsbranch `experiment/matt`,
+anschließende Feature-Branches und mehrere PR-Merges. Superpowers wurde auf
+dem isolierten Branch `experiment/superpowers` mit aufeinanderfolgenden
+Task-Commits umgesetzt. Keine dieser Strategien ist allein ein Qualitätsbeleg.
+Bearbeitungszeit, Tokenverbrauch und identische historische Modellkonfigurationen
+wurden nicht für beide Versuche zuverlässig dokumentiert; daraus werden keine
+Effizienzvergleiche abgeleitet.
+
+## Ausführungsumgebung
+
+Beide Implementierungsversuche wurden mit Codex als Agenten- und
+Ausführungsumgebung durchgeführt. Diese Angabe beruht auf dem Arbeitskontext
+des Autors, nicht auf einer vollständig archivierten Konfigurationshistorie.
+Die historischen Modellversionen, Bearbeitungszeiten und Tokenverbräuche sind
+nicht für beide Versuche zuverlässig dokumentiert; daraus wird kein
+Leistungsvergleich abgeleitet. Die weiter unten genannten Modelle betreffen
+ausschließlich die ergänzende Codeprüfung.
+
+## Ergänzende statische Codeprüfung
+
+Die ergänzende Prüfung verglich die Produktstände `ab8249c` (Matt) und
+`a8801ff` (Superpowers) mit dem gemeinsamen Start `e7d8b5e`. Standards und
+Spezifikation wurden getrennt durch KI-Agenten geprüft; ein zweites Modell
+öffnete die Kandidatenfundstellen erneut und bestätigte, korrigierte oder
+verwarf die Aussagen. Die abgeschlossenen Erstprüfungen nutzten
+`gpt-5.6-luna`, die Gegenprüfung `gpt-5.6-terra`. Diese Modellangaben gelten
+nur für den ergänzenden Review, nicht für die historischen Implementierungen.
+Es wurden weder Produkttests erneut ausgeführt noch Produktfehler behoben.
+Die statische Gegenprüfung ist eine zusätzliche Plausibilitätskontrolle,
+kein unabhängiger experimenteller Beweis und keine vollständige Fehlerfreiheit.
+
+| Befund | Code- und Testfundstellen | Anforderungsbezug |
+| --- | --- | --- |
+| Matt: fehlende Herkunftsanzeige in der Aufgabenkarte | `ab8249c`, `frontend/src/views/tasks/StudyTasksView.vue`, Zeilen 346-421; API-Metadaten in `backend/src/Application/Tasks/StudyTaskResult.cs`, Zeilen 6-30; Test in `frontend/src/views/tasks/__tests__/StudyTasksView.spec.ts`, Zeilen 304-344 prüft Erhalt, nicht Quellenanzeige. | Gemeinsamer, nachträglich rekonstruierter FR-07. Issue #77 fordert die Quellenanzeige nicht ausdrücklich; daher kein behaupteter Verstoß gegen dieses Ticket. |
+| Superpowers: veralteter Scanstatus | `a8801ff`, `frontend/src/views/externalCourses/MoodleCoursesView.vue`, Zeilen 83-102 und 162-218; zugehöriger Test, Zeilen 126-161 prüft Zähler, nicht den aktualisierten Kartenstatus. | Bestätigtes Design, Zeilen 243-245 und 257-265: Scanantwort und Kurskarte zeigen den Scanstatus. |
+| Superpowers: nicht passende Übersetzungsschlüssel | `a8801ff`, `backend/src/Domain/ExternalCourses/ExternalCourseEnums.cs`, Zeilen 16-21; `ExternalCourseQueryHandler.cs`, Zeilen 81-93; View, Zeilen 237-239; DE/EN-Locales, jeweils Zeilen 145-149. Backend liefert `NotAnAssignment` und `MissingStructuredDeadline`, Locales definieren andere Namen. | Bestätigtes Design, Zeile 276: neue sichtbare Texte in Deutsch und Englisch. |
+
+[Matt-Aufgabenansicht am Prüfstand](https://github.com/Saburollah/study-organizer/blob/ab8249cf6345dd765714bbf87f649d55c0bcefe7/frontend/src/views/tasks/StudyTasksView.vue#L346) ·
+[Superpowers-Kursansicht am Prüfstand](https://github.com/Saburollah/study-organizer/blob/a8801ff3727a24864bc198d53305a1938c4fdb41/frontend/src/views/externalCourses/MoodleCoursesView.vue#L83) ·
+[Superpowers-Prüfgründe am Prüfstand](https://github.com/Saburollah/study-organizer/blob/a8801ff3727a24864bc198d53305a1938c4fdb41/backend/src/Domain/ExternalCourses/ExternalCourseEnums.cs#L16)
+
+**Weitere Reviewgrenzen.** Superpowers demonstriert im festgeschriebenen Mock
+keinen expliziten PDF-Fall; das ist eine Nachweislücke zum gemeinsamen FR-05,
+nicht ein Beweis, dass das Modell keine PDF-Ressource darstellen kann, und kein
+Verstoß gegen die eigene engere Fixture-Spezifikation. Die PostgreSQL- und
+SQLite-Nachweise zu NFR-03 sind nicht identisch und erlauben keine direkte
+Qualitätsrangliste.
+
+**Standards und Wartbarkeit, getrennt von Produktabweichungen.** Wiederholte
+SourceUpdate-Logik bei Matt sowie breite Orchestrierungs-Handler bei beiden
+Varianten sind Refactoring-Möglichkeiten, keine bestätigten Funktionsfehler.
+Superpowers speichert unerwartete Scanfehler sicher, wirft die Ausnahme aber
+erneut; ein API-Test und eine definierte Ausnahmebehandlung wären sinnvoll.
+Ein öffentliches Datenleck wurde nicht nachgewiesen. Die zunächst vermutete
+Matt-URL-Autorisierungslücke wurde ebenfalls nicht als belegter Fehler bestätigt.
 
 ## Bestätigte persönliche Bewertung
 
@@ -64,9 +149,10 @@ Der Plot und die Bewertungstabellen verwenden dieselben bestätigten Werte:
 Matt ist bei Lerngewinn, Aufwand und Vertrauen höher bewertet, Superpowers bei
 Verständlichkeit. Kontrolle, Wiederaufnahme und Anpassbarkeit sind gleich.
 Die Skala reicht vollständig von 1 bis 5; es gibt keine Glättung, Gewichtung
-oder Verbindung zwischen unterschiedlichen Kriterien. Die kontextabhängige
-Empfehlung im Fazit stützt sich zusätzlich auf die Beobachtungen und Grenzen,
-nicht auf einen rechnerischen Gesamtsieger.
+oder Verbindung zwischen unterschiedlichen Kriterien. Die im Fazit formulierte
+Hybridhypothese stützt sich zusätzlich auf die beobachteten Stärken und Grenzen,
+nicht auf einen rechnerischen Gesamtsieger. Ob die Kombination beide Vorteile
+ohne doppelten Prozessaufwand erhält, bleibt Gegenstand eines Folgeversuchs.
 
 ## Quellenübersicht
 

@@ -52,6 +52,16 @@ NFR beschreiben Qualitätsbedingungen. Sie werden nicht mit unscharfen Wörtern 
 Die FR/NFR sind über diese Verweise rückverfolgbar, jedoch kein neu ausgeführtes Abnahmeprotokoll. Für Antwortzeit, Durchsatz und maximalen Speicherverbrauch wurden weder gemeinsame Grenzwerte noch Lastmessungen erhoben. Eine Performancebewertung wäre daher unbelegt.
 
 
+### B.3 Ergänzende Codeprüfung
+
+Die drei in Abschnitt 3.2 des Papers aufgeführten UI-Lücken stammen aus einer
+ergänzenden statischen Prüfung der festgeschriebenen Produktstände, nicht aus
+einer Wiederholung der Implementierungsversuche. Standards und Spezifikation
+wurden getrennt bewertet und die Kandidaten durch ein zweites KI-Modell anhand
+der Quellen überprüft. Fundstellen, korrigierte Aussagen, Wartungshinweise und
+Nachweisgrenzen stehen in [Ergänzende statische Codeprüfung](PAPER-NACHWEISE.md).
+Die persönliche Punktebewertung wird durch diesen Review nicht verändert.
+
 ## C. Herkunft und Grenzen der Bewertung
 
 Die Punktwerte stammen vom Benutzer und Autor der Fallstudie. Die Ausgangsskala wurde im Versuchsprotokoll festgehalten: 1 sehr schlecht, 2 eher schlecht, 3 gemischt, 4 gut, 5 sehr gut. Kriterien waren Verständlichkeit, Kontrolle, Lerngewinn, angemessener Aufwand, Vertrauen, Wiederaufnahme und Anpassbarkeit. Der Agent unterstützte die Fragenführung und sprachliche Dokumentation. Es handelt sich nicht um eine unabhängige Fremdbewertung.
@@ -84,6 +94,8 @@ die erlebten Unterbrechungen im Vordergrund. Lerngewinn und Vertrauen sind
 subjektiv und nicht mit einem Wissenstest oder einer Fehlerquote gleichzusetzen.
 Eine vollständige Token- und Zeitbilanz liegt nicht vor; Wartezeiten begründen
 deshalb keinen gemessenen Verbrauchsvergleich.
+Kontingentpausen und lokale Startprobleme beeinflussen die persönliche Erfahrung,
+belegen aber keine grundsätzliche Schwäche einer Skill-Suite.
 
 ## D. Leseschlüssel zur Kurzfassung
 

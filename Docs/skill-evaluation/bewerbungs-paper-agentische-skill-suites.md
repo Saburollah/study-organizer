@@ -58,6 +58,19 @@ Die vollständigen sieben FR und sieben NFR beschreiben den gemeinsamen Vergleic
 
 Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Verglichen werden Arbeitsweisen; echte Moodle-Zugänge, Polling und LLM-Erkennung waren ausgeschlossen.
 
+### Git-Fakten zu den festgeschriebenen Vergleichsständen
+
+| Git-Messwert | Matt | Superpowers |
+| --- | --- | --- |
+| Commits ohne Merge-Commits | 32 | 28 |
+| Geänderte Dateien insgesamt | 139 | 92 |
+| Handgeschriebener Produktcode, hinzugefügt / entfernt | +6.555 / -121 Zeilen | +3.240 / -70 Zeilen |
+| Branching-Strategie | Mehrere Feature-Branches und PRs | Ein isolierter Experiment-Branch |
+
+Die Werte beschreiben den Umfang, nicht die Qualität. Matt bearbeitete einen breiteren Funktionsumfang. Die Produktcode-Zeile schließt Tests, Dokumentation und generierte EF-Migrationen aus. Messbasis: gemeinsamer Start `e7d8b5e`, Matt `ab8249c`, Superpowers `a8801ff`; Zählregeln stehen in den Nachweisen.
+
+<!-- pagebreak -->
+
 ## 3. Was die beiden Arbeitsweisen leisten
 
 ### 3.1 Beobachtete Arbeitsweisen
@@ -66,37 +79,49 @@ Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Verglichen wer
 
 *Abbildung 3. Beobachtete Schwerpunkte: Matt macht offene Entscheidungen sichtbar; Superpowers organisiert die Umsetzung. Beide nutzen Tests und Reviews.*
 
+### 3.2 Codeprüfung: Stärken und verbleibende Lücken
+
+Beide Umsetzungen trennen gemeinsame Kursdaten von persönlichen Aufgaben und sichern zentrale Regeln durch Tests ab. Eine ergänzende statische Codeprüfung fand dennoch drei konkrete UI-Lücken:
+
+| Variante | Bestätigte Lücke | Verbesserung |
+| --- | --- | --- |
+| Matt | Die Aufgabenkarte zeigt die externe Herkunft nicht an, obwohl die API sie liefert. | Quellenkennzeichnung und Link anzeigen. |
+| Superpowers | Der Scanstatus der Kurskarte kann nach einem Scan veraltet bleiben. | Status nach Erfolg oder Fehler aktualisieren. |
+| Superpowers | Prüfgründe aus dem Backend passen nicht zu den Übersetzungsschlüsseln. | Bezeichner vereinheitlichen und Darstellung testen. |
+
+Ein zweites KI-Modell prüfte die Befunde erneut an den festgeschriebenen Codeständen. Bei Matt betrifft die Lücke den nachträglich rekonstruierten gemeinsamen FR-07, nicht eine ausdrückliche Forderung aus Issue #77. Die beiden Superpowers-Lücken betreffen die eigene bestätigte UI-Spezifikation. Die Prüfung ist kein neuer Testlauf und kein vollständiger Qualitätsnachweis; Fundstellen und Grenzen stehen in den Nachweisen.
+
+**Technische Nachweise:** Matt: 225 Backendtests, 94 Frontendtests in 20 Vitest-Dateien (Anzahl nachträglich am unveränderten Abschlussstand ermittelt) und ein Playwright-End-to-End-Test; Type-Check, Lint und Build waren erfolgreich. Superpowers: 195 Backend- und 97 Frontendtests plus Type-Check, Lint, Build und Sichtabnahme. Unterschiedliche Testbestände begründen keinen Qualitätssieger.
+
 <!-- pagebreak -->
 
-### 3.2 Persönliche Bewertung mit konkreten Gründen
+### 3.3 Persönliche Bewertung mit konkreten Gründen
 
-Ich bewertete beide Abläufe nach denselben sieben Kriterien: **1 = sehr schlecht, 3 = gemischt, 5 = sehr gut**; 2 und 4 sind die Zwischenstufen. Die Punkte beschreiben meine nach Klärung der Kriterien bestätigte Erfahrung, keine objektive Codequalität.
+Skala: **5 = sehr gut ohne relevante Einschränkung, 4 = sehr gut mit konkreter Einschränkung, 3 = gemischt, 2 = eher schlecht, 1 = sehr schlecht.** Farbig markiert ist der jeweils höhere Wert. Die Punkte beschreiben meine Erfahrung, keine objektive Codequalität.
 
 | Kriterium | Matt | Superpowers | Beobachtung hinter den Punkten |
 | --- | --- | --- | --- |
-| Verständlichkeit | **4** | **5** | Matt machte Entscheidungen nachlesbar; Superpowers führte mich klarer durch den Arbeitsablauf. |
-| Kontrolle | **4** | **4** | In beiden Versuchen konnte ich fachliche Entscheidungen und die Ausführung beeinflussen. |
-| Lerngewinn | **5** | **4** | Matt vertiefte mein Architekturverständnis; Superpowers verdeutlichte das Zusammenspiel der Anwendungsschichten. |
-| Angemessener Aufwand | **4** | **3** | Matts Klärungsaufwand war für mich angemessen; bei Superpowers standen einer hilfreichen Struktur wiederholte kontingentbedingte Wartezeiten gegenüber. |
-| Vertrauen | **5** | **4** | Matts gezielte Rückfragen gaben mir zusätzliche Sicherheit; bei Superpowers stärkte der erfolgreiche Praxistest mein Vertrauen. |
-| Wiederaufnahme | **4** | **4** | Issues und ADRs beziehungsweise Plan und Logs erleichterten die Fortsetzung. |
-| Anpassbarkeit | **4** | **4** | Beide Arbeitsweisen ließen sich an meine Vorgaben anpassen: Matt an die Projektregeln, Superpowers an die gewünschte Ausführungsform. |
+| Verständlichkeit | **4** | **5** | Matt war nachlesbar, aber durch viele Fragen und Issues weniger kompakt; Superpowers führte klar und geschlossen durch den Ablauf. |
+| Kontrolle | **4** | **4** | Beide ließen zentrale Entscheidungen zu; bei Matt erschwerten verteilte Runden den Überblick, bei Superpowers musste ich die Branch-Trennung korrigieren. |
+| Lerngewinn | **5** | **4** | Matt vertiefte Architektur und Datenlebenszyklus; Superpowers erklärte die Anwendungsschichten gut, aber weniger tief. |
+| Angemessener Aufwand | **4** | **3** | Matts Rückfragen waren hilfreich, aber zahlreich; Superpowers war gut strukturiert, wurde jedoch durch Kontingentpausen unterbrochen. |
+| Vertrauen | **5** | **4** | Matt deckte durch Rückfragen Risiken auf; Superpowers bestand den Praxistest, erreichte wegen anfänglicher Start- und Konfigurationsprobleme aber keine 5. |
+| Wiederaufnahme | **4** | **4** | Dokumente und Logs halfen bei beiden; ihre Menge erforderte dennoch erneute Orientierung. |
+| Anpassbarkeit | **4** | **4** | Beide ließen sich anpassen; Matt blieb prozessintensiv, Superpowers erforderte einzelne manuelle Korrekturen. |
 
-Obwohl Matts Ablauf umfangreicher war, empfand ich seinen Aufwand als angemessen, weil die Rückfragen unmittelbar riskante Fachregeln klärten. Bei Superpowers belasteten dagegen wiederholte Wartezeiten den erlebten Aufwand.
+Obwohl Matts Ablauf umfangreicher war, empfand ich seinen Aufwand als angemessen, weil die Rückfragen unmittelbar riskante Fachregeln klärten. Bei Superpowers belasteten dagegen wiederholte Wartezeiten den erlebten Aufwand. Kontingentpausen und lokale Startprobleme beeinflussten meine Erfahrung; sie belegen keine grundsätzliche Schwäche der Suite.
 
 ![Abbildung 4: Persönliche Bewertungen von Matt und Superpowers im Vergleich über alle sieben Kriterien.](figures/03-bewertungsvergleich.png)
 
 *Abbildung 4. Bestätigte persönliche Bewertungen, 1 bis 5; höher ist günstiger. Keine Messung objektiver Softwarequalität.*
 
-**Technische Nachweise:** Matt dokumentiert 225 erfolgreiche Backendtests sowie erfolgreiche Frontendprüfungen. Superpowers dokumentiert 195 Backend- und 97 Frontendtests, Builds, Typprüfung, Lint und die manuelle Sichtabnahme. Die unterschiedlichen Testbestände begründen keinen Qualitätssieger.
-
 <!-- pagebreak -->
 
 ## 4. Fazit: Den Prozess am Risiko ausrichten
 
-**Mein Ergebnis ist keine Rangliste, sondern eine belastbare Auswahlregel: Für ein klar begrenztes Produktinkrement würde ich mit Superpowers beginnen. Sobald Fehler an Datenidentität, Berechtigungen oder Lebenszyklus schwer rückgängig zu machen sind, würde ich gezielt Matts stärkere Architekturklärung und Spezifikationsprüfung ergänzen.**
+**Mein Ergebnis ist keine Rangliste, sondern eine begründete Empfehlung aus meinem Versuch: Für ein klar begrenztes Produktinkrement würde ich mit Superpowers beginnen. Sobald Fehler an Datenidentität, Berechtigungen oder Lebenszyklus schwer rückgängig zu machen sind, würde ich gezielt Matts vertiefte Architekturklärung und Spezifikationsprüfung ergänzen.**
 
-Die persönliche Bewertung stützt diese Entscheidung: Matt liegt bei Lerngewinn, angemessenem Aufwand und Vertrauen vorn; Superpowers bei Verständlichkeit. Kontrolle, Wiederaufnahme und Anpassbarkeit bewerte ich gleich. Entscheidend ist daher nicht, welche Suite allgemein „besser“ ist, sondern welcher Prozess das konkrete Projektrisiko am wirksamsten reduziert.
+Die persönliche Bewertung stützt diese Entscheidung: Matt liegt bei Lerngewinn, angemessenem Aufwand und Vertrauen vorn; Superpowers bei Verständlichkeit. Kontrolle, Wiederaufnahme und Anpassbarkeit bewerte ich gleich. **Die weiterführende Forschungsfrage lautet daher: Lässt sich ein gemeinsamer Workflow entwickeln, der den klaren Umsetzungsfluss von Superpowers mit der Entscheidungstiefe und Absicherung von Matt verbindet, ohne gleichzeitig den Prozessaufwand beider Ansätze zu übernehmen?**
 
 ### 4.1 Matt: Entscheidungstiefe mit höherem Prozessgewicht
 
@@ -114,22 +139,17 @@ Die persönliche Bewertung stützt diese Entscheidung: Matt liegt bei Lerngewinn
 
 ### 4.3 Was der Vergleich über Qualität zeigt
 
-Grüne Tests allein genügten in keinem Versuch. Bei Matt fehlte zunächst vereinbartes Lebenszyklusverhalten; bei Superpowers scheiterte der lokale Start zunächst an Konfigurationsproblemen. Erst der Review gegen die Anforderungen beziehungsweise der reale Benutzerablauf machte diese Lücken sichtbar. Mein wichtigster Qualitätsmaßstab ist deshalb eine Nachweiskette aus **Regeltest, Spezifikationsreview und sichtbarer End-to-End-Abnahme**. Ein Feature ist erst abgeschlossen, wenn diese Nachweise zusammenpassen.
+Grüne Tests allein genügten in keinem Versuch. Bei Matt fehlte zunächst vereinbartes Lebenszyklusverhalten; bei Superpowers scheiterte der lokale Start zunächst an Konfigurationsproblemen. Die ergänzende Codeprüfung zeigte außerdem verbliebene Lücken bei Quellenanzeige, Statusaktualisierung und Übersetzungsverträgen. Daraus folgt eine konkrete Verbesserung: UI-Tests müssen nicht nur vorhandene Elemente prüfen, sondern auch echte API-Werte und Zustandswechsel abdecken. Mein wichtigster Qualitätsmaßstab ist deshalb eine Nachweiskette aus **Regeltest, Spezifikationsreview und sichtbarer End-to-End-Abnahme**. Die zweite KI-Prüfung half, belegte Lücken von unbegründeten Fehlerbehauptungen zu trennen; sie ersetzt weder Tests noch menschliche Freigabe.
 
-### 4.4 Mein Verbesserungsvorschlag für künftige Projekte
+### 4.4 Vorschlag für einen kombinierten Workflow
 
-Ich würde beide Arbeitsweisen nicht vollständig mischen, sondern abhängig vom Risiko kombinieren:
+**Superpowers bildet den Grundablauf:** Brainstorming, Design, Plan und TDD führen zügig zu einem ausführbaren vertikalen Schnitt. Vor der Implementierung folgt ein kurzer Risikocheck. Betrifft das Feature Datenidentität, Berechtigungen, Nebenläufigkeit, Datenverlust oder langfristige Lebenszyklen, werden gezielt Matts Grilling, ADRs und detaillierte Akzeptanzkriterien ergänzt. Den Abschluss bilden automatische Tests, ein unabhängiger Spezifikationsreview und ein sichtbarer End-to-End-Test. So strukturiert Superpowers den Arbeitsfluss, während Matt an risikoreichen Stellen zusätzliche Entscheidungssicherheit schafft.
 
-1. **Früh einen lauffähigen Weg herstellen.** Backend, Datenbank und Frontend werden verbunden, bevor der Umfang wächst. So fallen Konfigurations- und Migrationsprobleme früh auf.
-2. **Architekturklärung nach Risiko vertiefen.** Bei Identität, Berechtigungen, Nebenläufigkeit oder schwer änderbaren Regeln ergänze ich Grilling, ADR und Akzeptanzkriterien; bei risikoarmen Änderungen genügt ein kompakter Entwurf.
-3. **In überprüfbaren Schritten liefern.** Plan und TDD verbinden jeden Schritt mit einem fachlichen Ergebnis und Testbeleg.
-4. **Abschluss an Nachweise binden.** Ohne Test, Reviewbeleg oder Sichttest bleibt eine Anforderung offen - auch wenn der Agent „fertig“ meldet.
+### 4.5 Ausblick: Den kombinierten Workflow prüfen
 
-Dieser risikobasierte Prozess ist mein Verbesserungsvorschlag. Er folgt aus beiden Versuchen, wurde aber noch nicht separat evaluiert.
+**Der kombinierte Workflow ist eine begründete Hypothese, noch kein bewiesenes Ergebnis.** Ein Folgeversuch sollte dieselbe Aufgabe unter drei Bedingungen durchführen: nur Matt, nur Superpowers und der kombinierte Workflow. Verglichen werden Bearbeitungszeit, Tokenverbrauch, Anzahl der Rückfragen, Korrekturschleifen, gefundene Fehler und die persönliche Bewertung. Dadurch ließe sich prüfen, ob die Kombination tatsächlich beide Vorteile erhält oder lediglich zusätzlichen Prozessaufwand erzeugt.
 
-### 4.5 Reichweite der Empfehlung
-
-Der Vergleich ist praxisnah, aber kein kontrolliertes Benchmark. Matts Umfang war breiter; Superpowers wurde später und mit mehr Domänenwissen eingesetzt. Tokenlimits begrenzten unabhängige Reviews, eine Mock-Quelle ersetzte Moodle. Die Empfehlung gilt deshalb für diesen Projektkontext. Ein Folgeversuch sollte Umfang und Ausgangsinformationen angleichen sowie Zeit- und Tokenkosten messen.
+Der bisherige Vergleich ist praxisnah, aber kein kontrolliertes Benchmark. Matts Umfang war breiter; Superpowers wurde später und mit mehr Domänenwissen eingesetzt. Tokenlimits begrenzten unabhängige Reviews, eine Mock-Quelle ersetzte Moodle. Diese Grenzen muss auch der Folgeversuch durch gleichen Umfang und gleiche Ausgangsinformationen kontrollieren.
 
 ## 5. Was ich persönlich mitnehme
 
