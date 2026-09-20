@@ -2,58 +2,96 @@ namespace StudyOrganizer.Domain.ExternalCourses;
 
 public sealed class ExternalCourse
 {
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
-    public ExternalCourseIdentity Identity { get; } = null!;
+    public string ProviderKey { get; private set; } = null!;
 
-    public string Name { get; } = null!;
+    public string ExternalCourseId { get; private set; } = null!;
 
-    public ExternalCourseState State { get; private set; }
+    public string Name { get; private set; } = null!;
 
-    public DateTimeOffset CreatedAt { get; }
+    public Guid? ActiveScanRunId { get; private set; }
 
-    public DateTimeOffset? InactiveSince { get; private set; }
+    public DateTimeOffset? LastSuccessfulScanAtUtc { get; private set; }
+
+    public DateTimeOffset CreatedAtUtc { get; private set; }
 
     private ExternalCourse()
     {
     }
 
     public ExternalCourse(
-        ExternalCourseIdentity identity,
+        string providerKey,
+        string externalCourseId,
         string name,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAtUtc)
     {
         Id = Guid.NewGuid();
-        Identity = identity
-            ?? throw new ArgumentNullException(nameof(identity));
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException(
-                "External Course name must not be empty.",
-                nameof(name));
-        }
-
-        Name = name.Trim();
-        State = ExternalCourseState.Inactive;
-        CreatedAt = createdAt;
-        InactiveSince = createdAt;
+        ProviderKey = NormalizeRequiredValue(providerKey, nameof(providerKey));
+        ExternalCourseId = NormalizeRequiredValue(
+            externalCourseId,
+            nameof(externalCourseId));
+        Name = NormalizeRequiredValue(name, nameof(name));
+        CreatedAtUtc = createdAtUtc;
     }
 
-    public void Activate()
+    public void Rename(string name)
     {
-        State = ExternalCourseState.Active;
-        InactiveSince = null;
+        Name = NormalizeRequiredValue(name, nameof(name));
     }
 
-    public void Deactivate(DateTimeOffset inactiveAt)
+    public void MarkScanStarted(Guid scanRunId)
     {
-        if (State == ExternalCourseState.Inactive)
+        EnsureNotEmpty(scanRunId, nameof(scanRunId));
+
+        if (ActiveScanRunId is not null)
         {
-            return;
+            throw new InvalidOperationException("A scan run is already active.");
         }
 
-        State = ExternalCourseState.Inactive;
-        InactiveSince = inactiveAt;
+        ActiveScanRunId = scanRunId;
+    }
+
+    public void MarkScanSucceeded(Guid scanRunId, DateTimeOffset finishedAtUtc)
+    {
+        EnsureActiveRun(scanRunId);
+
+        ActiveScanRunId = null;
+        LastSuccessfulScanAtUtc = finishedAtUtc;
+    }
+
+    public void MarkScanFailed(Guid scanRunId)
+    {
+        EnsureActiveRun(scanRunId);
+
+        ActiveScanRunId = null;
+    }
+
+    private void EnsureActiveRun(Guid scanRunId)
+    {
+        EnsureNotEmpty(scanRunId, nameof(scanRunId));
+
+        if (ActiveScanRunId != scanRunId)
+        {
+            throw new InvalidOperationException("The scan run is not active for this course.");
+        }
+    }
+
+    private static void EnsureNotEmpty(Guid value, string parameterName)
+    {
+        if (value == Guid.Empty)
+        {
+            throw new ArgumentException("ID must not be empty.", parameterName);
+        }
+    }
+
+    private static string NormalizeRequiredValue(string value, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException("Value must not be empty.", parameterName);
+        }
+
+        return value.Trim();
     }
 }

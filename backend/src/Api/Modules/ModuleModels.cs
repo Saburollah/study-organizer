@@ -46,4 +46,5 @@ public sealed record ModuleResponse(
     string? Code,
     string? Description,
     string? Color,
-    DateTimeOffset CreatedAtUtc);
+    DateTimeOffset CreatedAtUtc,
+    bool IsExternalCourseLinked);

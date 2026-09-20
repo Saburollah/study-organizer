@@ -23,23 +23,13 @@ public sealed class ApplicationDbContext
 
     public DbSet<ExternalCourse> ExternalCourses => Set<ExternalCourse>();
 
-    public DbSet<CourseSubscription> CourseSubscriptions =>
-        Set<CourseSubscription>();
+    public DbSet<CourseSubscription> CourseSubscriptions => Set<CourseSubscription>();
 
-    public DbSet<ExternalLearningContent> ExternalLearningContents =>
-        Set<ExternalLearningContent>();
+    public DbSet<ExternalContent> ExternalContents => Set<ExternalContent>();
+
+    public DbSet<ExternalTaskLink> ExternalTaskLinks => Set<ExternalTaskLink>();
 
     public DbSet<ScanRun> ScanRuns => Set<ScanRun>();
-
-    public DbSet<CourseSnapshot> CourseSnapshots => Set<CourseSnapshot>();
-
-    public DbSet<CourseSnapshotItem> CourseSnapshotItems =>
-        Set<CourseSnapshotItem>();
-
-    public DbSet<SubscriptionContentState> SubscriptionContentStates =>
-        Set<SubscriptionContentState>();
-
-    public DbSet<SourceUpdate> SourceUpdates => Set<SourceUpdate>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)

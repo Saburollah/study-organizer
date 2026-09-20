@@ -5,6 +5,7 @@ export interface StudyModule {
   description: string | null
   color: string | null
   createdAtUtc: string
+  isExternalCourseLinked: boolean
 }
 
 export interface SaveModuleRequest {

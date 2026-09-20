@@ -1,10 +1,13 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const frontendUrl = 'http://127.0.0.1:5174'
-const apiUrl = 'http://127.0.0.1:5102'
+const frontendPort = process.env.E2E_FRONTEND_PORT ?? '5174'
+const apiPort = process.env.E2E_API_PORT ?? '5102'
+const frontendUrl = `http://127.0.0.1:${frontendPort}`
+const apiUrl = `http://127.0.0.1:${apiPort}`
 
 export default defineConfig({
   testDir: './e2e',
+  testMatch: 'course-import-golden-path.spec.ts',
   fullyParallel: false,
   workers: 1,
   timeout: 90_000,
@@ -40,7 +43,7 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: 'pnpm dev --host 127.0.0.1 --port 5174',
+      command: `pnpm dev --host 127.0.0.1 --port ${frontendPort} --strictPort`,
       url: frontendUrl,
       env: {
         VITE_API_BASE_URL: apiUrl,

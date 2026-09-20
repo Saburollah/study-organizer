@@ -20,11 +20,14 @@ using StudyOrganizer.Api.Tasks;
 using StudyOrganizer.Application.Profiles;
 using StudyOrganizer.Infrastructure.Profiles;
 using StudyOrganizer.Api.Profiles;
+using StudyOrganizer.Api.ExternalCourses;
 using StudyOrganizer.Application.ExternalCourses;
 using StudyOrganizer.Infrastructure.ExternalCourses;
-using StudyOrganizer.Api.ExternalCourses;
+using StudyOrganizer.Api.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+using var worktreeSettingsProvider = WorktreeSettings.Load(builder);
 
 const string FrontendCorsPolicy = "FrontendCors";
 
@@ -49,39 +52,8 @@ var connectionString =
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' was not found.");
 
-var courseScanOptions = new CourseScanOptions(
-    builder.Configuration.GetValue<TimeSpan>(
-        "CourseScan:LeaseDuration"),
-    builder.Configuration.GetValue<TimeSpan>(
-        "CourseScan:Timeout"));
-
-var externalCourseCleanupOptions =
-    new ExternalCourseCleanupOptions(
-        builder.Configuration.GetValue<TimeSpan>(
-            "ExternalCourseCleanup:RetentionPeriod"),
-        builder.Configuration.GetValue<TimeSpan>(
-            "ExternalCourseCleanup:Interval"));
-
-builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-
-builder.Services.AddSingleton(courseScanOptions);
-builder.Services.AddSingleton(externalCourseCleanupOptions);
-builder.Services.AddSingleton<ExternalCourseCleanup>();
-builder.Services.AddHostedService<ExternalCourseCleanupWorker>();
-
-builder.Services.AddSingleton<MockExternalCourseSource>();
-builder.Services.AddSingleton<IExternalCourseSource>(services =>
-    services.GetRequiredService<MockExternalCourseSource>());
-builder.Services.AddSingleton<
-    IExternalCourseUrlResolver,
-    MockMoodleCourseUrlResolver>();
-builder.Services.AddScoped<
-    ICourseScanOrchestrator,
-    CourseScanOrchestrator>();
-builder.Services.AddScoped<
-    ICourseSubscriptionHandler,
-    CourseSubscriptionHandler>();
 
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
@@ -128,6 +100,22 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IStudyTaskHandler,
     StudyTaskHandler>();
+
+builder.Services.AddSingleton<
+    IExternalCourseProvider,
+    MockMoodleProvider>();
+
+builder.Services.AddScoped<
+    IExternalCourseRegistrationHandler,
+    ExternalCourseRegistrationHandler>();
+
+builder.Services.AddScoped<
+    IExternalCourseQueryHandler,
+    ExternalCourseQueryHandler>();
+
+builder.Services.AddScoped<
+    IExternalCourseScanHandler,
+    ExternalCourseScanHandler>();
 
 builder.Services.AddCors(options =>
 {
@@ -222,7 +210,7 @@ app.MapUserEndpoints();
 app.MapProfileEndpoints();
 app.MapModuleEndpoints();
 app.MapStudyTaskEndpoints();
-app.MapCourseSubscriptionEndpoints();
+app.MapExternalCourseEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();

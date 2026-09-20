@@ -25,23 +25,8 @@ public sealed class StudyTask
     public StudyTask(
         Guid moduleId,
         string title,
-        DateTimeOffset? dueDate,
+        DateTimeOffset dueDate,
         string? description = null)
-        : this(
-            moduleId,
-            title,
-            dueDate,
-            description,
-            DateTimeOffset.UtcNow)
-    {
-    }
-
-    public StudyTask(
-        Guid moduleId,
-        string title,
-        DateTimeOffset? dueDate,
-        string? description,
-        DateTimeOffset createdAt)
     {
         if (moduleId == Guid.Empty)
         {
@@ -63,7 +48,7 @@ public sealed class StudyTask
         Description = NormalizeOptionalValue(description);
         DueDate = dueDate;
         Status = StudyTaskStatus.Open;
-        CreatedAt = createdAt;
+        CreatedAt = DateTimeOffset.UtcNow;
         UpdatedAt = null;
     }
 
@@ -75,7 +60,7 @@ public sealed class StudyTask
 
     public void Update(
         string title,
-        DateTimeOffset? dueDate,
+        DateTimeOffset dueDate,
         string? description = null)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -95,6 +80,25 @@ public sealed class StudyTask
     {
         Status = StudyTaskStatus.Open;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SynchronizeFromExternalSource(
+        string title,
+        DateTimeOffset dueDate,
+        string? description,
+        DateTimeOffset updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException(
+                "Task title must not be empty.",
+                nameof(title));
+        }
+
+        Title = title.Trim();
+        Description = NormalizeOptionalValue(description);
+        DueDate = dueDate;
+        UpdatedAt = updatedAt;
     }
 
     private static string? NormalizeOptionalValue(string? value)

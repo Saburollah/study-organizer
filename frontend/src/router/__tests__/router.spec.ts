@@ -121,4 +121,31 @@ describe('router authentication guard', () => {
       moduleId,
     )
   })
+
+  it('protects the Moodle courses route', async () => {
+    const router = createAppRouter(createMemoryHistory())
+
+    await router.push('/moodle-courses')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query).toEqual({
+      redirect: '/moodle-courses',
+    })
+  })
+
+  it('allows authenticated users to open Moodle courses', async () => {
+    const authStore = useAuthStore()
+    authStore.session = {
+      email: 'student@example.com',
+      accessToken: 'test-access-token',
+      expiresAtUtc: '2999-01-01T00:00:00Z',
+    }
+    const router = createAppRouter(createMemoryHistory())
+
+    await router.push('/moodle-courses')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('moodle-courses')
+  })
 })

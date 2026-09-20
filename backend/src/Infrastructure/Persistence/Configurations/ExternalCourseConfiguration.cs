@@ -9,11 +9,7 @@ public sealed class ExternalCourseConfiguration
 {
     public void Configure(EntityTypeBuilder<ExternalCourse> builder)
     {
-        builder.ToTable(
-            "external_courses",
-            table => table.HasCheckConstraint(
-                "ck_external_courses_state",
-                "\"state\" IN ('Inactive', 'Active')"));
+        builder.ToTable("external_courses");
 
         builder.HasKey(course => course.Id);
 
@@ -21,54 +17,37 @@ public sealed class ExternalCourseConfiguration
             .HasColumnName("id")
             .ValueGeneratedNever();
 
+        builder.Property(course => course.ProviderKey)
+            .HasColumnName("provider_key")
+            .IsRequired();
+
+        builder.Property(course => course.ExternalCourseId)
+            .HasColumnName("external_course_id")
+            .IsRequired();
+
         builder.Property(course => course.Name)
             .HasColumnName("name")
-            .HasMaxLength(500)
             .IsRequired();
 
-        builder.Property(course => course.State)
-            .HasColumnName("state")
-            .HasConversion<string>()
-            .HasMaxLength(20)
-            .IsRequired();
+        builder.Property(course => course.ActiveScanRunId)
+            .HasColumnName("active_scan_run_id");
 
-        builder.Property(course => course.CreatedAt)
-            .HasColumnName("created_at")
+        builder.Property(course => course.LastSuccessfulScanAtUtc)
+            .HasColumnName("last_successful_scan_at_utc")
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(course => course.CreatedAtUtc)
+            .HasColumnName("created_at_utc")
             .HasColumnType("timestamp with time zone")
             .IsRequired();
 
-        builder.Property(course => course.InactiveSince)
-            .HasColumnName("inactive_since")
-            .HasColumnType("timestamp with time zone");
-
-        builder.OwnsOne(course => course.Identity, identity =>
-        {
-            identity.Property(value => value.SourceType)
-                .HasColumnName("source_type")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            identity.Property(value => value.SourceInstance)
-                .HasColumnName("source_instance")
-                .HasMaxLength(2048)
-                .IsRequired();
-
-            identity.Property(value => value.ExternalCourseKey)
-                .HasColumnName("external_course_key")
-                .HasMaxLength(512)
-                .IsRequired();
-
-            identity.HasIndex(value => new
+        builder.HasIndex(course => new
             {
-                value.SourceType,
-                value.SourceInstance,
-                value.ExternalCourseKey
+                course.ProviderKey,
+                course.ExternalCourseId
             })
-                .HasDatabaseName("ux_external_courses_identity")
-                .IsUnique();
-        });
-
-        builder.Navigation(course => course.Identity)
-            .IsRequired();
+            .HasDatabaseName(
+                "ix_external_courses_provider_key_external_course_id")
+            .IsUnique();
     }
 }

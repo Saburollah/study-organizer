@@ -9,92 +9,41 @@ public sealed class ScanRunConfiguration
 {
     public void Configure(EntityTypeBuilder<ScanRun> builder)
     {
-        builder.ToTable(
-            "scan_runs",
-            table =>
-            {
-                table.HasCheckConstraint(
-                    "ck_scan_runs_status",
-                    "\"status\" IN ('Running', 'Succeeded', 'Failed', 'Cancelled', 'Expired')");
-                table.HasCheckConstraint(
-                    "ck_scan_runs_counts_non_negative",
-                    "\"new_count\" >= 0 AND \"updated_count\" >= 0 AND \"unchanged_count\" >= 0 AND \"unavailable_count\" >= 0");
-            });
+        builder.ToTable("scan_runs");
 
-        builder.HasKey(scan => scan.Id);
-        builder.HasAlternateKey(scan => new
-        {
-            scan.Id,
-            scan.ExternalCourseId
-        });
+        builder.HasKey(scanRun => scanRun.Id);
 
-        builder.Property(scan => scan.Id)
+        builder.Property(scanRun => scanRun.Id)
             .HasColumnName("id")
             .ValueGeneratedNever();
-        builder.Property(scan => scan.ExternalCourseId)
+
+        builder.Property(scanRun => scanRun.ExternalCourseId)
             .HasColumnName("external_course_id")
             .IsRequired();
-        builder.Property(scan => scan.Status)
-            .HasColumnName("status")
-            .HasConversion<string>()
-            .HasMaxLength(20)
-            .IsRequired();
-        builder.Property(scan => scan.StartedAt)
-            .HasColumnName("started_at")
-            .HasColumnType("timestamp with time zone")
-            .IsRequired();
-        builder.Property(scan => scan.CompletedAt)
-            .HasColumnName("completed_at")
-            .HasColumnType("timestamp with time zone");
-        builder.Property(scan => scan.LeaseExpiresAt)
-            .HasColumnName("lease_expires_at")
-            .HasColumnType("timestamp with time zone")
-            .IsRequired();
-        builder.Property(scan => scan.ActivationSubscriptionId)
-            .HasColumnName("activation_subscription_id");
-        builder.Property(scan => scan.ErrorCode)
-            .HasColumnName("error_code")
-            .HasConversion<string>()
-            .HasMaxLength(50);
 
-        builder.OwnsOne(scan => scan.Counts, counts =>
-        {
-            counts.Property(value => value.New)
-                .HasColumnName("new_count")
-                .IsRequired();
-            counts.Property(value => value.Updated)
-                .HasColumnName("updated_count")
-                .IsRequired();
-            counts.Property(value => value.Unchanged)
-                .HasColumnName("unchanged_count")
-                .IsRequired();
-            counts.Property(value => value.Unavailable)
-                .HasColumnName("unavailable_count")
-                .IsRequired();
-        });
-        builder.Navigation(scan => scan.Counts).IsRequired();
+        builder.Property(scanRun => scanRun.RequestedByOwnerId)
+            .HasColumnName("requested_by_owner_id")
+            .IsRequired();
+
+        builder.Property(scanRun => scanRun.Status)
+            .HasColumnName("status")
+            .HasConversion<int>()
+            .IsRequired();
+
+        builder.Property(scanRun => scanRun.StartedAtUtc)
+            .HasColumnName("started_at_utc")
+            .HasColumnType("timestamp with time zone")
+            .IsRequired();
+
+        builder.Property(scanRun => scanRun.FinishedAtUtc)
+            .HasColumnName("finished_at_utc")
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(scanRun => scanRun.ErrorCode)
+            .HasColumnName("error_code");
 
         builder.HasOne<ExternalCourse>()
             .WithMany()
-            .HasForeignKey(scan => scan.ExternalCourseId)
-            .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<CourseSubscription>()
-            .WithMany()
-            .HasForeignKey(scan => new
-            {
-                scan.ActivationSubscriptionId,
-                scan.ExternalCourseId
-            })
-            .HasPrincipalKey(subscription => new
-            {
-                subscription.Id,
-                subscription.ExternalCourseId
-            })
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasIndex(scan => scan.ExternalCourseId)
-            .HasDatabaseName("ux_scan_runs_running_course")
-            .HasFilter("\"status\" = 'Running'")
-            .IsUnique();
+            .HasForeignKey(scanRun => scanRun.ExternalCourseId);
     }
 }

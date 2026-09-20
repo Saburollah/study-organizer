@@ -14,7 +14,7 @@ const props = withDefaults(
   {
     initialValues: () => ({
       title: '',
-      dueDateUtc: null,
+      dueDateUtc: '',
     }),
     isSubmitting: false,
     title: '',
@@ -126,7 +126,7 @@ function submit(): void {
 
   const normalizedTitle = taskTitle.value.trim()
   const normalizedDescription = description.value.trim()
-  const parsedDueDate = dueDate.value ? new Date(dueDate.value) : null
+  const parsedDueDate = new Date(dueDate.value)
 
   if (!normalizedTitle) {
     titleError.value = t('tasks.form.validation.titleRequired')
@@ -138,7 +138,9 @@ function submit(): void {
     descriptionError.value = t('tasks.form.validation.descriptionMax')
   }
 
-  if (parsedDueDate && Number.isNaN(parsedDueDate.getTime())) {
+  if (!dueDate.value) {
+    dueDateError.value = t('tasks.form.validation.dueRequired')
+  } else if (Number.isNaN(parsedDueDate.getTime())) {
     dueDateError.value = t('tasks.form.validation.dueInvalid')
   }
 
@@ -149,7 +151,7 @@ function submit(): void {
   emit('save', {
     title: normalizedTitle,
     description: normalizedDescription || null,
-    dueDateUtc: parsedDueDate?.toISOString() ?? null,
+    dueDateUtc: parsedDueDate.toISOString(),
   })
 }
 
@@ -242,7 +244,7 @@ function pad(value: number): string {
   return value.toString().padStart(2, '0')
 }
 
-function toLocalDateTime(value: string | null): string {
+function toLocalDateTime(value: string): string {
   if (!value) {
     return ''
   }
@@ -402,9 +404,6 @@ function clearErrors(): void {
         <p v-if="dueDateError" id="task-due-date-error" class="field-error">
           {{ dueDateError }}
         </p>
-        <button v-if="dueDate" class="clear-due-date-button" type="button" @click="dueDate = ''">
-          {{ t('tasks.form.calendar.clear') }}
-        </button>
       </div>
 
       <div class="form-field description-field">

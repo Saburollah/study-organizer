@@ -17,8 +17,8 @@ DEPLOYMENT_TEST_UPGRADE_DATABASE="upgrade_migration_case"
 DEPLOYMENT_TEST_FAILURE_DATABASE="failure_migration_case"
 DEPLOYMENT_TEST_USER="deployment_test"
 DEPLOYMENT_TEST_PASSWORD="deployment-test-password"
-DEPLOYMENT_TEST_PREVIOUS_MIGRATION="20260813081919_AddUserProfile"
-DEPLOYMENT_TEST_CURRENT_MIGRATION="20260826164845_AddExternalCourseCleanup"
+DEPLOYMENT_TEST_PREVIOUS_MIGRATION="20260826164845_AddExternalCourseCleanup"
+DEPLOYMENT_TEST_CURRENT_MIGRATION="20260919135751_SuperpowersProductCutover"
 
 cleanup_deployment_test() {
   docker rm --force "$DEPLOYMENT_TEST_EMPTY_API" >/dev/null 2>&1 || true
@@ -37,8 +37,9 @@ fail_deployment_test() {
 
 wait_for_postgres() {
   for _ in {1..60}; do
+    # The image's temporary initialization server accepts Unix sockets only.
     if docker exec "$DEPLOYMENT_TEST_POSTGRES" \
-      pg_isready --username "$DEPLOYMENT_TEST_USER" --dbname postgres \
+      pg_isready --host 127.0.0.1 --username "$DEPLOYMENT_TEST_USER" --dbname postgres \
       >/dev/null 2>&1; then
       return
     fi
@@ -112,7 +113,7 @@ wait_for_api "$DEPLOYMENT_TEST_EMPTY_API"
 schema_is_current="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_EMPTY_DATABASE" \
     --tuples-only --no-align \
-    --command "SELECT to_regclass('public.course_subscriptions') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'external_learning_contents' AND column_name = 'metadata_purged_at');")"
+    --command "SELECT to_regclass('public.course_subscriptions') IS NOT NULL AND to_regclass('public.external_contents') IS NOT NULL AND to_regclass('legacy_matt.external_learning_contents') IS NOT NULL;")"
 
 if [[ "$schema_is_current" != "t" ]]; then
   fail_deployment_test \
@@ -152,7 +153,7 @@ docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
   --set ON_ERROR_STOP=1 \
   --command \
-  "INSERT INTO \"AspNetUsers\" (\"Id\", \"Email\", \"NormalizedEmail\", \"EmailConfirmed\", \"PhoneNumberConfirmed\", \"TwoFactorEnabled\", \"LockoutEnabled\", \"AccessFailedCount\") VALUES ('00000000-0000-0000-0000-000000000090', 'preserved@example.test', 'PRESERVED@EXAMPLE.TEST', false, false, false, true, 0); INSERT INTO modules (id, owner_id, name, created_at) VALUES ('00000000-0000-0000-0000-000000000091', '00000000-0000-0000-0000-000000000090', 'Preserved module', now());" \
+  "INSERT INTO \"AspNetUsers\" (\"Id\", \"Email\", \"NormalizedEmail\", \"EmailConfirmed\", \"PhoneNumberConfirmed\", \"TwoFactorEnabled\", \"LockoutEnabled\", \"AccessFailedCount\") VALUES ('00000000-0000-0000-0000-000000000090', 'preserved@example.test', 'PRESERVED@EXAMPLE.TEST', false, false, false, true, 0); INSERT INTO modules (id, owner_id, name, created_at) VALUES ('00000000-0000-0000-0000-000000000091', '00000000-0000-0000-0000-000000000090', 'Preserved module', now()); INSERT INTO tasks (id, module_id, title, due_date, status, created_at) VALUES ('00000000-0000-0000-0000-000000000092', '00000000-0000-0000-0000-000000000091', 'Task without deadline', NULL, 0, now()); INSERT INTO external_courses (id, source_type, source_instance, external_course_key, name, state, created_at) VALUES ('00000000-0000-0000-0000-000000000093', 'mock-moodle', 'https://example.test/mock-moodle', 'software-engineering', 'Archived course', 'Active', now()); INSERT INTO course_subscriptions (id, study_module_id, owner_id, external_course_id, state, created_at, activated_at) VALUES ('00000000-0000-0000-0000-000000000094', '00000000-0000-0000-0000-000000000091', '00000000-0000-0000-0000-000000000090', '00000000-0000-0000-0000-000000000093', 'Active', now(), now());" \
   >/dev/null
 
 docker run --detach \
@@ -173,12 +174,26 @@ preserved_module_count="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
     --tuples-only --no-align \
     --command "SELECT count(*) FROM modules WHERE name = 'Preserved module';")"
+preserved_task_count="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
+  psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
+    --tuples-only --no-align \
+    --command "SELECT count(*) FROM tasks WHERE title = 'Task without deadline' AND due_date IS NULL;")"
+archived_course_count="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
+  psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
+    --tuples-only --no-align \
+    --command "SELECT count(*) FROM legacy_matt.external_courses WHERE name = 'Archived course';")"
+archived_subscription_count="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
+  psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
+    --tuples-only --no-align \
+    --command 'SELECT count(*) FROM legacy_matt.course_subscriptions;')"
 migration_count_before_repeat="$(docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_UPGRADE_DATABASE" \
     --tuples-only --no-align \
     --command 'SELECT count(*) FROM "__EFMigrationsHistory";')"
 
-if [[ "$current_migration_count" != "1" || "$preserved_module_count" != "1" ]]; then
+if [[ "$current_migration_count" != "1" || "$preserved_module_count" != "1" \
+  || "$preserved_task_count" != "1" || "$archived_course_count" != "1" \
+  || "$archived_subscription_count" != "1" ]]; then
   fail_deployment_test \
     "Das Upgrade hat die aktuelle Migration oder vorhandene Daten nicht erhalten."
 fi
@@ -229,7 +244,7 @@ fi
 docker exec "$DEPLOYMENT_TEST_POSTGRES" \
   psql --username "$DEPLOYMENT_TEST_USER" --dbname "$DEPLOYMENT_TEST_FAILURE_DATABASE" \
   --set ON_ERROR_STOP=1 \
-  --command 'CREATE TABLE external_courses (collision_marker integer);' \
+  --command 'CREATE SCHEMA legacy_matt;' \
   >/dev/null
 
 docker run --detach \

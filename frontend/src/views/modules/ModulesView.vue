@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import CourseRegistrationWizard from '@/features/course-imports/CourseRegistrationWizard.vue'
-import type { CourseSubscription } from '@/features/course-imports/courseImportModels'
 import ModuleForm from '@/features/modules/ModuleForm.vue'
 import type { SaveModuleRequest, StudyModule } from '@/features/modules/moduleModels'
 import { moduleService } from '@/features/modules/moduleService'
 import { ApiError } from '@/services/api/apiClient'
 
 const { t } = useI18n()
-const router = useRouter()
 
 const modules = ref<StudyModule[]>([])
 const isLoading = ref(true)
@@ -23,11 +20,8 @@ const deletingModuleId = ref<string | null>(null)
 const modulePendingDeletion = ref<StudyModule | null>(null)
 const saveErrorMessage = ref('')
 const successMessage = ref('')
-const isCourseRegistrationOpen = ref(false)
 
-const isFormOpen = computed(
-  () => isCreateFormOpen.value || editingModule.value !== null || isCourseRegistrationOpen.value,
-)
+const isFormOpen = computed(() => isCreateFormOpen.value || editingModule.value !== null)
 
 const formInitialValues = computed<SaveModuleRequest>(() => {
   if (!editingModule.value) {
@@ -119,6 +113,10 @@ async function saveModule(request: SaveModuleRequest): Promise<void> {
 }
 
 function requestModuleDeletion(module: StudyModule): void {
+  if (module.isExternalCourseLinked) {
+    return
+  }
+
   saveErrorMessage.value = ''
   successMessage.value = ''
   modulePendingDeletion.value = module
@@ -171,7 +169,6 @@ function openCreateForm(): void {
   saveErrorMessage.value = ''
   successMessage.value = ''
   editingModule.value = null
-  isCourseRegistrationOpen.value = false
   isCreateFormOpen.value = true
 }
 
@@ -179,7 +176,6 @@ function openEditForm(module: StudyModule): void {
   saveErrorMessage.value = ''
   successMessage.value = ''
   isCreateFormOpen.value = false
-  isCourseRegistrationOpen.value = false
   editingModule.value = module
 }
 
@@ -187,26 +183,6 @@ function closeModuleForm(): void {
   saveErrorMessage.value = ''
   isCreateFormOpen.value = false
   editingModule.value = null
-}
-
-function openCourseRegistration(): void {
-  saveErrorMessage.value = ''
-  successMessage.value = ''
-  isCreateFormOpen.value = false
-  editingModule.value = null
-  isCourseRegistrationOpen.value = true
-}
-
-function closeCourseRegistration(): void {
-  isCourseRegistrationOpen.value = false
-}
-
-async function openRegisteredModule(subscription: CourseSubscription): Promise<void> {
-  isCourseRegistrationOpen.value = false
-  await router.push({
-    name: 'module-tasks',
-    params: { moduleId: subscription.moduleId },
-  })
 }
 
 function getErrorMessage(error: unknown): string {
@@ -245,19 +221,9 @@ function getDeleteErrorMessage(error: unknown): string {
         </p>
       </div>
 
-      <div v-if="!isFormOpen" class="page-header-actions">
-        <button
-          v-if="!isLoading && modules.length > 0"
-          class="connect-course-button"
-          type="button"
-          @click="openCourseRegistration"
-        >
-          {{ t('courseImports.registration.open') }}
-        </button>
-        <button class="add-module-button" type="button" @click="openCreateForm">
-          {{ t('modules.new') }}
-        </button>
-      </div>
+      <button v-if="!isFormOpen" class="add-module-button" type="button" @click="openCreateForm">
+        {{ t('modules.new') }}
+      </button>
     </header>
 
     <p v-if="successMessage" class="feedback-message success-message" role="status">
@@ -276,13 +242,6 @@ function getDeleteErrorMessage(error: unknown): string {
       :submit-label="editingModule ? t('modules.form.saveChanges') : t('modules.form.create')"
       @save="saveModule"
       @cancel="closeModuleForm"
-    />
-
-    <CourseRegistrationWizard
-      v-if="isCourseRegistrationOpen"
-      :modules="modules"
-      @cancel="closeCourseRegistration"
-      @registered="openRegisteredModule"
     />
 
     <p v-if="isLoading" class="state-card" role="status">
@@ -323,6 +282,10 @@ function getDeleteErrorMessage(error: unknown): string {
             {{ t('modules.noDescription') }}
           </p>
 
+          <p v-if="module.isExternalCourseLinked" class="linked-module-help">
+            {{ t('modules.linkedCourseHelp') }}
+          </p>
+
           <div class="module-actions">
             <RouterLink
               class="module-tasks-link"
@@ -348,7 +311,7 @@ function getDeleteErrorMessage(error: unknown): string {
               class="delete-module-button"
               type="button"
               :aria-label="t('modules.actions.deleteAria', { name: module.name })"
-              :disabled="deletingModuleId === module.id"
+              :disabled="module.isExternalCourseLinked || deletingModuleId === module.id"
               @click="requestModuleDeletion(module)"
             >
               {{
@@ -462,6 +425,12 @@ h1 {
   line-height: 1.6;
 }
 
+.linked-module-help {
+  color: #626f86;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .add-module-button {
   position: relative;
   isolation: isolate;
@@ -484,24 +453,6 @@ h1 {
     transform 150ms ease,
     box-shadow 150ms ease,
     filter 150ms ease;
-}
-
-.page-header-actions {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.connect-course-button {
-  padding: 0.75rem 1rem;
-  border: 1px solid #0c66e4;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #0c66e4;
-  font-weight: 650;
-  cursor: pointer;
 }
 
 .add-module-button:hover {

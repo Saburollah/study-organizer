@@ -152,155 +152,101 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSnapshot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ExternalCourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_course_id");
-
-                    b.Property<bool>("IsCurrent")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_current");
-
-                    b.Property<DateTimeOffset>("ObservedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("observed_at");
-
-                    b.Property<Guid>("ScanRunId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("scan_run_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExternalCourseId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_course_snapshots_current_course")
-                        .HasFilter("\"is_current\"");
-
-                    b.HasIndex("ScanRunId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_course_snapshots_scan_run_id");
-
-                    b.HasIndex("ScanRunId", "ExternalCourseId");
-
-                    b.ToTable("course_snapshots", (string)null);
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSnapshotItem", b =>
-                {
-                    b.Property<Guid>("CourseSnapshotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("course_snapshot_id");
-
-                    b.Property<Guid>("ExternalLearningContentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_learning_content_id");
-
-                    b.Property<DateTimeOffset?>("DueDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("due_date");
-
-                    b.Property<string>("ExternalContentKey")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("external_content_key");
-
-                    b.Property<Guid>("ExternalCourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_course_id");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("media_type");
-
-                    b.Property<string>("SourceReference")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasColumnName("source_reference");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("title");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("type");
-
-                    b.HasKey("CourseSnapshotId", "ExternalLearningContentId");
-
-                    b.HasIndex("CourseSnapshotId", "ExternalContentKey")
-                        .IsUnique()
-                        .HasDatabaseName("ux_course_snapshot_items_snapshot_key");
-
-                    b.HasIndex("CourseSnapshotId", "ExternalCourseId");
-
-                    b.HasIndex("ExternalLearningContentId", "ExternalCourseId");
-
-                    b.ToTable("course_snapshot_items", (string)null);
-                });
-
             modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSubscription", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("ActivatedAt")
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("activated_at");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset?>("EndedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("ended_at");
+                        .HasColumnName("created_at_utc");
 
                     b.Property<Guid>("ExternalCourseId")
                         .HasColumnType("uuid")
                         .HasColumnName("external_course_id");
 
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("module_id");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("state");
-
-                    b.Property<Guid>("StudyModuleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("study_module_id");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ExternalCourseId");
 
-                    b.HasIndex("StudyModuleId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_course_subscriptions_study_module_id");
+                    b.HasIndex("ModuleId");
 
                     b.HasIndex("OwnerId", "ExternalCourseId")
                         .IsUnique()
-                        .HasDatabaseName("ux_course_subscriptions_owner_course");
+                        .HasDatabaseName("ix_course_subscriptions_owner_id_external_course_id");
 
-                    b.ToTable("course_subscriptions", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_course_subscriptions_state", "\"state\" IN ('Pending', 'Active', 'Ended')");
-                        });
+                    b.ToTable("course_subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalContent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("ExternalCourseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("external_course_id");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTimeOffset>("LastSeenAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at_utc");
+
+                    b.Property<int>("ProcessingState")
+                        .HasColumnType("integer")
+                        .HasColumnName("processing_state");
+
+                    b.Property<string>("ProviderContentId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("provider_content_id");
+
+                    b.Property<int>("ReviewReason")
+                        .HasColumnType("integer")
+                        .HasColumnName("review_reason");
+
+                    b.Property<string>("SourceUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source_url");
+
+                    b.Property<DateTimeOffset?>("StructuredDueDateUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("structured_due_date_utc");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalCourseId", "ProviderContentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_external_contents_external_course_id_provider_content_id");
+
+                    b.ToTable("external_contents", (string)null);
                 });
 
             modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", b =>
@@ -309,192 +255,43 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                    b.Property<Guid?>("ActiveScanRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("active_scan_run_id");
 
-                    b.Property<DateTimeOffset?>("InactiveSince")
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("inactive_since");
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("ExternalCourseId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("external_course_id");
+
+                    b.Property<DateTimeOffset?>("LastSuccessfulScanAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_successful_scan_at_utc");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
+                        .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<string>("State")
+                    b.Property<string>("ProviderKey")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("state");
+                        .HasColumnType("text")
+                        .HasColumnName("provider_key");
 
                     b.HasKey("Id");
 
-                    b.ToTable("external_courses", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_external_courses_state", "\"state\" IN ('Inactive', 'Active')");
-                        });
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalLearningContent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Availability")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("availability");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset?>("DueDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("due_date");
-
-                    b.Property<string>("ExternalContentKey")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("external_content_key");
-
-                    b.Property<Guid>("ExternalCourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_course_id");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("media_type");
-
-                    b.Property<DateTimeOffset?>("MetadataPurgedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("metadata_purged_at");
-
-                    b.Property<string>("SourceReference")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasColumnName("source_reference");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("title");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("type");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExternalCourseId", "ExternalContentKey")
+                    b.HasIndex("ProviderKey", "ExternalCourseId")
                         .IsUnique()
-                        .HasDatabaseName("ux_external_learning_contents_course_key");
+                        .HasDatabaseName("ix_external_courses_provider_key_external_course_id");
 
-                    b.ToTable("external_learning_contents", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_external_learning_contents_availability", "\"availability\" IN ('Available', 'Unavailable')");
-
-                            t.HasCheckConstraint("ck_external_learning_contents_type", "\"type\" IN ('File', 'Link', 'Activity')");
-                        });
+                    b.ToTable("external_courses", (string)null);
                 });
 
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ScanRun", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("ActivationSubscriptionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("activation_subscription_id");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
-
-                    b.Property<string>("ErrorCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("error_code");
-
-                    b.Property<Guid>("ExternalCourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_course_id");
-
-                    b.Property<DateTimeOffset>("LeaseExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lease_expires_at");
-
-                    b.Property<DateTimeOffset>("StartedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExternalCourseId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_scan_runs_running_course")
-                        .HasFilter("\"status\" = 'Running'");
-
-                    b.HasIndex("ActivationSubscriptionId", "ExternalCourseId");
-
-                    b.ToTable("scan_runs", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_scan_runs_counts_non_negative", "\"new_count\" >= 0 AND \"updated_count\" >= 0 AND \"unchanged_count\" >= 0 AND \"unavailable_count\" >= 0");
-
-                            t.HasCheckConstraint("ck_scan_runs_status", "\"status\" IN ('Running', 'Succeeded', 'Failed', 'Cancelled', 'Expired')");
-                        });
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.SourceUpdate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("DetectedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("detected_at");
-
-                    b.Property<Guid?>("DetectedByScanRunId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("detected_by_scan_run_id");
-
-                    b.Property<Guid>("SubscriptionContentStateId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("subscription_content_state_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DetectedByScanRunId");
-
-                    b.HasIndex("SubscriptionContentStateId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_source_updates_subscription_content_state");
-
-                    b.ToTable("source_updates", (string)null);
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.SubscriptionContentState", b =>
+            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalTaskLink", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -504,53 +301,68 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("course_subscription_id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("ExternalContentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("external_content_id");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalContentId");
+
+                    b.HasIndex("TaskId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_external_task_links_task_id");
+
+                    b.HasIndex("CourseSubscriptionId", "ExternalContentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_external_task_links_course_subscription_id_external_content_id");
+
+                    b.ToTable("external_task_links", (string)null);
+                });
+
+            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ScanRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
 
                     b.Property<Guid>("ExternalCourseId")
                         .HasColumnType("uuid")
                         .HasColumnName("external_course_id");
 
-                    b.Property<Guid>("ExternalLearningContentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("external_learning_content_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<Guid?>("StudyTaskId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("study_task_id");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("FinishedAtUtc")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("finished_at_utc");
+
+                    b.Property<Guid>("RequestedByOwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by_owner_id");
+
+                    b.Property<DateTimeOffset>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at_utc");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudyTaskId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_subscription_content_states_study_task")
-                        .HasFilter("\"study_task_id\" IS NOT NULL");
+                    b.HasIndex("ExternalCourseId");
 
-                    b.HasIndex("CourseSubscriptionId", "ExternalCourseId");
-
-                    b.HasIndex("CourseSubscriptionId", "ExternalLearningContentId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_subscription_content_states_subscription_content");
-
-                    b.HasIndex("ExternalLearningContentId", "ExternalCourseId");
-
-                    b.ToTable("subscription_content_states", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_subscription_content_states_status", "\"status\" IN ('Imported', 'Dismissed')");
-
-                            t.HasCheckConstraint("ck_subscription_content_states_task", "(\"status\" = 'Imported' AND \"study_task_id\" IS NOT NULL) OR (\"status\" = 'Dismissed' AND \"study_task_id\" IS NULL)");
-                        });
+                    b.ToTable("scan_runs", (string)null);
                 });
 
             modelBuilder.Entity("StudyOrganizer.Domain.Modules.StudyModule", b =>
@@ -778,69 +590,6 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSnapshot", b =>
-                {
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", null)
-                        .WithMany()
-                        .HasForeignKey("ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ScanRun", null)
-                        .WithMany()
-                        .HasForeignKey("ScanRunId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSnapshotItem", b =>
-                {
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.CourseSnapshot", null)
-                        .WithMany()
-                        .HasForeignKey("CourseSnapshotId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalLearningContent", null)
-                        .WithMany()
-                        .HasForeignKey("ExternalLearningContentId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ContentSignature", "Signature", b1 =>
-                        {
-                            b1.Property<Guid>("CourseSnapshotItemCourseSnapshotId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid>("CourseSnapshotItemExternalLearningContentId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Hash")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("character(64)")
-                                .HasColumnName("signature_hash")
-                                .IsFixedLength();
-
-                            b1.Property<int>("Version")
-                                .HasColumnType("integer")
-                                .HasColumnName("signature_version");
-
-                            b1.HasKey("CourseSnapshotItemCourseSnapshotId", "CourseSnapshotItemExternalLearningContentId");
-
-                            b1.ToTable("course_snapshot_items");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CourseSnapshotItemCourseSnapshotId", "CourseSnapshotItemExternalLearningContentId");
-                        });
-
-                    b.Navigation("Signature")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.CourseSubscription", b =>
                 {
                     b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", null)
@@ -849,93 +598,40 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("StudyOrganizer.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("StudyOrganizer.Domain.Modules.StudyModule", null)
                         .WithMany()
-                        .HasForeignKey("StudyModuleId")
+                        .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", b =>
-                {
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ExternalCourseIdentity", "Identity", b1 =>
-                        {
-                            b1.Property<Guid>("ExternalCourseId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("ExternalCourseKey")
-                                .IsRequired()
-                                .HasMaxLength(512)
-                                .HasColumnType("character varying(512)")
-                                .HasColumnName("external_course_key");
-
-                            b1.Property<string>("SourceInstance")
-                                .IsRequired()
-                                .HasMaxLength(2048)
-                                .HasColumnType("character varying(2048)")
-                                .HasColumnName("source_instance");
-
-                            b1.Property<string>("SourceType")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)")
-                                .HasColumnName("source_type");
-
-                            b1.HasKey("ExternalCourseId");
-
-                            b1.HasIndex("SourceType", "SourceInstance", "ExternalCourseKey")
-                                .IsUnique()
-                                .HasDatabaseName("ux_external_courses_identity");
-
-                            b1.ToTable("external_courses");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ExternalCourseId");
-                        });
-
-                    b.Navigation("Identity")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalLearningContent", b =>
+            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalContent", b =>
                 {
                     b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", null)
                         .WithMany()
                         .HasForeignKey("ExternalCourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
 
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ContentSignature", "Signature", b1 =>
-                        {
-                            b1.Property<Guid>("ExternalLearningContentId")
-                                .HasColumnType("uuid");
+            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.ExternalTaskLink", b =>
+                {
+                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.CourseSubscription", null)
+                        .WithMany()
+                        .HasForeignKey("CourseSubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                            b1.Property<string>("Hash")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("character(64)")
-                                .HasColumnName("signature_hash")
-                                .IsFixedLength();
+                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalContent", null)
+                        .WithMany()
+                        .HasForeignKey("ExternalContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                            b1.Property<int>("Version")
-                                .HasColumnType("integer")
-                                .HasColumnName("signature_version");
-
-                            b1.HasKey("ExternalLearningContentId");
-
-                            b1.ToTable("external_learning_contents");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ExternalLearningContentId");
-                        });
-
-                    b.Navigation("Signature")
+                    b.HasOne("StudyOrganizer.Domain.Tasks.StudyTask", null)
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -944,144 +640,7 @@ namespace StudyOrganizer.Infrastructure.Persistence.Migrations
                     b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalCourse", null)
                         .WithMany()
                         .HasForeignKey("ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.CourseSubscription", null)
-                        .WithMany()
-                        .HasForeignKey("ActivationSubscriptionId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ScanRunCounts", "Counts", b1 =>
-                        {
-                            b1.Property<Guid>("ScanRunId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<int>("New")
-                                .HasColumnType("integer")
-                                .HasColumnName("new_count");
-
-                            b1.Property<int>("Unavailable")
-                                .HasColumnType("integer")
-                                .HasColumnName("unavailable_count");
-
-                            b1.Property<int>("Unchanged")
-                                .HasColumnType("integer")
-                                .HasColumnName("unchanged_count");
-
-                            b1.Property<int>("Updated")
-                                .HasColumnType("integer")
-                                .HasColumnName("updated_count");
-
-                            b1.HasKey("ScanRunId");
-
-                            b1.ToTable("scan_runs");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ScanRunId");
-                        });
-
-                    b.Navigation("Counts")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.SourceUpdate", b =>
-                {
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ScanRun", null)
-                        .WithMany()
-                        .HasForeignKey("DetectedByScanRunId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.SubscriptionContentState", null)
-                        .WithMany()
-                        .HasForeignKey("SubscriptionContentStateId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ContentSignature", "DetectedSignature", b1 =>
-                        {
-                            b1.Property<Guid>("SourceUpdateId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Hash")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("character(64)")
-                                .HasColumnName("detected_signature_hash")
-                                .IsFixedLength();
-
-                            b1.Property<int>("Version")
-                                .HasColumnType("integer")
-                                .HasColumnName("detected_signature_version");
-
-                            b1.HasKey("SourceUpdateId");
-
-                            b1.ToTable("source_updates");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SourceUpdateId");
-                        });
-
-                    b.Navigation("DetectedSignature")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.ExternalCourses.SubscriptionContentState", b =>
-                {
-                    b.HasOne("StudyOrganizer.Domain.Tasks.StudyTask", null)
-                        .WithMany()
-                        .HasForeignKey("StudyTaskId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.CourseSubscription", null)
-                        .WithMany()
-                        .HasForeignKey("CourseSubscriptionId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudyOrganizer.Domain.ExternalCourses.ExternalLearningContent", null)
-                        .WithMany()
-                        .HasForeignKey("ExternalLearningContentId", "ExternalCourseId")
-                        .HasPrincipalKey("Id", "ExternalCourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.OwnsOne("StudyOrganizer.Domain.ExternalCourses.ContentSignature", "ConfirmedSignature", b1 =>
-                        {
-                            b1.Property<Guid>("SubscriptionContentStateId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Hash")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("character(64)")
-                                .HasColumnName("confirmed_signature_hash")
-                                .IsFixedLength();
-
-                            b1.Property<int>("Version")
-                                .HasColumnType("integer")
-                                .HasColumnName("confirmed_signature_version");
-
-                            b1.HasKey("SubscriptionContentStateId");
-
-                            b1.ToTable("subscription_content_states");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SubscriptionContentStateId");
-                        });
-
-                    b.Navigation("ConfirmedSignature")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudyOrganizer.Domain.Modules.StudyModule", b =>
-                {
-                    b.HasOne("StudyOrganizer.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

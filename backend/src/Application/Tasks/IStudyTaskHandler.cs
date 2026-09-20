@@ -8,7 +8,7 @@ public interface IStudyTaskHandler
         Guid ownerId,
         Guid moduleId,
         string title,
-        DateTimeOffset? dueDateUtc,
+        DateTimeOffset dueDateUtc,
         string? description,
         CancellationToken cancellationToken = default);
 
@@ -18,12 +18,12 @@ public interface IStudyTaskHandler
             Guid moduleId,
             CancellationToken cancellationToken = default);
 
-    Task<StudyTaskResult?> UpdateAsync(
+    Task<StudyTaskMutationResult> UpdateAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
         string title,
-        DateTimeOffset? dueDateUtc,
+        DateTimeOffset dueDateUtc,
         string? description,
         CancellationToken cancellationToken = default);
 
@@ -34,16 +34,9 @@ public interface IStudyTaskHandler
         StudyTaskStatus status,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<StudyTaskMutationResult> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
         CancellationToken cancellationToken = default);
-
-    Task<AcknowledgeSourceUpdateResult>
-        AcknowledgeSourceUpdateAsync(
-            Guid ownerId,
-            Guid moduleId,
-            Guid taskId,
-            CancellationToken cancellationToken = default);
 }
