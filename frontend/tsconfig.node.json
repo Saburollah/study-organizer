@@ -6,6 +6,7 @@
     "vitest.config.*",
     "cypress.config.*",
     "playwright.config.*",
+    "playwright.layout.config.*",
     "eslint.config.*"
   ],
   "compilerOptions": {

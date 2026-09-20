@@ -5,6 +5,31 @@ namespace StudyOrganizer.Domain.Tests.Tasks;
 public sealed class StudyTaskTests
 {
     [Fact]
+    public void SynchronizeFromExternalSource_OpenTask_UpdatesSourceFieldsAndKeepsId()
+    {
+        var task = new StudyTask(
+            Guid.NewGuid(),
+            "Old",
+            DateTimeOffset.UtcNow.AddDays(1));
+        var id = task.Id;
+        var dueDate = DateTimeOffset.UtcNow.AddDays(2);
+        var updatedAt = DateTimeOffset.UtcNow.AddHours(1);
+
+        task.SynchronizeFromExternalSource(
+            "New",
+            dueDate,
+            "Updated",
+            updatedAt);
+
+        Assert.Equal(id, task.Id);
+        Assert.Equal("New", task.Title);
+        Assert.Equal(dueDate, task.DueDate);
+        Assert.Equal("Updated", task.Description);
+        Assert.Equal(updatedAt, task.UpdatedAt);
+        Assert.Equal(StudyTaskStatus.Open, task.Status);
+    }
+
+    [Fact]
     public void Constructor_WithValidValues_CreatesOpenTask()
     {
         // Arrange
@@ -22,20 +47,6 @@ public sealed class StudyTaskTests
         Assert.Equal(moduleId, task.ModuleId);
         Assert.Equal("Prepare security exercise", task.Title);
         Assert.Equal(dueDate, task.DueDate);
-        Assert.Equal(StudyTaskStatus.Open, task.Status);
-    }
-
-    [Fact]
-    public void Constructor_WithoutDueDate_CreatesOpenTask()
-    {
-        // Act
-        var task = new StudyTask(
-            Guid.NewGuid(),
-            "Read course announcement",
-            null);
-
-        // Assert
-        Assert.Null(task.DueDate);
         Assert.Equal(StudyTaskStatus.Open, task.Status);
     }
 

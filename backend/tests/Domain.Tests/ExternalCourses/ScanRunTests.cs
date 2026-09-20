@@ -5,351 +5,130 @@ namespace StudyOrganizer.Domain.Tests.ExternalCourses;
 public sealed class ScanRunTests
 {
     [Fact]
-    public void Constructor_WithValidValues_CreatesRunningScan()
+    public void Constructor_WithValidIdentity_StartsInProgress()
     {
-        // Arrange
         var externalCourseId = Guid.NewGuid();
-        var activationSubscriptionId = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        var startedAtUtc = new DateTimeOffset(2026, 8, 28, 8, 0, 0, TimeSpan.Zero);
 
-        var startedAt = new DateTimeOffset(
-            2026,
-            8,
-            24,
-            12,
-            0,
-            0,
-            TimeSpan.Zero);
+        var run = new ScanRun(externalCourseId, ownerId, startedAtUtc);
 
-        var leaseExpiresAt = startedAt.AddMinutes(5);
-
-        // Act
-        var scanRun = new ScanRun(
-            externalCourseId,
-            startedAt,
-            leaseExpiresAt,
-            activationSubscriptionId);
-
-        // Assert
-        Assert.NotEqual(Guid.Empty, scanRun.Id);
-        Assert.Equal(
-            externalCourseId,
-            scanRun.ExternalCourseId);
-        Assert.Equal(ScanRunStatus.Running, scanRun.Status);
-        Assert.Equal(startedAt, scanRun.StartedAt);
-        Assert.Null(scanRun.CompletedAt);
-        Assert.Equal(
-            leaseExpiresAt,
-            scanRun.LeaseExpiresAt);
-        Assert.Equal(
-            activationSubscriptionId,
-            scanRun.ActivationSubscriptionId);
-        Assert.Null(scanRun.ErrorCode);
-        Assert.Equal(
-            new ScanRunCounts(0, 0, 0, 0),
-            scanRun.Counts);
+        Assert.NotEqual(Guid.Empty, run.Id);
+        Assert.Equal(externalCourseId, run.ExternalCourseId);
+        Assert.Equal(ownerId, run.RequestedByOwnerId);
+        Assert.Equal(ScanRunStatus.InProgress, run.Status);
+        Assert.Equal(startedAtUtc, run.StartedAtUtc);
+        Assert.Null(run.FinishedAtUtc);
+        Assert.Null(run.ErrorCode);
     }
 
     [Fact]
-    public void Constructor_WithEmptyExternalCourseId_ThrowsArgumentException()
+    public void Constructor_WithEmptyRequiredId_Throws()
     {
-        // Act
-        var action = () => new ScanRun(
+        Assert.Throws<ArgumentException>(() => new ScanRun(
             Guid.Empty,
-            DateTimeOffset.UnixEpoch,
-            DateTimeOffset.UnixEpoch.AddMinutes(5));
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow));
+    }
 
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentException>(action);
+    [Fact]
+    public void Succeed_CompletesInProgressRun()
+    {
+        var run = CreateRun();
+        var finishedAtUtc = run.StartedAtUtc.AddSeconds(1);
 
-        Assert.Equal(
-            "externalCourseId",
-            exception.ParamName);
+        run.Succeed(finishedAtUtc);
+
+        Assert.Equal(ScanRunStatus.Succeeded, run.Status);
+        Assert.Equal(finishedAtUtc, run.FinishedAtUtc);
+        Assert.Null(run.ErrorCode);
+    }
+
+    [Fact]
+    public void Fail_StoresSafeCodeAndCompletesRun()
+    {
+        var run = new ScanRun(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
+        run.Fail("external_timeout", DateTimeOffset.UtcNow.AddSeconds(1));
+
+        Assert.Equal(ScanRunStatus.Failed, run.Status);
+        Assert.Equal("external_timeout", run.ErrorCode);
+        Assert.NotNull(run.FinishedAtUtc);
+    }
+
+    [Fact]
+    public void Fail_WithSurroundingWhitespace_NormalizesErrorCode()
+    {
+        var run = CreateRun();
+
+        run.Fail(" external_timeout ", run.StartedAtUtc.AddSeconds(1));
+
+        Assert.Equal("external_timeout", run.ErrorCode);
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Constructor_WithInvalidLease_ThrowsArgumentOutOfRangeException(
-        int leaseOffsetMinutes)
+    [InlineData("scan_cancelled")]
+    [InlineData("scan_failed")]
+    public void Fail_WithInternalTerminalCode_StoresSafeCode(string errorCode)
     {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
+        var run = CreateRun();
 
-        // Act
-        var action = () => new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(leaseOffsetMinutes));
+        run.Fail(errorCode, run.StartedAtUtc.AddSeconds(1));
 
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentOutOfRangeException>(action);
-
-        Assert.Equal(
-            "leaseExpiresAt",
-            exception.ParamName);
+        Assert.Equal(ScanRunStatus.Failed, run.Status);
+        Assert.Equal(errorCode, run.ErrorCode);
     }
 
     [Fact]
-    public void Constructor_WithEmptyActivationSubscriptionId_ThrowsArgumentException()
+    public void Complete_WhenAlreadyTerminal_Throws()
     {
-        // Act
-        var action = () => new ScanRun(
-            Guid.NewGuid(),
-            DateTimeOffset.UnixEpoch,
-            DateTimeOffset.UnixEpoch.AddMinutes(5),
-            Guid.Empty);
+        var run = CreateRun();
+        run.Succeed(run.StartedAtUtc.AddSeconds(1));
 
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentException>(action);
-
-        Assert.Equal(
-            "activationSubscriptionId",
-            exception.ParamName);
+        Assert.Throws<InvalidOperationException>(() =>
+            run.Fail("external_timeout", run.StartedAtUtc.AddSeconds(2)));
     }
 
     [Fact]
-    public void Succeed_WhenRunning_StoresCountsAndCompletesScan()
+    public void Complete_BeforeStart_Throws()
     {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-        var activationSubscriptionId = Guid.NewGuid();
+        var run = CreateRun();
 
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5),
-            activationSubscriptionId);
-
-        var counts = new ScanRunCounts(3, 2, 5, 1);
-        var completedAt = startedAt.AddMinutes(1);
-
-        // Act
-        scanRun.Succeed(counts, completedAt);
-
-        // Assert
-        Assert.Equal(
-            ScanRunStatus.Succeeded,
-            scanRun.Status);
-        Assert.Equal(completedAt, scanRun.CompletedAt);
-        Assert.Equal(counts, scanRun.Counts);
-        Assert.Null(scanRun.ErrorCode);
-        Assert.Null(scanRun.ActivationSubscriptionId);
+        Assert.Throws<ArgumentException>(() => run.Succeed(run.StartedAtUtc.AddSeconds(-1)));
     }
 
     [Fact]
-    public void Fail_WhenRunning_StoresSafeErrorAndCompletesScan()
+    public void Fail_WithBlankErrorCode_Throws()
     {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
+        var run = CreateRun();
 
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5),
-            Guid.NewGuid());
-
-        var completedAt = startedAt.AddMinutes(1);
-
-        // Act
-        scanRun.Fail(
-            ScanRunErrorCode.SourceUnreachable,
-            completedAt);
-
-        // Assert
-        Assert.Equal(ScanRunStatus.Failed, scanRun.Status);
-        Assert.Equal(completedAt, scanRun.CompletedAt);
-        Assert.Equal(
-            ScanRunErrorCode.SourceUnreachable,
-            scanRun.ErrorCode);
-        Assert.Equal(
-            new ScanRunCounts(0, 0, 0, 0),
-            scanRun.Counts);
-        Assert.Null(scanRun.ActivationSubscriptionId);
-    }
-
-    [Fact]
-    public void Cancel_WhenRunning_CompletesScanWithoutErrorCode()
-    {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5),
-            Guid.NewGuid());
-
-        var completedAt = startedAt.AddMinutes(1);
-
-        // Act
-        scanRun.Cancel(completedAt);
-
-        // Assert
-        Assert.Equal(
-            ScanRunStatus.Cancelled,
-            scanRun.Status);
-        Assert.Equal(completedAt, scanRun.CompletedAt);
-        Assert.Null(scanRun.ErrorCode);
-        Assert.Null(scanRun.ActivationSubscriptionId);
-    }
-
-    [Fact]
-    public void Expire_WhenRunning_CompletesScanWithTimeoutError()
-    {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5),
-            Guid.NewGuid());
-
-        var completedAt = startedAt.AddMinutes(6);
-
-        // Act
-        scanRun.Expire(completedAt);
-
-        // Assert
-        Assert.Equal(ScanRunStatus.Expired, scanRun.Status);
-        Assert.Equal(completedAt, scanRun.CompletedAt);
-        Assert.Equal(
-            ScanRunErrorCode.Timeout,
-            scanRun.ErrorCode);
-        Assert.Null(scanRun.ActivationSubscriptionId);
-    }
-
-    [Fact]
-    public void Succeed_AfterScanFailed_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-        var failedAt = startedAt.AddMinutes(1);
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5));
-
-        scanRun.Fail(
-            ScanRunErrorCode.Unexpected,
-            failedAt);
-
-        // Act
-        var action = () => scanRun.Succeed(
-            new ScanRunCounts(1, 0, 0, 0),
-            startedAt.AddMinutes(2));
-
-        // Assert
-        Assert.Throws<InvalidOperationException>(action);
-        Assert.Equal(ScanRunStatus.Failed, scanRun.Status);
-        Assert.Equal(failedAt, scanRun.CompletedAt);
-        Assert.Equal(
-            ScanRunErrorCode.Unexpected,
-            scanRun.ErrorCode);
-    }
-
-    [Fact]
-    public void Succeed_BeforeScanStarted_ThrowsArgumentOutOfRangeException()
-    {
-        // Arrange
-        var startedAt =
-            DateTimeOffset.UnixEpoch.AddMinutes(1);
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5));
-
-        // Act
-        var action = () => scanRun.Succeed(
-            new ScanRunCounts(1, 0, 0, 0),
-            startedAt.AddTicks(-1));
-
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentOutOfRangeException>(action);
-
-        Assert.Equal("completedAt", exception.ParamName);
-        Assert.Equal(ScanRunStatus.Running, scanRun.Status);
-        Assert.Null(scanRun.CompletedAt);
-    }
-
-    [Fact]
-    public void Succeed_WithNullCounts_ThrowsArgumentNullException()
-    {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5));
-
-        // Act
-        var action = () => scanRun.Succeed(
-            null!,
-            startedAt.AddMinutes(1));
-
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentNullException>(action);
-
-        Assert.Equal("counts", exception.ParamName);
-        Assert.Equal(ScanRunStatus.Running, scanRun.Status);
-        Assert.Null(scanRun.CompletedAt);
-    }
-
-    [Fact]
-    public void Fail_WithUnknownErrorCode_ThrowsArgumentOutOfRangeException()
-    {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-
-        var scanRun = new ScanRun(
-            Guid.NewGuid(),
-            startedAt,
-            startedAt.AddMinutes(5));
-
-        // Act
-        var action = () => scanRun.Fail(
-            (ScanRunErrorCode)999,
-            startedAt.AddMinutes(1));
-
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentOutOfRangeException>(action);
+        var exception = Assert.Throws<ArgumentException>(() =>
+            run.Fail(" ", run.StartedAtUtc.AddSeconds(1)));
 
         Assert.Equal("errorCode", exception.ParamName);
-        Assert.Equal(ScanRunStatus.Running, scanRun.Status);
-        Assert.Null(scanRun.CompletedAt);
     }
 
-    [Fact]
-    public void Expire_BeforeLeaseExpired_ThrowsArgumentOutOfRangeException()
+    [Theory]
+    [InlineData("Bearer eyJhbGciOiJIUzI1NiJ9.payload.signature")]
+    [InlineData("{\"message\":\"provider returned an internal error\"}")]
+    public void Fail_WithUnsafeOrUnknownErrorCode_ThrowsWithoutPersistingIt(
+        string errorCode)
     {
-        // Arrange
-        var startedAt = DateTimeOffset.UnixEpoch;
-        var leaseExpiresAt = startedAt.AddMinutes(5);
+        var run = CreateRun();
 
-        var scanRun = new ScanRun(
+        var exception = Assert.Throws<ArgumentException>(() =>
+            run.Fail(errorCode, run.StartedAtUtc.AddSeconds(1)));
+
+        Assert.Equal("errorCode", exception.ParamName);
+        Assert.Equal(ScanRunStatus.InProgress, run.Status);
+        Assert.Null(run.ErrorCode);
+        Assert.Null(run.FinishedAtUtc);
+    }
+
+    private static ScanRun CreateRun()
+    {
+        return new ScanRun(
             Guid.NewGuid(),
-            startedAt,
-            leaseExpiresAt);
-
-        // Act
-        var action = () => scanRun.Expire(
-            leaseExpiresAt.AddTicks(-1));
-
-        // Assert
-        var exception =
-            Assert.Throws<ArgumentOutOfRangeException>(action);
-
-        Assert.Equal("completedAt", exception.ParamName);
-        Assert.Equal(ScanRunStatus.Running, scanRun.Status);
-        Assert.Null(scanRun.CompletedAt);
+            Guid.NewGuid(),
+            new DateTimeOffset(2026, 8, 28, 8, 0, 0, TimeSpan.Zero));
     }
 }

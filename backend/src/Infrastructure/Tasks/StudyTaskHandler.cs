@@ -1,23 +1,19 @@
 using Microsoft.EntityFrameworkCore;
-using StudyOrganizer.Application.ExternalCourses;
 using StudyOrganizer.Application.Tasks;
-using StudyOrganizer.Domain.ExternalCourses;
 using StudyOrganizer.Domain.Tasks;
 using StudyOrganizer.Infrastructure.Persistence;
 
 namespace StudyOrganizer.Infrastructure.Tasks;
 
 public sealed class StudyTaskHandler(
-    ApplicationDbContext dbContext,
-    IExternalCourseUrlResolver courseUrlResolver,
-    TimeProvider timeProvider)
+    ApplicationDbContext dbContext)
     : IStudyTaskHandler
 {
     public async Task<StudyTaskResult?> CreateAsync(
         Guid ownerId,
         Guid moduleId,
         string title,
-        DateTimeOffset? dueDateUtc,
+        DateTimeOffset dueDateUtc,
         string? description,
         CancellationToken cancellationToken = default)
     {
@@ -44,7 +40,7 @@ public sealed class StudyTaskHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return await ToResultAsync(task, cancellationToken);
+        return ToResult(task);
     }
 
     public async Task<IReadOnlyList<StudyTaskResult>?>
@@ -65,32 +61,47 @@ public sealed class StudyTaskHandler(
             return null;
         }
 
-        var tasks = await dbContext.Tasks
-            .AsNoTracking()
-            .Where(task =>
-                task.ModuleId == moduleId)
-            .OrderBy(task =>
-                task.DueDate)
-            .ThenBy(task =>
-                task.CreatedAt)
+        var tasks = await (
+                from task in dbContext.Tasks.AsNoTracking()
+                where task.ModuleId == moduleId
+                join link in dbContext.ExternalTaskLinks.AsNoTracking()
+                    on task.Id equals link.TaskId into taskLinks
+                from link in taskLinks.DefaultIfEmpty()
+                join content in dbContext.ExternalContents.AsNoTracking()
+                    on link.ExternalContentId equals content.Id into linkedContents
+                from content in linkedContents.DefaultIfEmpty()
+                join course in dbContext.ExternalCourses.AsNoTracking()
+                    on content.ExternalCourseId equals course.Id into linkedCourses
+                from course in linkedCourses.DefaultIfEmpty()
+                select new
+                {
+                    Task = task,
+                    ProviderKey = course == null ? null : course.ProviderKey,
+                    CourseName = course == null ? null : course.Name,
+                    SourceUrl = content == null ? null : content.SourceUrl
+                })
             .ToListAsync(cancellationToken);
 
-        var results = new List<StudyTaskResult>(tasks.Count);
-        foreach (var task in tasks)
-        {
-            results.Add(
-                await ToResultAsync(task, cancellationToken));
-        }
-
-        return results;
+        return tasks
+            .OrderBy(item => item.Task.DueDate)
+            .ThenBy(item => item.Task.CreatedAt)
+            .Select(item => ToResult(
+                item.Task,
+                item.ProviderKey is null
+                    ? null
+                    : new ExternalTaskSourceResult(
+                        item.ProviderKey,
+                        item.CourseName!,
+                        item.SourceUrl!)))
+            .ToList();
     }
 
-    public async Task<StudyTaskResult?> UpdateAsync(
+    public async Task<StudyTaskMutationResult> UpdateAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
         string title,
-        DateTimeOffset? dueDateUtc,
+        DateTimeOffset dueDateUtc,
         string? description,
         CancellationToken cancellationToken = default)
     {
@@ -102,7 +113,16 @@ public sealed class StudyTaskHandler(
 
         if (task is null)
         {
-            return null;
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.NotFound,
+                null);
+        }
+
+        if (await IsExternallyManagedAsync(taskId, cancellationToken))
+        {
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.ExternallyManaged,
+                null);
         }
 
         task.Update(
@@ -113,7 +133,9 @@ public sealed class StudyTaskHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return await ToResultAsync(task, cancellationToken);
+        return new StudyTaskMutationResult(
+            StudyTaskMutationOutcome.Succeeded,
+            ToResult(task));
     }
 
     public async Task<StudyTaskResult?> SetStatusAsync(
@@ -152,10 +174,10 @@ public sealed class StudyTaskHandler(
         await dbContext.SaveChangesAsync(
             cancellationToken);
 
-        return await ToResultAsync(task, cancellationToken);
+        return ToResult(task);
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<StudyTaskMutationResult> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         Guid taskId,
@@ -169,96 +191,34 @@ public sealed class StudyTaskHandler(
 
         if (task is null)
         {
-            return false;
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.NotFound,
+                null);
         }
 
-        var importState = await dbContext.SubscriptionContentStates
-            .SingleOrDefaultAsync(
-                state =>
-                    state.StudyTaskId == taskId
-                    && state.Status ==
-                        SubscriptionContentStateStatus.Imported,
-                cancellationToken);
-
-        if (importState is null)
+        if (await IsExternallyManagedAsync(taskId, cancellationToken))
         {
-            dbContext.Tasks.Remove(task);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return true;
+            return new StudyTaskMutationResult(
+                StudyTaskMutationOutcome.ExternallyManaged,
+                null);
         }
-
-        await using var transaction =
-            await dbContext.Database.BeginTransactionAsync(
-                cancellationToken);
-        var sourceUpdate = await dbContext.SourceUpdates
-            .SingleOrDefaultAsync(
-                update =>
-                    update.SubscriptionContentStateId == importState.Id,
-                cancellationToken);
-        if (sourceUpdate is not null)
-        {
-            dbContext.SourceUpdates.Remove(sourceUpdate);
-        }
-
-        importState.Dismiss(timeProvider.GetUtcNow());
-        await dbContext.SaveChangesAsync(cancellationToken);
 
         dbContext.Tasks.Remove(task);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
 
-        return true;
-    }
-
-    public async Task<AcknowledgeSourceUpdateResult>
-        AcknowledgeSourceUpdateAsync(
-            Guid ownerId,
-            Guid moduleId,
-            Guid taskId,
-            CancellationToken cancellationToken = default)
-    {
-        var task = await GetOwnedTaskAsync(
-            ownerId,
-            moduleId,
-            taskId,
+        await dbContext.SaveChangesAsync(
             cancellationToken);
-        if (task is null)
-        {
-            return new AcknowledgeSourceUpdateResult(
-                AcknowledgeSourceUpdateOutcome.NotFound);
-        }
 
-        var importState = await dbContext.SubscriptionContentStates
-            .SingleOrDefaultAsync(
-                state =>
-                    state.StudyTaskId == taskId
-                    && state.Status ==
-                        SubscriptionContentStateStatus.Imported,
-                cancellationToken);
-        if (importState is null)
-        {
-            return new AcknowledgeSourceUpdateResult(
-                AcknowledgeSourceUpdateOutcome.TaskNotImported);
-        }
-
-        var sourceUpdate = await dbContext.SourceUpdates
-            .SingleOrDefaultAsync(
-                update =>
-                    update.SubscriptionContentStateId == importState.Id,
-                cancellationToken);
-        if (sourceUpdate is not null)
-        {
-            importState.ConfirmSignature(
-                sourceUpdate.DetectedSignature,
-                timeProvider.GetUtcNow());
-            dbContext.SourceUpdates.Remove(sourceUpdate);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        return new AcknowledgeSourceUpdateResult(
-            AcknowledgeSourceUpdateOutcome.Succeeded,
-            await ToResultAsync(task, cancellationToken));
+        return new StudyTaskMutationResult(
+            StudyTaskMutationOutcome.Succeeded,
+            null);
     }
+
+    private Task<bool> IsExternallyManagedAsync(
+        Guid taskId,
+        CancellationToken cancellationToken) =>
+        dbContext.ExternalTaskLinks.AnyAsync(
+            link => link.TaskId == taskId,
+            cancellationToken);
 
     private Task<StudyTask?> GetOwnedTaskAsync(
         Guid ownerId,
@@ -276,14 +236,10 @@ public sealed class StudyTaskHandler(
             cancellationToken);
     }
 
-    private async Task<StudyTaskResult> ToResultAsync(
+    private static StudyTaskResult ToResult(
         StudyTask task,
-        CancellationToken cancellationToken)
+        ExternalTaskSourceResult? externalSource = null)
     {
-        var importSource = await BuildImportSourceAsync(
-            task.Id,
-            cancellationToken);
-
         return new StudyTaskResult(
             task.Id,
             task.ModuleId,
@@ -293,69 +249,6 @@ public sealed class StudyTaskHandler(
             task.Status,
             task.CreatedAt,
             task.UpdatedAt,
-            importSource);
-    }
-
-    private async Task<StudyTaskImportSourceResult?>
-        BuildImportSourceAsync(
-            Guid taskId,
-            CancellationToken cancellationToken)
-    {
-        var source = await (
-            from state in dbContext.SubscriptionContentStates.AsNoTracking()
-            join subscription in dbContext.CourseSubscriptions.AsNoTracking()
-                on state.CourseSubscriptionId equals subscription.Id
-            join content in dbContext.ExternalLearningContents.AsNoTracking()
-                on state.ExternalLearningContentId equals content.Id
-            join course in dbContext.ExternalCourses.AsNoTracking()
-                on state.ExternalCourseId equals course.Id
-            where state.StudyTaskId == taskId
-                && state.Status ==
-                    SubscriptionContentStateStatus.Imported
-            select new
-            {
-                Subscription = subscription,
-                Content = content,
-                Course = course
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (source is null)
-        {
-            return null;
-        }
-
-        var hasSourceUpdate = await (
-            from update in dbContext.SourceUpdates.AsNoTracking()
-            join state in dbContext.SubscriptionContentStates.AsNoTracking()
-                on update.SubscriptionContentStateId equals state.Id
-            where state.StudyTaskId == taskId
-            select update.Id)
-            .AnyAsync(cancellationToken);
-
-        var metadataWasPurged =
-            source.Content.MetadataPurgedAt.HasValue;
-        var hasCourseAccess = source.Subscription.State ==
-            CourseSubscriptionState.Active;
-        var mayExposeMetadata = hasCourseAccess && !metadataWasPurged;
-        var status = metadataWasPurged
-            ? StudyTaskImportSourceStatus.MetadataPurged
-            : hasCourseAccess
-                ? source.Content.Availability ==
-                    ExternalLearningContentAvailability.Available
-                    ? StudyTaskImportSourceStatus.Available
-                    : StudyTaskImportSourceStatus.Unavailable
-                : StudyTaskImportSourceStatus.SubscriptionEnded;
-
-        return new StudyTaskImportSourceResult(
-            status,
-            mayExposeMetadata ? source.Content.Type : null,
-            mayExposeMetadata ? source.Content.MediaType : null,
-            mayExposeMetadata
-                ? courseUrlResolver.GetSafeContentUrl(
-                    source.Course.Identity,
-                    source.Content.SourceReference)
-                : null,
-            hasSourceUpdate);
+            externalSource);
     }
 }

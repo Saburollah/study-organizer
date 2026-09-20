@@ -23,7 +23,7 @@ public interface IModuleHandler
         string? color,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<ModuleDeleteOutcome> DeleteAsync(
         Guid ownerId,
         Guid moduleId,
         CancellationToken cancellationToken = default);

@@ -49,7 +49,9 @@ public static class ModuleEndpoints
             .Produces(
                 StatusCodes.Status401Unauthorized)
             .Produces(
-                StatusCodes.Status404NotFound);
+                StatusCodes.Status404NotFound)
+            .ProducesProblem(
+                StatusCodes.Status409Conflict);
         return group;
     }
 
@@ -154,15 +156,20 @@ public static class ModuleEndpoints
             return Results.Unauthorized();
         }
 
-        var wasDeleted =
+        var result =
             await moduleHandler.DeleteAsync(
                 ownerId,
                 moduleId,
                 cancellationToken);
 
-        return wasDeleted
-            ? Results.NoContent()
-            : Results.NotFound();
+        return result switch
+        {
+            ModuleDeleteOutcome.Deleted => Results.NoContent(),
+            ModuleDeleteOutcome.LinkedToExternalCourse => Results.Problem(
+                detail: "linked_external_course_module",
+                statusCode: StatusCodes.Status409Conflict),
+            _ => Results.NotFound()
+        };
     }
 
     private static ModuleResponse ToResponse(
@@ -174,6 +181,7 @@ public static class ModuleEndpoints
             module.Code,
             module.Description,
             module.Color,
-            module.CreatedAt);
+            module.CreatedAt,
+            module.IsExternalCourseLinked);
     }
 }

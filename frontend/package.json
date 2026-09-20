@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:e2e": "../scripts/run-playwright-e2e.sh",
+    "test:e2e:layout": "playwright test --config playwright.layout.config.ts",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "run-s \"lint:*\"",

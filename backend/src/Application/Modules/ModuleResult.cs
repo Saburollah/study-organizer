@@ -6,4 +6,5 @@ public sealed record ModuleResult(
     string? Code,
     string? Description,
     string? Color,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    bool IsExternalCourseLinked = false);

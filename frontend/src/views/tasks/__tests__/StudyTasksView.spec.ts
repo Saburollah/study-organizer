@@ -2,12 +2,9 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
-import { courseImportService } from '@/features/course-imports/courseImportService'
-import type { ScanRun, CourseSubscription } from '@/features/course-imports/courseImportModels'
 import { taskService } from '@/features/tasks/taskService'
 import type { StudyTask } from '@/features/tasks/taskModels'
 import { i18n, setLocale } from '@/i18n'
-import { ApiError } from '@/services/api/apiClient'
 
 import StudyTasksView from '../StudyTasksView.vue'
 
@@ -26,6 +23,7 @@ const studyModule = {
   description: 'Vorlesung im 4. Semester',
   color: '#3366FF',
   createdAtUtc: '2026-08-12T12:00:00Z',
+  isExternalCourseLinked: false,
 }
 
 function createTask(overrides: Partial<StudyTask> = {}): StudyTask {
@@ -38,7 +36,7 @@ function createTask(overrides: Partial<StudyTask> = {}): StudyTask {
     status: 'Open',
     createdAtUtc: '2026-08-13T08:00:00Z',
     updatedAtUtc: null,
-    importSource: null,
+    externalSource: null,
     ...overrides,
   }
 }
@@ -60,11 +58,9 @@ function mountView() {
 describe('StudyTasksView', () => {
   beforeEach(() => {
     setLocale('de')
-    vi.spyOn(courseImportService, 'get').mockRejectedValue(new ApiError(404))
   })
 
   afterEach(() => {
-    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
@@ -79,6 +75,16 @@ describe('StudyTasksView', () => {
     expect(wrapper.findAll('.task-card')).toHaveLength(1)
   })
 
+  it('shows an archived Matt task without inventing a due date', async () => {
+    mockPageLoad([createTask({ dueDateUtc: null })])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('.due-date').text()).toContain('Keine Frist')
+    expect(wrapper.get('.due-date').text()).not.toContain('Überfällig')
+  })
+
   it('shows an empty state when no tasks exist', async () => {
     mockPageLoad()
 
@@ -86,21 +92,6 @@ describe('StudyTasksView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Noch keine Aufgaben')
-  })
-
-  it('shows an imported task without inventing a due date', async () => {
-    mockPageLoad([
-      createTask({
-        title: 'Kursankündigung',
-        dueDateUtc: null,
-      }),
-    ])
-
-    const wrapper = mountView()
-    await flushPromises()
-
-    expect(wrapper.text()).toContain('Kein Fälligkeitsdatum')
-    expect(wrapper.text()).not.toContain('01.01.1970')
   })
 
   it('shows an error and retries loading', async () => {
@@ -199,6 +190,35 @@ describe('StudyTasksView', () => {
     expect(wrapper.text()).toContain('als erledigt markiert')
   })
 
+  it('shows Moodle provenance and locks source-controlled actions', async () => {
+    mockPageLoad([
+      createTask({
+        externalSource: {
+          providerKey: 'mock-moodle',
+          courseName: 'Software Engineering',
+          sourceUrl: 'https://mock-moodle.local/content/exercise-1',
+        },
+      }),
+    ])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const card = wrapper.get('.task-card')
+    const source = card.get('.external-task-source')
+    const sourceLink = source.get('a')
+
+    expect(source.text()).toContain('Moodle-Quelle: Software Engineering')
+    expect(sourceLink.attributes('href')).toBe(
+      'https://mock-moodle.local/content/exercise-1',
+    )
+    expect(sourceLink.attributes('target')).toBe('_blank')
+    expect(sourceLink.attributes('rel')).toBe('noopener noreferrer')
+    expect(card.find('.edit-task-button').exists()).toBe(false)
+    expect(card.find('.delete-task-button').exists()).toBe(false)
+    expect(card.find('.status-button').exists()).toBe(true)
+  })
+
   it('deletes a confirmed task', async () => {
     const task = createTask()
     mockPageLoad([task])
@@ -230,116 +250,5 @@ describe('StudyTasksView', () => {
     expect(wrapper.text()).toContain('Back to study modules')
     expect(wrapper.text()).toContain('New task')
     expect(wrapper.text()).toContain('No tasks yet')
-  })
-
-  it('shows imported tasks automatically after the running course scan succeeds', async () => {
-    vi.useFakeTimers()
-    const runningScan: ScanRun = {
-      scanRunId: 'scan-1',
-      status: 'Running',
-      startedAtUtc: '2026-08-25T08:00:00Z',
-      completedAtUtc: null,
-      contentCounts: { new: 0, updated: 0, unchanged: 0, unavailable: 0 },
-      personalImpact: {
-        tasksCreated: 0,
-        pdfTasksCreated: 0,
-        nonPdfTasksCreated: 0,
-        sourceUpdatesCreated: 0,
-      },
-      errorCode: null,
-      canRetry: false,
-    }
-    const succeededScan: ScanRun = {
-      ...runningScan,
-      status: 'Succeeded',
-      completedAtUtc: '2026-08-25T08:00:01Z',
-      contentCounts: { new: 1, updated: 0, unchanged: 0, unavailable: 0 },
-      personalImpact: {
-        tasksCreated: 1,
-        pdfTasksCreated: 1,
-        nonPdfTasksCreated: 0,
-        sourceUpdatesCreated: 0,
-      },
-    }
-    const createCourseSubscription = (
-      status: CourseSubscription['status'],
-      scan: ScanRun,
-    ): CourseSubscription => ({
-      moduleId,
-      status,
-      createdAtUtc: '2026-08-25T08:00:00Z',
-      activatedAtUtc: status === 'Active' ? '2026-08-25T08:00:01Z' : null,
-      course: {
-        displayName: 'Software Engineering',
-        sourceType: 'mock-moodle',
-        sourceUrl: 'https://example.test/mock-moodle/course/software-engineering',
-      },
-      latestSnapshot:
-        status === 'Active'
-          ? { observedAtUtc: '2026-08-25T08:00:01Z', knownContentCount: 1 }
-          : null,
-      latestScan: scan,
-      recentScans: [scan],
-    })
-    vi.mocked(courseImportService.get)
-      .mockResolvedValueOnce(createCourseSubscription('Pending', runningScan))
-      .mockResolvedValueOnce(createCourseSubscription('Active', succeededScan))
-    vi.spyOn(courseImportService, 'getScan').mockResolvedValue(succeededScan)
-    vi.spyOn(moduleService, 'getAll').mockResolvedValue([studyModule])
-    vi.spyOn(taskService, 'getByModule')
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([createTask({ title: 'Übungsblatt 05.pdf' })])
-
-    const wrapper = mountView()
-    await flushPromises()
-    expect(wrapper.text()).toContain('Scan läuft')
-
-    await vi.advanceTimersByTimeAsync(1000)
-    await flushPromises()
-
-    expect(wrapper.text()).toContain('Übungsblatt 05.pdf')
-    expect(taskService.getByModule).toHaveBeenCalledTimes(2)
-  })
-
-  it('keeps imported tasks visible after the course connection is ended', async () => {
-    const importedTask = createTask({
-      title: 'Übungsblatt 05.pdf',
-      importSource: {
-        status: 'Available',
-        contentType: 'File',
-        mediaType: 'application/pdf',
-        sourceUrl: 'https://example.test/mock-moodle/content/sheet-05',
-        hasSourceUpdate: false,
-      },
-    })
-    mockPageLoad([importedTask])
-    vi.mocked(courseImportService.get).mockResolvedValue({
-      moduleId,
-      status: 'Active',
-      createdAtUtc: '2026-08-25T08:00:00Z',
-      activatedAtUtc: '2026-08-25T08:00:01Z',
-      course: {
-        displayName: 'Software Engineering',
-        sourceType: 'mock-moodle',
-        sourceUrl: 'https://example.test/mock-moodle/course/software-engineering',
-      },
-      latestSnapshot: {
-        observedAtUtc: '2026-08-25T08:00:01Z',
-        knownContentCount: 1,
-      },
-      latestScan: null,
-      recentScans: [],
-    })
-    vi.spyOn(courseImportService, 'end').mockResolvedValue()
-
-    const wrapper = mountView()
-    await flushPromises()
-
-    await wrapper.get('.end-subscription-button').trigger('click')
-    await wrapper.get('.confirm-end-subscription-button').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.text()).toContain('Übungsblatt 05.pdf')
-    expect(wrapper.text()).toContain('Importierte Aufgaben bleiben erhalten')
   })
 })

@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n'
 
 import { moduleService } from '@/features/modules/moduleService'
 import type { StudyModule } from '@/features/modules/moduleModels'
-import CourseSubscriptionPanel from '@/features/course-imports/CourseSubscriptionPanel.vue'
 import StudyTaskForm from '@/features/tasks/StudyTaskForm.vue'
 import type { SaveStudyTaskRequest, StudyTask, StudyTaskStatus } from '@/features/tasks/taskModels'
 import { taskService } from '@/features/tasks/taskService'
@@ -37,14 +36,14 @@ const formInitialValues = computed<SaveStudyTaskRequest>(() => {
   if (!editingTask.value) {
     return {
       title: '',
-      dueDateUtc: null,
+      dueDateUtc: '',
     }
   }
 
   return {
     title: editingTask.value.title,
     description: editingTask.value.description,
-    dueDateUtc: editingTask.value.dueDateUtc,
+    dueDateUtc: editingTask.value.dueDateUtc ?? '',
   }
 })
 
@@ -226,32 +225,17 @@ function replaceTask(updatedTask: StudyTask): void {
   )
 }
 
-async function refreshTasksAfterScan(): Promise<void> {
-  try {
-    tasks.value = sortTasks(await taskService.getByModule(props.moduleId))
-    successMessage.value = t('tasks.success.courseScanCompleted')
-    actionErrorMessage.value = ''
-  } catch (error: unknown) {
-    actionErrorMessage.value = getErrorMessage(error, t('tasks.errors.loadAfterScan'))
-  }
-}
-
-function reportSubscriptionEnded(): void {
-  successMessage.value = t('tasks.success.courseSubscriptionEnded')
-  actionErrorMessage.value = ''
-}
-
 function sortTasks(items: StudyTask[]): StudyTask[] {
   return [...items].sort(
-    (first, second) => dueDateSortValue(first.dueDateUtc) - dueDateSortValue(second.dueDateUtc),
+    (first, second) =>
+      (first.dueDateUtc ? Date.parse(first.dueDateUtc) : Number.POSITIVE_INFINITY) -
+      (second.dueDateUtc ? Date.parse(second.dueDateUtc) : Number.POSITIVE_INFINITY),
   )
 }
 
-function dueDateSortValue(value: string | null): number {
-  return value ? Date.parse(value) : Number.POSITIVE_INFINITY
-}
+function formatDueDate(value: string | null): string {
+  if (!value) return t('tasks.due.none')
 
-function formatDueDate(value: string): string {
   const formattedDate = new Intl.DateTimeFormat(dateLocale.value, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -261,9 +245,7 @@ function formatDueDate(value: string): string {
 }
 
 function isOverdue(task: StudyTask): boolean {
-  return Boolean(
-    task.dueDateUtc && task.status === 'Open' && Date.parse(task.dueDateUtc) < Date.now(),
-  )
+  return task.status === 'Open' && !!task.dueDateUtc && Date.parse(task.dueDateUtc) < Date.now()
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -318,13 +300,6 @@ function getErrorMessage(error: unknown, fallback: string): string {
       :submit-label="editingTask ? t('tasks.form.saveChanges') : t('tasks.form.create')"
       @save="saveTask"
       @cancel="closeTaskForm"
-    />
-
-    <CourseSubscriptionPanel
-      v-if="!isLoading && !loadErrorMessage"
-      :module-id="moduleId"
-      @scan-completed="refreshTasksAfterScan"
-      @ended="reportSubscriptionEnded"
     />
 
     <p v-if="isLoading" class="state-card" role="status">
@@ -385,18 +360,27 @@ function getErrorMessage(error: unknown, fallback: string): string {
             {{ t('tasks.noDescription') }}
           </p>
 
-          <p v-if="task.dueDateUtc" class="due-date">
+          <p v-if="task.externalSource" class="external-task-source">
+            {{ t('tasks.externalSource.label', { course: task.externalSource.courseName }) }}
+            <a
+              :href="task.externalSource.sourceUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ t('tasks.externalSource.open') }}
+            </a>
+          </p>
+
+          <p class="due-date">
             <strong>
-              {{ isOverdue(task) ? t('tasks.due.overdue') : t('tasks.due.due') }}
+              {{ task.dueDateUtc ? (isOverdue(task) ? t('tasks.due.overdue') : t('tasks.due.due')) : '' }}
             </strong>
             {{ formatDueDate(task.dueDateUtc) }}
-          </p>
-          <p v-else class="due-date muted">
-            {{ t('tasks.due.none') }}
           </p>
 
           <div class="task-actions">
             <button
+              v-if="!task.externalSource"
               class="edit-task-button"
               type="button"
               :aria-label="t('tasks.actions.editAria', { title: task.title })"
@@ -406,6 +390,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
               {{ t('tasks.actions.edit') }}
             </button>
             <button
+              v-if="!task.externalSource"
               class="delete-task-button"
               type="button"
               :aria-label="t('tasks.actions.deleteAria', { title: task.title })"
@@ -521,6 +506,15 @@ h1 {
   color: #626f86;
   font-size: 1.05rem;
   line-height: 1.6;
+}
+
+.external-task-source {
+  color: #44546f;
+}
+
+.external-task-source a {
+  color: #0c66e4;
+  font-weight: 650;
 }
 
 .add-task-button {

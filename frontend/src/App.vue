@@ -1,24 +1,48 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  RouterLink,
-  RouterView,
-  useRouter,
-} from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/features/auth/authStore'
-import {
-  setLocale,
-  type SupportedLocale,
-} from '@/i18n'
+import { setLocale, type SupportedLocale } from '@/i18n'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { locale, t } = useI18n()
+const menuOpen = ref(false)
+const menuButton = ref<HTMLButtonElement | null>(null)
+let compactLayout: MediaQueryList | undefined
 
-function changeLocale(
-  newLocale: SupportedLocale,
-): void {
+function closeMenu(): void {
+  menuOpen.value = false
+}
+
+function closeMenuOnEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && menuOpen.value) {
+    event.preventDefault()
+    closeMenu()
+    menuButton.value?.focus()
+  }
+}
+
+function resetMenuOnDesktop(): void {
+  if (!compactLayout?.matches) closeMenu()
+}
+
+watch(() => route.fullPath, closeMenu)
+watch(() => authStore.isAuthenticated, closeMenu)
+
+onMounted(() => {
+  compactLayout = window.matchMedia('(max-width: 75rem)')
+  compactLayout.addEventListener('change', resetMenuOnDesktop)
+})
+
+onBeforeUnmount(() => {
+  compactLayout?.removeEventListener('change', resetMenuOnDesktop)
+})
+
+function changeLocale(newLocale: SupportedLocale): void {
   setLocale(newLocale)
 }
 
@@ -30,17 +54,28 @@ async function logout(): Promise<void> {
 
 <template>
   <div class="app-shell">
-    <header class="app-header">
-      <RouterLink class="brand" to="/">
-        Study Organizer
-      </RouterLink>
+    <header class="app-header" @keydown="closeMenuOnEscape">
+      <RouterLink class="brand" to="/" @click="closeMenu"> Study Organizer </RouterLink>
 
-      <nav :aria-label="t('navigation.mainLabel')">
-        <div
-          class="language-switcher"
-          role="group"
-          :aria-label="t('navigation.language')"
-        >
+      <button
+        ref="menuButton"
+        class="menu-toggle"
+        type="button"
+        aria-controls="main-navigation"
+        :aria-expanded="menuOpen"
+        :aria-label="t(menuOpen ? 'navigation.closeMenu' : 'navigation.openMenu')"
+        @click="menuOpen = !menuOpen"
+      >
+        <span aria-hidden="true">{{ menuOpen ? '×' : '☰' }}</span>
+        {{ t('navigation.menu') }}
+      </button>
+
+      <nav
+        id="main-navigation"
+        :class="{ 'is-open': menuOpen }"
+        :aria-label="t('navigation.mainLabel')"
+      >
+        <div class="language-switcher" role="group" :aria-label="t('navigation.language')">
           <button
             class="language-button"
             :class="{ active: locale === 'de' }"
@@ -66,42 +101,41 @@ async function logout(): Promise<void> {
           </button>
         </div>
 
-        <RouterLink to="/">
+        <RouterLink to="/" @click="closeMenu">
           {{ t('navigation.home') }}
         </RouterLink>
 
         <template v-if="authStore.isAuthenticated">
-          <RouterLink to="/dashboard">
+          <RouterLink to="/dashboard" @click="closeMenu">
             {{ t('navigation.dashboard') }}
           </RouterLink>
 
-          <RouterLink to="/modules">
+          <RouterLink to="/modules" @click="closeMenu">
             {{ t('navigation.modules') }}
           </RouterLink>
 
-          <RouterLink to="/profile">
+          <RouterLink to="/moodle-courses" @click="closeMenu">
+            {{ t('navigation.moodleCourses') }}
+          </RouterLink>
+
+          <RouterLink to="/profile" @click="closeMenu">
             {{ t('navigation.profile') }}
           </RouterLink>
 
-          <button
-            class="logout-button"
-            type="button"
-            @click="logout"
-          >
+          <button class="logout-button" type="button" @click="logout">
             {{ t('navigation.logout') }}
           </button>
         </template>
 
         <template v-else>
-          <RouterLink to="/login">
+          <RouterLink to="/login" @click="closeMenu">
             {{ t('navigation.login') }}
           </RouterLink>
 
-          <RouterLink to="/register">
+          <RouterLink to="/register" @click="closeMenu">
             {{ t('navigation.register') }}
           </RouterLink>
         </template>
-
       </nav>
     </header>
 
@@ -120,6 +154,7 @@ async function logout(): Promise<void> {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 2rem;
   border-bottom: 1px solid #dfe3e8;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
@@ -141,6 +176,26 @@ nav {
   display: flex;
   align-items: center;
   gap: clamp(0.45rem, 1vw, 1rem);
+}
+
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b6c2cf;
+  border-radius: 0.65rem;
+  background: linear-gradient(145deg, #ffffff, #edf2f8);
+  color: #172b4d;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .logout-button {
@@ -209,12 +264,7 @@ nav a:hover {
 
 nav a.router-link-active {
   border-color: #8fb8f4;
-  background: linear-gradient(
-    145deg,
-    #eef6ff 0%,
-    #e5f0ff 52%,
-    #d9eaff 100%
-  );
+  background: linear-gradient(145deg, #eef6ff 0%, #e5f0ff 52%, #d9eaff 100%);
   color: #0c66e4;
   box-shadow:
     0 0.45rem 0.9rem rgb(12 102 228 / 14%),
@@ -226,6 +276,11 @@ nav a:focus-visible,
 .logout-button:focus-visible,
 .language-button:focus-visible {
   outline: 0.18rem solid rgb(12 102 228 / 24%);
+  outline-offset: 0.15rem;
+}
+
+.menu-toggle:focus-visible {
+  outline: 0.18rem solid #0c66e4;
   outline-offset: 0.15rem;
 }
 
@@ -271,5 +326,52 @@ nav a:focus-visible,
   box-shadow:
     0 0.25rem 0.6rem rgb(12 102 228 / 24%),
     inset 0 1px rgb(255 255 255 / 35%);
+}
+
+@media (max-width: 75rem) {
+  .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.75rem 1rem;
+  }
+
+  .brand {
+    font-size: 1.125rem;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  nav {
+    display: none;
+    grid-column: 1 / -1;
+    min-width: 0;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #dfe3e8;
+  }
+
+  nav.is-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  nav a,
+  .logout-button {
+    min-height: 2.75rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .language-switcher {
+    align-self: flex-start;
+  }
+
+  .language-button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
 }
 </style>

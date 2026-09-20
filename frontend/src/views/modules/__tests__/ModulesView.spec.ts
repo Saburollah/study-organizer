@@ -2,27 +2,19 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moduleService } from '@/features/modules/moduleService'
-import { courseImportService } from '@/features/course-imports/courseImportService'
-import type { CourseSubscription } from '@/features/course-imports/courseImportModels'
 import { i18n, setLocale } from '@/i18n'
 
 import ModulesView from '../ModulesView.vue'
-
-const { pushMock } = vi.hoisted(() => ({
-  pushMock: vi.fn<(location: unknown) => Promise<void>>().mockResolvedValue(),
-}))
 
 vi.mock('vue-router', () => ({
   RouterLink: {
     template: '<a><slot /></a>',
   },
-  useRouter: () => ({ push: pushMock }),
 }))
 
 describe('ModulesView', () => {
   beforeEach(() => {
     setLocale('de')
-    pushMock.mockReset()
   })
 
   afterEach(() => {
@@ -63,6 +55,7 @@ describe('ModulesView', () => {
         description: 'Vorlesung im 4. Semester',
         color: '#3366FF',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -72,56 +65,6 @@ describe('ModulesView', () => {
     expect(wrapper.text()).toContain('Sichere Systeme')
     expect(wrapper.text()).toContain('SIS')
     expect(wrapper.findAll('.module-card')).toHaveLength(1)
-  })
-
-  it('starts course registration and opens the selected module after confirmation', async () => {
-    const moduleId = 'e6ab31a1-292b-4b31-b65b-dab568512b40'
-    vi.spyOn(moduleService, 'getAll').mockResolvedValue([
-      {
-        id: moduleId,
-        name: 'Software Engineering',
-        code: 'SWE',
-        description: null,
-        color: '#0c66e4',
-        createdAtUtc: '2026-08-25T08:00:00Z',
-      },
-    ])
-    const subscription = {
-      moduleId,
-      status: 'Pending',
-      createdAtUtc: '2026-08-25T08:00:00Z',
-      activatedAtUtc: null,
-      course: {
-        displayName: 'Software Engineering',
-        sourceType: 'mock-moodle',
-        sourceUrl: 'https://example.test/mock-moodle/course/software-engineering',
-      },
-      latestSnapshot: null,
-      latestScan: null,
-      recentScans: [],
-    } satisfies CourseSubscription
-    vi.spyOn(courseImportService, 'register').mockResolvedValue({
-      data: subscription,
-      status: 202,
-      location: null,
-      retryAfterMilliseconds: 1000,
-    })
-
-    const wrapper = mountView()
-    await flushPromises()
-
-    await wrapper.get('.connect-course-button').trigger('click')
-    await wrapper.get('input[type="url"]').setValue(subscription.course.sourceUrl)
-    await wrapper.get('.registration-panel').trigger('submit')
-    await wrapper.get('input[type="radio"]').setValue(moduleId)
-    await wrapper.get('.registration-panel').trigger('submit')
-    await wrapper.get('.registration-panel').trigger('submit')
-    await flushPromises()
-
-    expect(pushMock).toHaveBeenCalledWith({
-      name: 'module-tasks',
-      params: { moduleId },
-    })
   })
 
   it('shows an error and can retry loading', async () => {
@@ -152,6 +95,7 @@ describe('ModulesView', () => {
       description: 'SQL und PostgreSQL',
       color: '#FF8800',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     })
 
     const wrapper = mountView()
@@ -188,6 +132,7 @@ describe('ModulesView', () => {
         description: 'SQL',
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -198,6 +143,7 @@ describe('ModulesView', () => {
       description: 'SQL und PostgreSQL',
       color: '#3366FF',
       createdAtUtc: '2026-08-12T12:00:00Z',
+      isExternalCourseLinked: false,
     })
 
     const wrapper = mountView()
@@ -235,6 +181,7 @@ describe('ModulesView', () => {
         description: null,
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -264,6 +211,7 @@ describe('ModulesView', () => {
         description: null,
         color: '#FF8800',
         createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: false,
       },
     ])
 
@@ -280,6 +228,36 @@ describe('ModulesView', () => {
     expect(wrapper.find('.module-card').exists()).toBe(false)
     expect(wrapper.text()).toContain('Noch keine Lernmodule')
     expect(wrapper.text()).toContain('erfolgreich gelöscht')
+  })
+
+  it('keeps linked modules editable while preventing deletion', async () => {
+    vi.spyOn(moduleService, 'getAll').mockResolvedValue([
+      {
+        id: 'e6ab31a1-292b-4b31-b65b-dab568512b40',
+        name: 'Software Engineering',
+        code: null,
+        description: null,
+        color: null,
+        createdAtUtc: '2026-08-12T12:00:00Z',
+        isExternalCourseLinked: true,
+      },
+    ])
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const card = wrapper.get('.module-card')
+    const deleteButton = card.get('.delete-module-button')
+
+    expect(card.find('.edit-module-button').exists()).toBe(true)
+    expect(deleteButton.attributes('disabled')).toBeDefined()
+    expect(card.get('.linked-module-help').text()).toContain(
+      'Moodle-Kurs kann erst mit einer zukünftigen Abmeldefunktion gelöscht werden.',
+    )
+
+    await deleteButton.trigger('click')
+
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 
   it('shows the module page in English', async () => {

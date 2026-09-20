@@ -93,27 +93,26 @@ describe('DashboardView', () => {
     expect(wrapper.text()).toContain('Keine offenen Aufgaben')
   })
 
-  it('shows an open task without a due date using a translated label', async () => {
+  it('keeps a task without a deadline visible without marking it overdue', async () => {
     vi.spyOn(dashboardService, 'getDashboard').mockResolvedValue({
       moduleCount: 1,
-      tasks: [
-        {
-          id: 'task-without-due-date',
-          moduleId: 'module-1',
-          moduleName: 'Dashboard Diagnose',
-          moduleCode: null,
-          title: 'Aufgabe ohne Fälligkeit',
-          dueDateUtc: null,
-          status: 'Open',
-        },
-      ],
+      tasks: [{
+        id: 'legacy-task',
+        moduleId: 'module-1',
+        moduleName: 'Sichere Systeme',
+        moduleCode: null,
+        title: 'Aufgabe ohne Frist',
+        dueDateUtc: null,
+        status: 'Open',
+      }],
     })
 
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Ohne Fälligkeit')
-    expect(wrapper.text()).not.toContain('dashboard.next.noDueDate')
+    expect(wrapper.text()).toContain('Aufgabe ohne Frist')
+    expect(wrapper.text()).toContain('Keine Frist')
+    expect(wrapper.findAll('.task-row.overdue')).toHaveLength(0)
   })
 
   it('shows an error and retries loading', async () => {

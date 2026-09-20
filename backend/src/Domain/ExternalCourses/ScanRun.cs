@@ -2,23 +2,30 @@ namespace StudyOrganizer.Domain.ExternalCourses;
 
 public sealed class ScanRun
 {
-    public Guid Id { get; }
+    private static readonly HashSet<string> SupportedErrorCodes = new(
+        StringComparer.Ordinal)
+    {
+        "external_timeout",
+        "external_auth_required",
+        "invalid_external_response",
+        "unsupported_url",
+        "scan_cancelled",
+        "scan_failed"
+    };
 
-    public Guid ExternalCourseId { get; }
+    public Guid Id { get; private set; }
+
+    public Guid ExternalCourseId { get; private set; }
+
+    public Guid RequestedByOwnerId { get; private set; }
 
     public ScanRunStatus Status { get; private set; }
 
-    public DateTimeOffset StartedAt { get; }
+    public DateTimeOffset StartedAtUtc { get; private set; }
 
-    public DateTimeOffset? CompletedAt { get; private set; }
+    public DateTimeOffset? FinishedAtUtc { get; private set; }
 
-    public DateTimeOffset LeaseExpiresAt { get; }
-
-    public Guid? ActivationSubscriptionId { get; private set; }
-
-    public ScanRunErrorCode? ErrorCode { get; private set; }
-
-    public ScanRunCounts Counts { get; private set; } = null!;
+    public string? ErrorCode { get; private set; }
 
     private ScanRun()
     {
@@ -26,114 +33,75 @@ public sealed class ScanRun
 
     public ScanRun(
         Guid externalCourseId,
-        DateTimeOffset startedAt,
-        DateTimeOffset leaseExpiresAt,
-        Guid? activationSubscriptionId = null)
+        Guid requestedByOwnerId,
+        DateTimeOffset startedAtUtc)
     {
+        EnsureNotEmpty(externalCourseId, nameof(externalCourseId));
+        EnsureNotEmpty(requestedByOwnerId, nameof(requestedByOwnerId));
+
         Id = Guid.NewGuid();
-        if (externalCourseId == Guid.Empty)
-        {
-            throw new ArgumentException(
-                "External Course ID must not be empty.",
-                nameof(externalCourseId));
-        }
-
         ExternalCourseId = externalCourseId;
-        Status = ScanRunStatus.Running;
-        StartedAt = startedAt;
-        if (leaseExpiresAt <= startedAt)
+        RequestedByOwnerId = requestedByOwnerId;
+        Status = ScanRunStatus.InProgress;
+        StartedAtUtc = startedAtUtc;
+    }
+
+    public void Succeed(DateTimeOffset finishedAtUtc)
+    {
+        EnsureCanComplete(finishedAtUtc);
+
+        Status = ScanRunStatus.Succeeded;
+        FinishedAtUtc = finishedAtUtc;
+    }
+
+    public void Fail(string errorCode, DateTimeOffset finishedAtUtc)
+    {
+        EnsureCanComplete(finishedAtUtc);
+
+        ErrorCode = NormalizeSupportedErrorCode(errorCode);
+        Status = ScanRunStatus.Failed;
+        FinishedAtUtc = finishedAtUtc;
+    }
+
+    private void EnsureCanComplete(DateTimeOffset finishedAtUtc)
+    {
+        if (Status != ScanRunStatus.InProgress)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(leaseExpiresAt),
-                "Lease expiry must be after the scan start.");
+            throw new InvalidOperationException("Only an in-progress scan run can complete.");
         }
-        LeaseExpiresAt = leaseExpiresAt;
-        if (activationSubscriptionId == Guid.Empty)
+
+        if (finishedAtUtc < StartedAtUtc)
         {
             throw new ArgumentException(
-                "Activation Subscription ID must not be empty.",
-                nameof(activationSubscriptionId));
+                "Finished time must not be earlier than the start time.",
+                nameof(finishedAtUtc));
         }
-        ActivationSubscriptionId =
-            activationSubscriptionId;
-        Counts = new ScanRunCounts(0, 0, 0, 0);
     }
 
-    public void Cancel(DateTimeOffset completedAt)
+    private static void EnsureNotEmpty(Guid value, string parameterName)
     {
-        EnsureRunning();
-        ValidateCompletionTime(completedAt);
-        Status = ScanRunStatus.Cancelled;
-        CompletedAt = completedAt;
-        ErrorCode = null;
-        ActivationSubscriptionId = null;
-    }
-
-    public void Expire(DateTimeOffset completedAt)
-    {
-        EnsureRunning();
-        ValidateCompletionTime(completedAt);
-        if (completedAt < LeaseExpiresAt)
+        if (value == Guid.Empty)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(completedAt),
-                "A Scan Run cannot expire before its lease.");
+            throw new ArgumentException("ID must not be empty.", parameterName);
         }
-        Status = ScanRunStatus.Expired;
-        CompletedAt = completedAt;
-        ErrorCode = ScanRunErrorCode.Timeout;
-        ActivationSubscriptionId = null;
     }
 
-    public void Fail(
-        ScanRunErrorCode errorCode,
-        DateTimeOffset completedAt)
+    private static string NormalizeSupportedErrorCode(string errorCode)
     {
-        EnsureRunning();
-        ValidateCompletionTime(completedAt);
-        if (!Enum.IsDefined(errorCode))
+        if (string.IsNullOrWhiteSpace(errorCode))
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(errorCode),
-                "Unknown Scan Run error code.");
+            throw new ArgumentException("Error code must not be empty.", nameof(errorCode));
         }
-        Status = ScanRunStatus.Failed;
-        CompletedAt = completedAt;
-        ErrorCode = errorCode;
-        ActivationSubscriptionId = null;
-    }
 
-    public void Succeed(
-        ScanRunCounts counts,
-        DateTimeOffset completedAt)
-    {
-        EnsureRunning();
-        ValidateCompletionTime(completedAt);
-        ArgumentNullException.ThrowIfNull(counts);
-        Status = ScanRunStatus.Succeeded;
-        CompletedAt = completedAt;
-        Counts = counts;
-        ErrorCode = null;
-        ActivationSubscriptionId = null;
-    }
+        var normalizedErrorCode = errorCode.Trim();
 
-    private void EnsureRunning()
-    {
-        if (Status != ScanRunStatus.Running)
+        if (!SupportedErrorCodes.Contains(normalizedErrorCode))
         {
-            throw new InvalidOperationException(
-                "Only a running Scan Run can be completed.");
+            throw new ArgumentException(
+                "Error code is not supported.",
+                nameof(errorCode));
         }
-    }
 
-    private void ValidateCompletionTime(
-        DateTimeOffset completedAt)
-    {
-        if (completedAt < StartedAt)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(completedAt),
-                "Completion time must not be before the scan start.");
-        }
+        return normalizedErrorCode;
     }
 }

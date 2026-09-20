@@ -1,5 +1,11 @@
 export type StudyTaskStatus = 'Open' | 'Completed'
 
+export interface ExternalTaskSource {
+  providerKey: string
+  courseName: string
+  sourceUrl: string
+}
+
 export interface StudyTask {
   id: string
   moduleId: string
@@ -9,21 +15,13 @@ export interface StudyTask {
   status: StudyTaskStatus
   createdAtUtc: string
   updatedAtUtc: string | null
-  importSource: StudyTaskImportSource | null
-}
-
-export interface StudyTaskImportSource {
-  status: 'Available' | 'Unavailable' | 'SubscriptionEnded' | 'MetadataPurged'
-  contentType: string | null
-  mediaType: string | null
-  sourceUrl: string | null
-  hasSourceUpdate: boolean
+  externalSource: ExternalTaskSource | null
 }
 
 export interface SaveStudyTaskRequest {
   title: string
   description?: string | null
-  dueDateUtc: string | null
+  dueDateUtc: string
 }
 
 export interface UpdateStudyTaskStatusRequest {

@@ -11,6 +11,7 @@ public sealed class CreateStudyTaskRequest
     [StringLength(2000)]
     public string? Description { get; init; }
 
+    [Required]
     public DateTimeOffset? DueDateUtc { get; init; }
 }
 
@@ -23,6 +24,7 @@ public sealed class UpdateStudyTaskRequest
     [StringLength(2000)]
     public string? Description { get; init; }
 
+    [Required]
     public DateTimeOffset? DueDateUtc { get; init; }
 }
 
@@ -41,11 +43,9 @@ public sealed record StudyTaskResponse(
     string Status,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc,
-    StudyTaskImportSourceResponse? ImportSource);
+    ExternalTaskSourceResponse? ExternalSource);
 
-public sealed record StudyTaskImportSourceResponse(
-    string Status,
-    string? ContentType,
-    string? MediaType,
-    string? SourceUrl,
-    bool HasSourceUpdate);
+public sealed record ExternalTaskSourceResponse(
+    string ProviderKey,
+    string CourseName,
+    string SourceUrl);

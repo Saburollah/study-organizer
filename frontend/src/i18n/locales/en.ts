@@ -1,9 +1,13 @@
 export default {
   navigation: {
     mainLabel: 'Main navigation',
+    menu: 'Menu',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
     home: 'Home',
     dashboard: 'Dashboard',
     modules: 'Study modules',
+    moodleCourses: 'Moodle courses',
     profile: 'Profile',
     login: 'Sign in',
     register: 'Sign up',
@@ -88,6 +92,67 @@ export default {
     },
   },
 
+  externalCourses: {
+    eyebrow: 'MOODLE CONNECTION',
+    title: 'Moodle courses',
+    description: 'Register a course link and bring reliable assignments into your Study Organizer.',
+    loading: 'Loading Moodle courses …',
+    retry: 'Try again',
+    lastScan: 'Last scan',
+    form: {
+      label: 'Moodle course link',
+      placeholder: 'https://mock-moodle.local/courses/…',
+      submit: 'Register course',
+      submitting: 'Registering …',
+      validation: {
+        required: 'Please enter a course link.',
+        invalid: 'Please enter a valid HTTPS link.',
+      },
+    },
+    loadingContents: 'Loading course contents …',
+    errors: {
+      load: 'The Moodle courses could not be loaded.',
+      register: 'The Moodle course could not be registered.',
+      scan: 'The Moodle course could not be scanned.',
+    },
+    success: {
+      registered: 'The Moodle course was registered successfully.',
+    },
+    empty: {
+      title: 'No Moodle courses yet',
+      description: 'Register your first fixture course link.',
+    },
+    actions: {
+      openModule: 'Open personal module',
+      scan: 'Scan now',
+      scanning: 'Scanning …',
+    },
+    contents: {
+      title: 'Detected content',
+      empty: 'No content detected yet.',
+      openSource: 'Open source',
+      due: 'Due:',
+      noDueDate: 'No structured due date',
+    },
+    summary: {
+      new: 'New content:',
+      changed: 'Changed:',
+      review: 'Review:',
+      notVisible: 'Not visible:',
+      taskEligible: 'New tasks:',
+    },
+    statuses: {
+      TaskCreated: 'Task created',
+      ReviewRequired: 'Review required',
+      NotVisible: 'No longer visible',
+    },
+    reviewReasons: {
+      MissingStructuredDueDate: 'No reliable structured due date is available.',
+      UnsupportedContentKind: 'This content type is not converted into a task automatically.',
+      None: '',
+    },
+  },
+
   modules: {
     eyebrow: 'YOUR STUDIES',
     title: 'Study modules',
@@ -110,6 +175,8 @@ export default {
       description: 'Create your first study module to organize your studies.',
     },
     noDescription: 'No description available.',
+    linkedCourseHelp:
+      'This Moodle course can only be deleted through a future unsubscribe flow.',
     actions: {
       tasks: 'Tasks',
       edit: 'Edit',
@@ -157,117 +224,6 @@ export default {
     },
   },
 
-  courseImports: {
-    registration: {
-      eyebrow: 'MOCK MOODLE',
-      title: 'Connect course',
-      open: 'Connect mock course',
-      description: 'Import course content as personal tasks into a study module.',
-      cancel: 'Close',
-      back: 'Back',
-      progressLabel: 'Course registration progress',
-      steps: { link: 'Course link', module: 'Study module', summary: 'Confirmation' },
-      link: {
-        title: 'Enter mock course link',
-        description: 'Enter the course link whose content should be checked.',
-        label: 'Course link',
-        placeholder: 'https://example.test/mock-moodle/course/…',
-        privacy: 'Your personal access credentials are not shared with other subscribers.',
-        continue: 'Check link',
-      },
-      module: {
-        title: 'Select personal study module',
-        description: 'New course tasks will be added to this study module.',
-        legend: 'Target module',
-        noCode: 'No code',
-        continue: 'Continue',
-      },
-      summary: {
-        title: 'Review connection',
-        description: 'Review the course and target module before the first scan starts.',
-        course: 'Mock course',
-        module: 'Personal study module',
-        scan: 'First scan',
-        scanValue: 'Immediately after confirmation',
-        confirm: 'Connect and start scan',
-        submitting: 'Connecting course …',
-      },
-      validation: {
-        urlRequired: 'Enter a course link.',
-        urlInvalid: 'Enter a complete course link.',
-        urlMax: 'The course link must not exceed 2048 characters.',
-        moduleRequired: 'Select a study module.',
-      },
-      errors: {
-        validation: 'Check the course link and try again.',
-        unsupportedCourseUrl: 'This course link is not supported.',
-        moduleAlreadySubscribed: 'This study module is already connected to a course.',
-        courseAlreadySubscribed: 'This course is already subscribed in another study module.',
-        unexpected: 'The course could not be connected.',
-      },
-    },
-    overview: {
-      loading: 'Loading course connection …',
-      retryLoad: 'Try again',
-      eyebrow: 'CONNECTED MOCK COURSE',
-      openSource: 'Open course source ↗',
-      subscriptionStatus: { Pending: 'Pending', Active: 'Active' },
-      metrics: {
-        knownContents: 'Known course content',
-        latestScan: 'Latest scan',
-        personalTasks: 'New personal tasks',
-      },
-      latestScan: 'Latest scan result',
-      scanFailed: 'Scan failed',
-      scanRunning: 'Scan running. The course overview will update automatically.',
-      scanSummary:
-        '{tasks} new tasks · {newContents} new content items · {updatedContents} updated',
-      history: 'Scan history',
-      noHistory: 'No scans yet.',
-      historyNew: '{count} new',
-      scanStatus: {
-        Running: 'Running',
-        Succeeded: 'Succeeded',
-        Failed: 'Failed',
-        Cancelled: 'Cancelled',
-        Expired: 'Expired',
-      },
-      scanControl: {
-        title: 'Check course for new content',
-        description: 'The shared course is scanned once; only your personal result is shown.',
-        start: 'Start scan',
-        retry: 'Try again',
-        starting: 'Starting scan …',
-      },
-      scanErrors: {
-        sourceUnreachable:
-          'The course source is unreachable. The last valid course state remains available.',
-        accessDenied: 'Access to the course source was denied.',
-        timeout: 'The course source did not respond in time.',
-        invalidSourceData: 'The course source returned invalid data.',
-        persistenceConflict: 'The scan could not be applied because of a persistence conflict.',
-        cancelled: 'The scan was cancelled by the server.',
-        expired: 'The scan expired and can be started again.',
-        unexpected: 'The scan failed unexpectedly.',
-      },
-      end: {
-        action: 'End course connection',
-        title: 'End course connection?',
-        description: 'Do you want to end the connection to “{course}”?',
-        tasksRemain: 'Previously imported tasks remain in this study module.',
-        cancel: 'Cancel',
-        confirm: 'End connection',
-        ending: 'Ending connection …',
-      },
-      errors: {
-        load: 'The course connection could not be loaded.',
-        poll: 'The scan status could not be refreshed.',
-        start: 'The scan could not be started.',
-        end: 'The course connection could not be ended.',
-      },
-    },
-  },
-
   tasks: {
     back: '← Back to study modules',
     eyebrow: 'STUDY MODULE',
@@ -282,7 +238,6 @@ export default {
       save: 'The task could not be saved.',
       status: 'The task status could not be changed.',
       delete: 'The task could not be deleted.',
-      loadAfterScan: 'The imported tasks could not be refreshed.',
     },
     success: {
       created: 'The task was created successfully.',
@@ -290,14 +245,16 @@ export default {
       completed: 'The task was marked as completed.',
       reopened: 'The task was reopened.',
       deleted: 'The task was deleted successfully.',
-      courseScanCompleted: 'The course scan completed and the tasks were refreshed.',
-      courseSubscriptionEnded: 'The course connection ended. Imported tasks remain available.',
     },
     empty: {
       title: 'No tasks yet',
       description: 'Create your first task for this study module.',
     },
     noDescription: 'No description available.',
+    externalSource: {
+      label: 'Moodle source: {course}',
+      open: 'Open source',
+    },
     status: {
       open: 'Open',
       completed: 'Completed',
@@ -327,7 +284,7 @@ export default {
       cancel: 'Cancel',
       fields: {
         title: 'Title *',
-        dueDate: 'Due date',
+        dueDate: 'Due date *',
         description: 'Description',
       },
       placeholders: {
@@ -348,7 +305,6 @@ export default {
         nextMonth: 'Next month',
         time: 'Time',
         apply: 'Apply',
-        clear: 'Remove due date',
       },
     },
     deleteDialog: {
