@@ -37,8 +37,9 @@ fail_deployment_test() {
 
 wait_for_postgres() {
   for _ in {1..60}; do
+    # The image's temporary initialization server accepts Unix sockets only.
     if docker exec "$DEPLOYMENT_TEST_POSTGRES" \
-      pg_isready --username "$DEPLOYMENT_TEST_USER" --dbname postgres \
+      pg_isready --host 127.0.0.1 --username "$DEPLOYMENT_TEST_USER" --dbname postgres \
       >/dev/null 2>&1; then
       return
     fi
