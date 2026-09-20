@@ -216,3 +216,12 @@ test('resizing to desktop does not reopen a previous compact menu', async ({ pag
   )
   await expect(page.getByRole('button', { name: 'Sign out' })).not.toBeVisible()
 })
+
+test('German course actions fit 320px with larger text', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 })
+  await preparePage(page, 'de', true)
+  await page.goto('/moodle-courses')
+  await expect(page.locator('.course-card')).toContainText('Software Engineering: Architektur')
+  await page.addStyleTag({ content: ':root { font-size: 18px; }' })
+  await expectNoHorizontalOverflow(page)
+})

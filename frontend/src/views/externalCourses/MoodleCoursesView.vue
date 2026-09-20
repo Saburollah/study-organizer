@@ -381,5 +381,9 @@ function getErrorMessage(error: unknown, fallbackKey: string): string {
   .scan-summary {
     display: grid;
   }
+
+  .course-actions {
+    flex-wrap: wrap;
+  }
 }
 </style>
