@@ -76,6 +76,17 @@ async function preparePage(page: Page, locale: 'de' | 'en', authenticated: boole
           reviewReason: null,
           taskId: taskFixture.id,
         },
+        {
+          id: 'layout-announcement',
+          providerContentId: 'layout-announcement',
+          title: 'Announcement 1',
+          description: null,
+          sourceUrl: 'https://moodle.example.test/announcement/1',
+          dueDateUtc: null,
+          status: 'ReviewRequired',
+          reviewReason: 'NotAnAssignment',
+          taskId: null,
+        },
       ],
     })
   })
@@ -91,7 +102,7 @@ async function expectNoHorizontalOverflow(page: Page) {
     .toBeLessThanOrEqual(1)
 }
 
-for (const width of [320, 375, 768, 1024, 1025, 1200, 1201, 1440]) {
+for (const width of [320, 375, 390, 768, 1024, 1025, 1200, 1201, 1440]) {
   for (const locale of ['de', 'en'] as const) {
     test(`authenticated pages fit ${width}px in ${locale}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
@@ -108,8 +119,16 @@ for (const width of [320, 375, 768, 1024, 1025, 1200, 1201, 1440]) {
           await expect(page.locator('.course-card')).toContainText(
             'Software Engineering: Architektur',
           )
-          await expect(page.locator('.content-card')).toContainText(
+          await expect(page.locator('.content-card').first()).toContainText(
             'Architekturdiagramm vorbereiten',
+          )
+          await expect(page.locator('.content-list')).not.toContainText(
+            'externalCourses.reviewReasons.NotAnAssignment',
+          )
+          await expect(page.locator('.content-list')).toContainText(
+            locale === 'de'
+              ? 'Dieser Inhalt ist keine Aufgabe'
+              : 'This content is not an assignment',
           )
         }
         await expectNoHorizontalOverflow(page)
@@ -118,6 +137,21 @@ for (const width of [320, 375, 768, 1024, 1025, 1200, 1201, 1440]) {
         name: locale === 'de' ? 'Menü öffnen' : 'Open menu',
       })
       if (width <= 1200) {
+        await expect
+          .poll(() =>
+            page.evaluate(() => {
+              const header = document.querySelector('.app-header')
+              const toggle = document.querySelector('.menu-toggle')
+              if (!(header instanceof HTMLElement) || !(toggle instanceof HTMLElement)) {
+                return Number.POSITIVE_INFINITY
+              }
+
+              return Math.round(
+                header.getBoundingClientRect().right - toggle.getBoundingClientRect().right,
+              )
+            }),
+          )
+          .toBeLessThanOrEqual(17)
         await toggle.click()
         await expect(
           page.getByRole('button', { name: locale === 'de' ? 'Abmelden' : 'Sign out' }),

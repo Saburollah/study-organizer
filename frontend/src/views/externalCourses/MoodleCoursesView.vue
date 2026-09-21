@@ -375,6 +375,10 @@ function getErrorMessage(error: unknown, fallbackKey: string): string {
   color: #626f86;
 }
 
+.review-reason {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 48rem) {
   .course-card-header,
   .content-card,

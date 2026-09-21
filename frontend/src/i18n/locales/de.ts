@@ -147,6 +147,7 @@ export default {
       NotVisible: 'Nicht mehr sichtbar',
     },
     reviewReasons: {
+      NotAnAssignment: 'Dieser Inhalt ist keine Aufgabe und wird nicht automatisch übernommen.',
       MissingStructuredDueDate: 'Keine verlässliche strukturierte Frist vorhanden.',
       UnsupportedContentKind: 'Dieser Inhaltstyp wird nicht automatisch als Aufgabe übernommen.',
       None: '',

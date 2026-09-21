@@ -41,7 +41,7 @@ const contents: ExternalCourseContent[] = [
     sourceUrl: 'https://mock-moodle.local/content/announcement-1',
     dueDateUtc: null,
     status: 'ReviewRequired',
-    reviewReason: 'MissingStructuredDueDate',
+    reviewReason: 'NotAnAssignment',
     taskId: null,
   },
   {
@@ -169,6 +169,8 @@ describe('MoodleCoursesView', () => {
     expect(wrapper.find('.content-status-task-created').exists()).toBe(true)
     expect(wrapper.find('.content-status-review-required').exists()).toBe(true)
     expect(wrapper.find('.content-status-not-visible').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Dieser Inhalt ist keine Aufgabe')
+    expect(wrapper.text()).not.toContain('externalCourses.reviewReasons.NotAnAssignment')
     const sourceLink = wrapper.get('.external-content-link')
     expect(sourceLink.attributes('target')).toBe('_blank')
     expect(sourceLink.attributes('rel')).toBe('noopener noreferrer')
@@ -193,13 +195,15 @@ describe('MoodleCoursesView', () => {
 
   it('shows the course page in English', async () => {
     setLocale('en')
-    vi.spyOn(externalCourseService, 'getAll').mockResolvedValue([])
+    vi.spyOn(externalCourseService, 'getAll').mockResolvedValue([subscription])
+    vi.spyOn(externalCourseService, 'getContents').mockResolvedValue(contents)
 
     const wrapper = mountView()
     await flushPromises()
 
     expect(wrapper.text()).toContain('Moodle courses')
     expect(wrapper.text()).toContain('Register course')
-    expect(wrapper.text()).toContain('No Moodle courses yet')
+    expect(wrapper.text()).toContain('This content is not an assignment')
+    expect(wrapper.text()).not.toContain('externalCourses.reviewReasons.NotAnAssignment')
   })
 })
