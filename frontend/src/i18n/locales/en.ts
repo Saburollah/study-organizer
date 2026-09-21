@@ -147,6 +147,7 @@ export default {
       NotVisible: 'No longer visible',
     },
     reviewReasons: {
+      NotAnAssignment: 'This content is not an assignment and is not converted into a task.',
       MissingStructuredDueDate: 'No reliable structured due date is available.',
       UnsupportedContentKind: 'This content type is not converted into a task automatically.',
       None: '',
