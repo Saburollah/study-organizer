@@ -244,10 +244,10 @@ test('resizing to desktop does not reopen a previous compact menu', async ({ pag
   await expect(page.getByRole('button', { name: 'Close menu' })).not.toBeVisible()
   await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
   await page.setViewportSize({ width: 375, height: 900 })
-  await expect(page.getByRole('button', { name: 'Open menu' })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  )
+  const compactToggle = page.locator('.menu-toggle')
+  await expect(compactToggle).toBeVisible()
+  await expect(compactToggle).toHaveAttribute('aria-expanded', 'false')
+  await expect(compactToggle).toHaveAccessibleName('Open menu')
   await expect(page.getByRole('button', { name: 'Sign out' })).not.toBeVisible()
 })
 
