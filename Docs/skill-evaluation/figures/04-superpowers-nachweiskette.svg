@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="940" height="420" preserveAspectRatio="xMinYMin meet" viewBox="0 0 940 420" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="940" height="420"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-420)" style="clip-path: url(#clip)">
+		<g transform="">
+			<text x="0" y="402" style="font-family: BodyBold; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,804) scale(1,-1)">VOM BESTÄTIGTEN DESIGN ZUR SICHTBAREN ABNAHME</text>
+			<rect x="0" y="220" width="440" height="132" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="0" y="337" width="440" height="15" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="18" y="303" style="font-family: BodyBold; font-size: 19px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,606) scale(1,-1)">01  DESIGN</text>
+			<circle cx="21" cy="268" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="35" y="262" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,524) scale(1,-1)">Scope und Vertrauensregeln</text>
+			<circle cx="21" cy="238" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="35" y="232" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,464) scale(1,-1)">15 Akzeptanzkriterien</text>
+			<rect x="480" y="220" width="440" height="132" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="480" y="337" width="440" height="15" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="498" y="303" style="font-family: BodyBold; font-size: 19px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,606) scale(1,-1)">02  IMPLEMENTIERUNGSPLAN</text>
+			<circle cx="501" cy="268" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="515" y="262" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,524) scale(1,-1)">Geordnete, kleine Tasks</text>
+			<circle cx="501" cy="238" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="515" y="232" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,464) scale(1,-1)">Dateien und Tests je Schritt</text>
+			<rect x="0" y="48" width="440" height="132" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="0" y="165" width="440" height="15" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="18" y="131" style="font-family: BodyBold; font-size: 19px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,262) scale(1,-1)">03  TDD-SCHRITTE</text>
+			<circle cx="21" cy="96" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="35" y="90" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,180) scale(1,-1)">Erst fehlschlagender Test</text>
+			<circle cx="21" cy="66" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="35" y="60" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,120) scale(1,-1)">Dann kleinste grüne Änderung</text>
+			<rect x="480" y="48" width="440" height="132" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.4; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="480" y="165" width="440" height="15" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="498" y="131" style="font-family: BodyBold; font-size: 19px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,262) scale(1,-1)">04  REVIEW UND SICHTTEST</text>
+			<circle cx="501" cy="96" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="515" y="90" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,180) scale(1,-1)">Gesamtweg gegen Design prüfen</text>
+			<circle cx="501" cy="66" r="4" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="515" y="60" style="font-family: Body; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,120) scale(1,-1)">Ablauf im Browser abnehmen</text>
+			<path d="M 440,286 L 480,286 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="480 286, 470 291, 470 281" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 700,220 L 700,194 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<path d="M 700,194 L 220,194 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<path d="M 220,194 L 220,180 Z" style="stroke: rgb(3%,49%,50%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="220 180, 215 190, 225 190" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<path d="M 440,114 L 480,114 Z" style="stroke: rgb(38%,34%,64%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<polygon points="480 114, 470 119, 470 109" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<rect x="0" y="0" width="920" height="32" rx="8" ry="8" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="156.303466796875" y="9" style="font-family: BodyBold; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,18) scale(1,-1)">Design  →  Plan  →  kleine TDD-Schritte  →  Review und Browser-Abnahme</text>
+		</g>
+	</g>
+</svg>

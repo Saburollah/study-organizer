@@ -40,7 +40,7 @@ OUT = ROOT / 'output/pdf'
 QA = ROOT / 'tmp/pdfs/skill-paper'
 PAPER = BASE / 'bewerbungs-paper-agentische-skill-suites.md'
 PDF_NAME = 'agent-skills-fallstudie.pdf'
-PAGE_COUNT = 7
+PAGE_COUNT = 11
 INK = colors.HexColor('#162C40')
 TEAL = colors.HexColor('#087F82')
 MATT = colors.HexColor('#6257A5')
@@ -92,6 +92,14 @@ def source_snapshots():
     """Keep repository-relative layouts so links inside exported MD remain valid."""
     manifest_path = BASE / 'references/source-manifest.json'
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    # Prefer the already frozen evidence set. Re-exporting linked historical
+    # files could otherwise collide with newer user-owned documents in Docs/.
+    if manifest_path.is_file():
+        frozen = json.loads(manifest_path.read_text())
+        if all((ROOT / entry['export']).is_file() and
+               sha((ROOT / entry['export']).read_bytes()) == entry['sha256']
+               for entry in frozen.get('sources', [])):
+            return frozen
     commits = {'matt': 'ab8249c', 'superpowers': 'a8801ff', 'comparison': '866e724'}
     paths = {
         'matt': ['Docs/skill-evaluation/matt-observations.md',
@@ -132,6 +140,8 @@ def source_snapshots():
                 continue
             source = os.path.normpath(str(Path(path).parent / target))
             child_dest = destination.parent / target
+            if not child_dest.resolve().is_relative_to(BASE):
+                child_dest = BASE / 'references' / group / source
             export(group, revision, source, child_dest.resolve())
 
     for group, items in paths.items():
@@ -257,28 +267,187 @@ def experiment():
 
 
 def workflow():
-    """Retain the original workflow figure alongside the setup diagram."""
-    d = Drawing(940, 278)
-    lanes = [(156, 'Matt Pocock', 'Entscheidungstiefe', MATT, '#F0EFF8',
-              [('Offene Fragen klären', 'Wayfinder + Grilling'),
-               ('Architektur festhalten', 'ADRs + Abnahmekriterien'),
-               ('Soll und Code prüfen', 'TDD + Spezifikationsreview')]),
+    """Early map of the two skill suites and their observed relationships."""
+    d = Drawing(940, 302)
+    lanes = [(166, 'Matt Pocock', 'Entscheidungstiefe', MATT, '#F0EFF8',
+              [('Wayfinder', 'offene Fragen'), ('Grilling', 'Risiken prüfen'),
+               ('ADR + Matrix', 'Entscheidungen'), ('TDD + Review', 'Soll gegen Code')]),
              (40, 'Superpowers', 'Umsetzungsfluss', TEAL, '#EAF5F4',
-              [('Ziel konkretisieren', 'Brainstorming'),
-               ('Schrittweise umsetzen', 'Plan + TDD'),
-               ('Gesamtweg abnehmen', 'Review + Sichttest')])]
+              [('Brainstorming', 'Ziel klären'), ('Design + Plan', 'Schritte ordnen'),
+               ('TDD', 'Red - Green'), ('Review + Test', 'Ergebnis abnehmen')])]
     for y, name, focus, color, bg, nodes in lanes:
         d.add(Rect(0,y-10,940,100,rx=12,ry=12,fillColor=colors.HexColor(bg),strokeColor=None))
         d.add(Rect(0,y-10,5,100,fillColor=color,strokeColor=None))
         text(d, 19, y+49, name, 22, color, bold=True)
         text(d, 19, y+20, focus, 16, MUTED)
         for i, (title, desc) in enumerate(nodes):
-            x = 209+i*239
-            d.add(Rect(x,y,218,78,rx=8,ry=8,fillColor=colors.white,strokeColor=None))
+            x = 202+i*183
+            d.add(Rect(x,y,166,78,rx=8,ry=8,fillColor=colors.white,strokeColor=None))
             text(d, x+13, y+49, title, 19, bold=True)
             text(d, x+13, y+22, desc, 16, MUTED)
-            if i < 2: arrow(d, [(x+218,y+39),(x+239,y+39)], color)
-    text(d, 0, 264, 'ZWEI WEGE VON DER KLÄRUNG ZUR ABNAHME', 18, MUTED, bold=True)
+            if i < 3: arrow(d, [(x+166,y+39),(x+183,y+39)], color)
+    text(d, 0, 288, 'SKILL-LANDKARTE: ZWEI WEGE VON DER IDEE ZUM NACHWEIS', 18, MUTED, bold=True)
+    return d
+
+
+def artifact_chain():
+    """Concrete Matt artifacts selected and personally inspected by the author."""
+    d = Drawing(940, 420)
+    text(d, 0, 402, 'VON DER REGEL ZUM PRÜFBELEG', 18, MUTED, bold=True)
+    items = [
+        (0, 220, '01  SPEZIFIKATION #77', ['Akzeptanzmatrix mit 31 Regeln', 'Primärer Prüfbeleg je Regel'], MATT),
+        (480, 220, '02  TICKET #84', ['Ziel, Quellen und Umfang getrennt', 'Atomare, idempotente Umsetzung'], MATT),
+        (0, 48, '03  ADR 0003', ['Abruf vor kurzer Transaktion', 'Ein Scan je Kurs · PostgreSQL-Test'], TEAL),
+        (480, 48, '04  TEST UND REVIEW', ['Regeltest ausführen · Soll gegen Code', 'Abweichung finden und korrigieren'], TEAL),
+    ]
+    for x, y, title, lines, color in items:
+        d.add(Rect(x, y, 440, 132, rx=12, ry=12, fillColor=colors.white,
+                   strokeColor=LINE, strokeWidth=1.4))
+        d.add(Rect(x, y+117, 440, 15, fillColor=color, strokeColor=None))
+        text(d, x+18, y+83, title, 19, color, bold=True)
+        for n, line in enumerate(lines):
+            d.add(Circle(x+21, y+48-n*30, 4, fillColor=color, strokeColor=None))
+            text(d, x+35, y+42-n*30, line, 17, MUTED)
+    arrow(d, [(440, 286), (480, 286)], MATT)
+    arrow(d, [(700, 220), (700, 194), (220, 194), (220, 180)], MATT)
+    arrow(d, [(440, 114), (480, 114)], TEAL)
+    d.add(Rect(0, 0, 920, 32, rx=8, ry=8, fillColor=PALE, strokeColor=None))
+    text(d, 460, 9, 'Entscheidung  →  Umsetzung  →  prüfbares Verhalten',
+         17, INK, bold=True, anchor='middle')
+    return d
+
+
+def superpowers_artifact_chain():
+    """Concrete Superpowers artifacts and their linear execution chain."""
+    d = Drawing(940, 420)
+    text(d, 0, 402, 'VOM BESTÄTIGTEN DESIGN ZUR SICHTBAREN ABNAHME', 18, MUTED, bold=True)
+    items = [
+        (0, 220, '01  DESIGN', ['Scope und Vertrauensregeln', '15 Akzeptanzkriterien'], TEAL),
+        (480, 220, '02  IMPLEMENTIERUNGSPLAN', ['Geordnete, kleine Tasks', 'Dateien und Tests je Schritt'], TEAL),
+        (0, 48, '03  TDD-SCHRITTE', ['Erst fehlschlagender Test', 'Dann kleinste grüne Änderung'], MATT),
+        (480, 48, '04  REVIEW UND SICHTTEST', ['Gesamtweg gegen Design prüfen', 'Ablauf im Browser abnehmen'], MATT),
+    ]
+    for x, y, title, lines, color in items:
+        d.add(Rect(x, y, 440, 132, rx=12, ry=12, fillColor=colors.white,
+                   strokeColor=LINE, strokeWidth=1.4))
+        d.add(Rect(x, y+117, 440, 15, fillColor=color, strokeColor=None))
+        text(d, x+18, y+83, title, 19, color, bold=True)
+        for n, line in enumerate(lines):
+            d.add(Circle(x+21, y+48-n*30, 4, fillColor=color, strokeColor=None))
+            text(d, x+35, y+42-n*30, line, 17, MUTED)
+    arrow(d, [(440, 286), (480, 286)], TEAL)
+    arrow(d, [(700, 220), (700, 194), (220, 194), (220, 180)], TEAL)
+    arrow(d, [(440, 114), (480, 114)], MATT)
+    d.add(Rect(0, 0, 920, 32, rx=8, ry=8, fillColor=PALE, strokeColor=None))
+    text(d, 460, 9, 'Design  →  Plan  →  kleine TDD-Schritte  →  Review und Browser-Abnahme',
+         17, INK, bold=True, anchor='middle')
+    return d
+
+
+def test_evidence():
+    """Test counts plus two examples that support the author's qualitative judgment."""
+    d = Drawing(940, 560)
+    text(d, 0, 542, 'TESTNACHWEIS: MENGE EINORDNEN, QUALITÄT LESEN', 18, MUTED, bold=True)
+    # Comparable totals; deliberately no duration comparison.
+    labels = [('Backend', 225, 195), ('Frontend', 94, 97)]
+    max_value = 250
+    for row, (label, matt, superp) in enumerate(labels):
+        y = 462-row*76
+        text(d, 0, y+19, label, 18, bold=True)
+        for offset, value, color, name in [(0, matt, MATT, 'Matt'), (28, superp, TEAL, 'Superpowers')]:
+            w = 330 * value / max_value
+            d.add(Rect(105, y-offset, w, 18, rx=5, ry=5, fillColor=color, strokeColor=None))
+            text(d, 445, y-offset+1, f'{name}: {value}', 16, color, bold=True)
+    d.add(Rect(590, 352, 330, 158, rx=10, ry=10, fillColor=PALE, strokeColor=None))
+    text(d, 610, 475, 'END-TO-END-NACHWEIS', 17, MUTED, bold=True)
+    text(d, 610, 437, 'Matt', 17, MATT, bold=True)
+    text(d, 610, 410, '1 automatisierter Playwright-Test', 15, INK)
+    text(d, 610, 379, 'Superpowers', 17, TEAL, bold=True)
+    text(d, 610, 354, 'manueller Browser-Walkthrough', 15, INK)
+
+    cards = [
+        (0, 'KLARER EINZELTEST · SUPERPOWERS', TEAL,
+         ['zwei Inhalte mit gleicher ID', 'Compare(...) ausführen',
+          'InvalidCourseSnapshotException erwartet'],
+         'Eine Regel, Ursache sofort sichtbar.'),
+        (475, 'BREITER VALIDIERUNGSTEST · MATT', MATT,
+         ['fehlend / relativ / zu lang  →  400', 'unbekannter Anbieter  →  422',
+          'vier Regeln in einer Testmethode'],
+         'Gute Abdeckung, Fehlerursache weniger isoliert.'),
+    ]
+    for x, title, color, lines, verdict in cards:
+        d.add(Rect(x, 28, 445, 278, rx=12, ry=12, fillColor=colors.white,
+                   strokeColor=LINE, strokeWidth=1.5))
+        d.add(Rect(x, 288, 445, 18, fillColor=color, strokeColor=None))
+        text(d, x+18, 252, title, 17, color, bold=True)
+        for i, line in enumerate(lines):
+            d.add(Rect(x+18, 202-i*39, 408, 29, rx=5, ry=5,
+                       fillColor=PALE, strokeColor=None))
+            text(d, x+30, 209-i*39, line, 16, INK)
+        text(d, x+18, 58, verdict, 16, color, bold=True)
+    return d
+
+
+def sonar_comparison():
+    """SonarQube baseline comparison with scope-aware deltas."""
+    d = Drawing(940, 430)
+    text(d, 0, 412, 'SONARQUBE: GEMEINSAME BASELINE, GETRENNTE ENDSTÄNDE', 18, MUTED, bold=True)
+    columns = [(0, 250, 'Baseline  e7d8b5e', INK),
+               (280, 310, 'Matt  ab8249c', MATT),
+               (620, 310, 'Superpowers  a8801ff', TEAL)]
+    values = [
+        ['10.686 LOC', '16.924 LOC  (+6.238)', '13.628 LOC  (+2.942)'],
+        ['33 Code Smells', '83  (+50)', '55  (+22)'],
+        ['Komplexität 220', '578  (+358)', '387  (+167)'],
+        ['Duplikation 6,1 %', '5,0 %  (-1,1 PP)', '5,7 %  (-0,4 PP)'],
+    ]
+    for x, w, title, color in columns:
+        d.add(Rect(x, 105, w, 254, rx=12, ry=12, fillColor=colors.white,
+                   strokeColor=LINE, strokeWidth=1.5))
+        d.add(Rect(x, 341, w, 18, fillColor=color, strokeColor=None))
+        text(d, x+16, 305, title, 18, color, bold=True)
+    for row, triple in enumerate(values):
+        y = 259-row*46
+        for col, value in enumerate(triple):
+            x = columns[col][0]
+            w = columns[col][1]
+            if row % 2 == 0:
+                d.add(Rect(x+10, y-12, w-20, 32, rx=5, ry=5, fillColor=PALE, strokeColor=None))
+            text(d, x+18, y-2, value, 17, INK)
+    d.add(Rect(0, 28, 930, 54, rx=9, ry=9, fillColor=TEAL_PALE, strokeColor=None))
+    text(d, 18, 50, 'Alle drei Stände: 0 Bugs · 0 Schwachstellen · 16 Security Hotspots',
+         18, TEAL, bold=True)
+    text(d, 18, 4, 'LOC und Funktionsumfang unterscheiden sich; absolute Werte sind kein Qualitätssieger.',
+         16, MUTED)
+    return d
+
+
+def combined_workflow():
+    """Risk-adjusted workflow proposed from the observed strengths."""
+    d = Drawing(940, 500)
+    text(d, 0, 482, 'VORSCHLAG: EIN RISIKOADAPTIVER WORKFLOW', 18, MUTED, bold=True)
+    nodes = [
+        (0, 330, 190, 110, '1  GRUNDFLUSS', ['Brainstorming', 'Design + Plan'], TEAL),
+        (220, 330, 260, 110, '2  RISIKOCHECK', ['Identität · Rechte', 'Datenverlust · Parallelität'], INK),
+        (550, 330, 370, 110, '3  MATT-VERTIEFUNG',
+         ['Grilling · ADR · Akzeptanzmatrix', 'nur bei hohem Risiko'], MATT),
+        (235, 130, 300, 110, '4  UMSETZUNG', ['TDD in kleinen Schritten', 'sichtbares Ergebnis'], TEAL),
+        (650, 130, 270, 110, '5  ABNAHME', ['Spezifikationsreview', 'End-to-End-Test'], TEAL),
+    ]
+    for x, y, w, h, title, lines, color in nodes:
+        box(d, x, y, w, h, title, lines, color)
+    arrow(d, [(190,385),(220,385)], TEAL)
+    # Low risk: go directly from the risk check to implementation.
+    arrow(d, [(350,330),(350,240)], TEAL)
+    text(d, 365, 278, 'niedrig', 15, TEAL, bold=True)
+    # High risk: deepen the decision first, then converge above implementation.
+    arrow(d, [(480,385),(550,385)], MATT)
+    text(d, 515, 400, 'hoch', 15, MATT, bold=True, anchor='middle')
+    arrow(d, [(735,330),(735,275),(455,275),(455,240)], MATT)
+    arrow(d, [(535,185),(650,185)], TEAL)
+    d.add(Rect(0, 0, 940, 36, rx=7, ry=7, fillColor=PALE, strokeColor=None))
+    text(d, 470, 11, 'Hypothese für einen Folgeversuch - noch kein bewiesener Siegerprozess',
+         16, MUTED, bold=True, anchor='middle')
     return d
 
 
@@ -318,9 +487,12 @@ def rating_comparison():
 def save_figures():
     folder = BASE / 'figures'
     folder.mkdir(exist_ok=True)
-    figures = {'01-gemeinsamer-scan': architecture(), '02-versuchsaufbau': experiment(),
-               '02-workflowvergleich': workflow(),
-               '03-bewertungsvergleich': rating_comparison()}
+    figures = {'00-skill-landkarte': workflow(), '01-gemeinsamer-scan': architecture(),
+               '02-versuchsaufbau': experiment(), '03-matt-nachweiskette': artifact_chain(),
+               '04-superpowers-nachweiskette': superpowers_artifact_chain(),
+               '04-testnachweis': test_evidence(), '05-sonarqube-vergleich': sonar_comparison(),
+               '06-bewertungsvergleich': rating_comparison(),
+               '07-kombinierter-workflow': combined_workflow()}
     for stem, drawing in figures.items():
         renderSVG.drawToFile(drawing, str(folder / f'{stem}.svg'))
         pdf = pdfium.PdfDocument(renderPDF.drawToString(drawing))
@@ -331,6 +503,12 @@ def save_figures():
 
 def inline(value):
     value = html.escape(value)
+    value = value.replace(
+        '`CourseScanOrchestrator.ScanAsync`',
+        '<font color="#6257A5"><b>CourseScanOrchestrator.ScanAsync</b></font>')
+    value = value.replace(
+        '`PersistSuccessfulScanAsync`',
+        '<font color="#087F82"><b>PersistSuccessfulScanAsync</b></font>')
     value = re.sub(r'`([^`]+)`', r'<font color="#355168">\1</font>', value)
     value = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', value)
     value = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', value)
@@ -394,7 +572,7 @@ def build_pdf(figures):
             heading = line[3:]
             story.append(Paragraph(inline(heading), styles['h2']))
         elif line.startswith('### '):
-            in_code_review = line.startswith('### 3.2 Codeprüfung')
+            in_code_review = line.startswith('### 3.4 Statische Codeprüfung')
             in_git_facts = line.startswith('### Git-Fakten')
             story.append(Paragraph(inline(line[4:]), styles['review_h3' if in_code_review else 'h3']))
         elif line.startswith('!['):
@@ -532,14 +710,22 @@ def verify_sources_and_paper(manifest):
     numbered_content = content.split('## Nachweise')[0]
     blocks = re.split(r'^## (\d\. .+)$', numbered_content, flags=re.M)
     counts = {blocks[i]: len(blocks[i+1].split()) for i in range(1, len(blocks), 2)}
-    assert max(counts, key=counts.get).startswith('4.'), counts
+    assert counts['3. Was die beiden Arbeitsweisen leisten'] > 500, counts
+    assert counts['4. Fazit: Den Prozess am Risiko ausrichten'] > 200, counts
     assert content.index('## 4. Fazit') < content.index('## 5. Was ich persönlich')
-    assert len(re.findall(r'^!\[', content, re.M)) == 4
+    assert len(re.findall(r'^!\[', content, re.M)) == 9
     assert '## 3. Was die beiden Arbeitsweisen leisten' in content
-    assert '### 3.1 Beobachtete Arbeitsweisen' in content
-    assert '### 3.2 Codeprüfung: Stärken und verbleibende Lücken' in content
-    assert '### 3.3 Persönliche Bewertung mit konkreten Gründen' in content
-    assert '(figures/02-workflowvergleich.png)' in content
+    assert '### 3.1 Matt-Artefakte: Entscheidungen werden prüfbar' in content
+    assert '### 3.2 Superpowers-Artefakte: Umsetzung wird schrittweise prüfbar' in content
+    assert '### 3.3 Tests: Anzahl ist nicht gleich Qualität' in content
+    assert '### 3.4 Statische Codeprüfung mit SonarQube' in content
+    assert '### 3.5 Persönliche Bewertung mit konkreten Gründen' in content
+    assert '(figures/00-skill-landkarte.png)' in content
+    assert '(figures/03-matt-nachweiskette.png)' in content
+    assert '(figures/04-superpowers-nachweiskette.png)' in content
+    assert '(figures/04-testnachweis.png)' in content
+    assert '(figures/05-sonarqube-vergleich.png)' in content
+    assert '(figures/07-kombinierter-workflow.png)' in content
     appendix = (BASE / 'PAPER-ANHANG.md').read_text()
     assert set(re.findall(r'\| (FR-\d+)', content)) == {f'FR-{i:02}' for i in range(1,8)}
     assert set(re.findall(r'\| (NFR-\d+)', content)) == {f'NFR-{i:02}' for i in range(1,8)}
@@ -551,7 +737,7 @@ def verify_sources_and_paper(manifest):
     return {'original_ratings': values, 'confirmed_ratings': current,
             'confirmed_means': [round(sum(v)/7,2) for v in current],
             'section_word_counts': counts, 'fr_count': 7, 'nfr_count': 7,
-            'figure_count': 4, 'plot_ratings': current,
+            'figure_count': 9, 'plot_ratings': current,
             'local_paper_links_valid': True, 'source_hashes_valid': True}
 
 
@@ -572,22 +758,25 @@ def render_qa(report):
     assert all(len(t) > 250 for t in text_pages), 'Possibly empty/orphan page'
     joined = '\n'.join(text_pages)
     expected_ids = [f'{prefix}-{i:02}' for prefix in ['FR', 'NFR'] for i in range(1,8)]
-    for key in expected_ids + ['Abbildung 3.', 'Abbildung 4.', 'Offene Fragen klären',
-                               'Gesamtweg abnehmen', '4.5 Ausblick', '5. Was ich persönlich', 'Nachweise']:
+    for key in expected_ids + ['Abbildung 1.', 'Abbildung 9.', 'SKILL-LANDKARTE',
+                               'SONARQUBE', '4.5 Ausblick', '5. Was ich persönlich', 'Nachweise']:
         assert key in joined, key
-    setup_page = text_pages[2]
+    setup_page = text_pages[3]
     for key in ['Gemeinsamer Start: e7d8b5e', 'Skill f6de92c', 'Skill a419016',
                 'Nachweisstand: ab8249c', 'Nachweisstand: a8801ff']:
         assert key in setup_page, key
-    review_page = text_pages[3]
+    review_page = text_pages[4]
     assert '3. Was die beiden Arbeitsweisen leisten' in review_page
-    assert 'Abbildung 3.' in review_page
-    assert '3.2 Codeprüfung' in review_page
+    assert 'Abbildung 4.' in review_page
+    assert 'Issue #77' in review_page
     assert 'Git-Messwert' in setup_page
-    evaluation_page = text_pages[4]
-    assert evaluation_page.index('3.3 Persönliche Bewertung mit konkreten Gründen') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
+    assert '3.2 Superpowers-Artefakte' in text_pages[5]
+    assert '3.3 Tests: Anzahl ist nicht gleich Qualität' in text_pages[6]
+    assert '3.4 Statische Codeprüfung mit SonarQube' in text_pages[7]
+    evaluation_page = text_pages[8]
+    assert evaluation_page.index('3.5 Persönliche Bewertung mit konkreten Gründen') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
     assert evaluation_page.index('Anpassbarkeit') < evaluation_page.index('PERSÖNLICHES BEWERTUNGSPROFIL')
-    assert 'Abbildung 4.' in evaluation_page
+    assert 'Abbildung 8.' in evaluation_page
     pdf = pdfium.PdfDocument(str(OUT / PDF_NAME))
     thumbs = []
     for n in range(len(pdf)):
@@ -617,11 +806,11 @@ def package_links(content, document, manifest, overrides=None):
         (BASE / 'PAPER-README.md').resolve(): 'Nachweise.md',
         PAPER.resolve(): PDF_NAME,
     }
-    originals = {
-        (ROOT / e['export']).resolve():
-        f"https://github.com/Saburollah/study-organizer/blob/{e['commit']}/{e['original']}"
-        for e in manifest['sources']
-    }
+    originals = {}
+    for e in manifest['sources']:
+        url = f"https://github.com/Saburollah/study-organizer/blob/{e['commit']}/{e['original']}"
+        originals[(ROOT / e['export']).resolve()] = url
+        originals[(ROOT / e['original']).resolve()] = url
     def replace(match):
         label, target = match.groups()
         if '://' in target or target.startswith('#'):
@@ -650,13 +839,16 @@ def package_pdf():
         'Docs/skill-evaluation/PAPER-ANHANG.md': 'Anhang.md',
     }
     changed = 0
+    changed_targets = set()
     for page in writer.pages:
         for annotation in page.get('/Annots', []):
             action = annotation.get_object().get('/A')
             if action and action.get('/URI') in links:
-                action[NameObject('/URI')] = TextStringObject(links[str(action['/URI'])])
+                source = str(action['/URI'])
+                changed_targets.add(source)
+                action[NameObject('/URI')] = TextStringObject(links[source])
                 changed += 1
-    assert changed == 2, f'Unexpected number of PDF links: {changed}'
+    assert changed >= 2 and changed_targets == set(links), (changed, changed_targets)
     stream = io.BytesIO()
     writer.write(stream)
     result = stream.getvalue()

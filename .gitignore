@@ -24,3 +24,10 @@ frontend/test-results/
 
 # Git worktrees
 .worktrees/
+
+# Local package and document build artifacts
+.pnpm-store/
+__pycache__/
+*.py[cod]
+tmp/
+output/pdf/*/

@@ -8,7 +8,7 @@ erneuter Klärung der Kriterien durch den Benutzer überarbeitet.
 Das kompakte Paket enthält das Paper, den Anhang, das vollständige
 Versuchsprotokoll und diese Nachweise. Quellcode, Erzeugungsskripte, doppelte
 Diagrammdateien und vollständige Arbeitslogs sind bewusst nicht enthalten.
-Die vier Abbildungen sind bereits im Paper eingebettet.
+Die neun Abbildungen sind bereits im Paper eingebettet.
 
 ## Technische Abschlussnachweise
 
@@ -21,13 +21,80 @@ Die vier Abbildungen sind bereits im Paper eingebettet.
 
 Grundlage: Q2, Q4 und Q6; der Golden-Path und die Vergleichsgrenzen sind auch in
 Q7 zusammengeführt. Unterschiedliche Funktionsumfänge und Testbestände erlauben
-keine Rangliste anhand der Testanzahl. Für die Paper-Überarbeitung wurden keine
-neuen Produkttests ausgeführt.
+keine Rangliste anhand der Testanzahl. Für die Überarbeitung wurden die beiden
+Backend- und Frontend-Testbestände an den festgeschriebenen Endständen erneut
+ausgeführt: Matt 225/225 Backend- und 94/94 Frontendtests, Superpowers 195/195
+Backend- und 97/97 Frontendtests. Alle vier Läufe waren erfolgreich.
 
-Das historische Matt-Protokoll bestätigte den erfolgreichen Vitest-Lauf, erfasste
-aber keine Anzahl. Die 94 Tests in 20 Dateien wurden nachträglich mit
-`vitest list` am gegenüber dem Matt-Abschlusscommit unveränderten Frontendstand
-gezählt und als rekonstruierter Abschlussstand ausgewiesen.
+Beide Frontendstände umfassten 20 Vitest-Dateien. Laufzeiten werden nicht
+verglichen, weil Testumfang, Infrastruktur und Ausführungsbedingungen nicht
+identisch sind.
+
+## Persönlich gelesene Testbeispiele
+
+Die quantitative Übersicht wurde durch eine inhaltliche Stichprobe ergänzt.
+Der Autor öffnete die Tests, ließ sich ihre Fachregel erläutern und bestätigte
+anschließend die folgende Bewertung.
+
+| Beispiel | Beobachtung | Bewertung |
+| --- | --- | --- |
+| Superpowers: `CourseSnapshotDifferTests.Compare_DuplicateIncomingIds_ThrowsInvalidSnapshot` in `backend/tests/Application.Tests/ExternalCourses/CourseSnapshotDifferTests.cs`, Zeilen 71-79 | Zwei eingehende Inhalte verwenden dieselbe externe ID; `Compare` muss `InvalidCourseSnapshotException` auslösen. | Enger Arrange-Act-Assert-Fall. Eine Fachregel und ihre Ursache sind unmittelbar erkennbar. |
+| Matt: `CourseImportApiTests.Register_ValidatesCourseUrl` in `backend/tests/Api.Tests/ExternalCourses/CourseImportApiTests.cs`, Zeilen 31-70 | Fehlende, relative und überlange URLs erwarten 400; ein nicht unterstützter Anbieter erwartet 422. | Gute fachliche Abdeckung, aber mehrere unterschiedliche Regeln in einer Methode. Getrennte oder parametrisierte Fälle wären leichter zu diagnostizieren. |
+
+Bei den ebenfalls gelesenen Idempotenz- und Parallelitätstests zeigte sich ein
+Trade-off: Matt liefert mit PostgreSQL und acht parallelen Scans den stärkeren
+Belastungsnachweis; Superpowers beschreibt einzelne erwartete Reaktionen
+kompakter. Diese qualitative Stichprobe ist keine Vollprüfung aller 611 Tests.
+
+## SonarQube-Baselineanalyse
+
+Die statische Analyse lief lokal mit `sonarqube:25.6.0.109173-community` und
+`dotnet-sonarscanner` 11.3.0. Drei getrennte Worktrees wurden mit derselben
+Konfiguration analysiert: gemeinsamer Start `e7d8b5e`, Matt `ab8249c` und
+Superpowers `a8801ff`. Ausgeschlossen waren Buildausgaben, Abhängigkeiten,
+Dokumentation, Skill-Dateien und GitHub-Metadaten. Coverage wurde nicht
+importiert und deshalb nicht bewertet.
+
+| Metrik | Baseline | Matt | Superpowers |
+| --- | --- | --- | --- |
+| Nicht kommentierte Codezeilen (NCLOC) | 10.686 | 16.924 (+6.238) | 13.628 (+2.942) |
+| Code Smells | 33 | 83 (+50) | 55 (+22) |
+| Kognitive Komplexität | 220 | 578 (+358) | 387 (+167) |
+| Duplizierte Zeilen | 6,1 % | 5,0 % (-1,1 Prozentpunkte) | 5,7 % (-0,4 Prozentpunkte) |
+| Bugs / Schwachstellen | 0 / 0 | 0 / 0 | 0 / 0 |
+| Security Hotspots | 16 | 16 | 16 |
+
+Die absoluten Werte sind wegen des unterschiedlichen Funktionsumfangs kein
+Qualitätssieger. Gegen die Baseline kamen bei Matt 50, bei Superpowers 22
+Code Smells hinzu; alle waren klassische Wartbarkeitsbefunde. Wichtigste
+Einzelfunde waren `CourseScanOrchestrator.ScanAsync` bei Matt mit kognitiver
+Komplexität 64 statt erlaubter 15 und `PersistSuccessfulScanAsync` bei
+Superpowers mit 36 statt 15. Der Autor öffnete beide Fundstellen in SonarQube
+und bestätigte die Einordnung: Matt bündelt mehr Lebenszyklus- und
+Parallelitätsfälle, Superpowers trennt den Ablauf stärker, lässt aber ebenfalls
+eine zu breite Persistenzmethode zurück.
+
+Die 16 Security Hotspots sind Prüfpunkte, nicht automatisch Schwachstellen.
+Sie waren bereits in der Baseline vorhanden. Das angezeigte Quality Gate
+„Passed“ und 0 % Coverage werden nicht als Qualitätsnachweis verwendet: Es war
+jeweils die erste Analyse des Sonar-Projekts, und Coverage-Reports fehlten.
+
+## Persönlich geprüfte Matt-Artefakte
+
+Für die Dokumentation wurden nicht nur Artefaktnamen übernommen. Der Autor
+öffnete und bewertete drei konkrete Stufen der Nachweiskette:
+
+- **Issue #77:** 31 Zeilen Akzeptanz- und Testmatrix. Positiv sind beobachtbare
+  Kriterien und ein primärer Nachweis je Regel; für einen Mock-Versuch ist die
+  Matrix zugleich umfangreich.
+- **Issue #84:** Ziel, Quellen und Umfang sind getrennt. Das Ticket verweist auf
+  Wayfinder #67, Scanentscheidung #71, Datenmodell #75, Matrix #77 sowie ADR
+  0003 und 0006. Das verbessert Rückverfolgbarkeit, erhöht aber den
+  Vorbereitungsaufwand.
+- **ADR 0003:** Abruf und Validierung erfolgen vor der kurzen atomaren
+  Datenbanktransaktion; pro Kurs darf nur ein Scan aktiv sein; Fehler erhalten
+  den letzten erfolgreichen Snapshot. Der ADR ist fachlich gehaltvoll, trennt
+  Alternativen und Konsequenzen jedoch nicht in eigenen Abschnitten.
 
 ## Git-Fakten und Zählregeln
 
@@ -71,7 +138,7 @@ nicht für beide Versuche zuverlässig dokumentiert; daraus wird kein
 Leistungsvergleich abgeleitet. Die weiter unten genannten Modelle betreffen
 ausschließlich die ergänzende Codeprüfung.
 
-## Ergänzende statische Codeprüfung
+## Ergänzende manuelle Codeprüfung
 
 Die ergänzende Prüfung verglich die Produktstände `ab8249c` (Matt) und
 `a8801ff` (Superpowers) mit dem gemeinsamen Start `e7d8b5e`. Standards und
@@ -140,10 +207,15 @@ Zusammenfassung historischer Anforderungen, kein neuer Abnahmelauf.
 
 | Abbildung | Grundlage | Aussage und Grenze |
 | --- | --- | --- |
-| 1 - Gemeinsamer Scan | Domänenmodell und Design: Q2, Q3, Q5. | Ein Abruf kann berechtigte Abonnenten getrennt versorgen; die drei Personen sind ein Beispiel. |
-| 2 - Versuchsaufbau | Gemeinsamer Start, Versionen und getrennte Ausführung: Q1; abweichende Umfänge: Q2, Q4, Q5. | Gleiche Codebasis, aber keine identischen Versuchsbedingungen und kein Produktmerge. |
-| 3 - Arbeitsweisen | Beobachtete Klärungs-, Planungs- und Reviewabläufe: Q2, Q4, Q6. | Zeigt Schwerpunkte der Versuche; beide Suiten nutzen Planung, Tests und Reviews. |
-| 4 - Bewertungsprofil | Die 14 bestätigten Punkte der vorstehenden Tabelle. | Vergleich der persönlichen Einschätzung, keine objektive Qualitäts- oder Leistungsmessung. |
+| 1 - Skill-Landkarte | Beobachtete Klärungs-, Planungs- und Reviewabläufe: Q2, Q4, Q6. | Früher Überblick über Schwerpunkte und Beziehungen der Skills. |
+| 2 - Gemeinsamer Scan | Domänenmodell und Design: Q2, Q3, Q5. | Ein Abruf kann berechtigte Abonnenten getrennt versorgen; die drei Personen sind ein Beispiel. |
+| 3 - Versuchsaufbau | Gemeinsamer Start, Versionen und getrennte Ausführung: Q1; abweichende Umfänge: Q2, Q4, Q5. | Gleiche Codebasis, aber keine identischen Versuchsbedingungen und kein Produktmerge. |
+| 4 - Matt-Nachweiskette | Persönlich geprüfte Issues #77 und #84 sowie ADR 0003. | Zeigt die tiefe Rückverfolgbarkeit von Regel, Entscheidung und Prüfbeleg. |
+| 5 - Superpowers-Nachweiskette | Bestätigtes Design, Plan, TDD-Schritte sowie Abschlussreview aus Q4 bis Q6. | Zeigt den linearen Weg von bestätigter Regel zur sichtbaren Abnahme. |
+| 6 - Testnachweis | Wiederholte Testläufe und persönlich gelesene Beispiele. | Mengen sind wegen unterschiedlichen Umfangs kein Qualitätssieger. |
+| 7 - SonarQube | Lokale Baselineanalyse mit identischer Konfiguration. | Deltas und konkrete Wartbarkeitsbefunde; keine Coverage-Aussage. |
+| 8 - Bewertungsprofil | Die 14 bestätigten Punkte der vorstehenden Tabelle. | Persönliche Einschätzung, keine objektive Qualitätsmessung. |
+| 9 - Kombinierter Workflow | Aus beobachteten Stärken und Grenzen abgeleitete Hypothese. | Vorschlag für einen Folgeversuch, noch kein bewiesener Prozess. |
 
 Der Plot und die Bewertungstabellen verwenden dieselben bestätigten Werte:
 Matt ist bei Lerngewinn, Aufwand und Vertrauen höher bewertet, Superpowers bei

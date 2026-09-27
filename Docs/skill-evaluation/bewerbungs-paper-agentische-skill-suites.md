@@ -4,25 +4,33 @@
 
 **Saburollah Safari | Projektstudie: Study Organizer**
 
-Wie lässt sich KI so in die Softwareentwicklung einbinden, dass nicht nur Code entsteht, sondern ein nachvollziehbares Ergebnis? Am Beispiel einer Moodle-nahen Kursintegration habe ich zwei Entwicklungsworkflows erprobt. Im Mittelpunkt standen Architekturentscheidungen, überprüfbare Anforderungen und die Frage, wie viel Prozess ein Feature tatsächlich braucht.
+Wie lässt sich KI so in die Softwareentwicklung einbinden, dass nicht nur Code entsteht, sondern ein nachvollziehbares Ergebnis? Am Beispiel einer Moodle-nahen Kursintegration habe ich zwei Skill-Suites erprobt. Im Mittelpunkt standen Architekturentscheidungen, überprüfbare Anforderungen und die Frage, wie viel Prozess ein Feature tatsächlich braucht.
+
+![Abbildung 1: Skill-Landkarte der beiden untersuchten Arbeitsweisen.](figures/00-skill-landkarte.png)
+
+*Abbildung 1. Matt vertieft offene Entscheidungen und ihre Nachweise; Superpowers strukturiert den Weg von der Idee zum ausführbaren Inkrement. Die Darstellung zeigt beobachtete Schwerpunkte, keine exklusiven Fähigkeiten.*
+
+**Kurzfazit:** Für ein klar begrenztes Inkrement würde ich mit Superpowers beginnen. Bei schwer rückgängig zu machenden Risiken ergänze ich gezielt Matts Grilling, ADRs und Akzeptanzmatrix. Beide Wege benötigen neben grünen Tests eine Prüfung von Spezifikation, Code und sichtbarem Ablauf.
+
+<!-- pagebreak -->
 
 ## 1. Ein Kurs, viele Nutzer - eine robuste Lösung
 
 Studierende sollen einen Kurs verbinden und neue Lernaufgaben in ihrem persönlichen Planer sehen. Dahinter stehen drei Herausforderungen: Inhalte ändern sich, wiederholte Scans dürfen keine Duplikate erzeugen, und gemeinsam genutzte Kursdaten müssen von persönlichen Aufgaben getrennt bleiben.
 
-![Abbildung 1: Ein gemeinsamer Abruf verarbeitet Kursänderungen und versorgt drei persönliche Aufgabenbereiche.](figures/01-gemeinsamer-scan.png)
+![Abbildung 2: Ein gemeinsamer Abruf verarbeitet Kursänderungen und versorgt drei persönliche Aufgabenbereiche.](figures/01-gemeinsamer-scan.png)
 
-*Abbildung 1. Architekturprinzip des Mock-Features: einmal abrufen, Änderungen prüfen, berechtigte Nutzer getrennt versorgen. Beispiel mit einem aufgabenfähigen Inhalt und drei Abonnenten.*
+*Abbildung 2. Architekturprinzip des Mock-Features: einmal abrufen, Änderungen prüfen, berechtigte Nutzer getrennt versorgen. Beispiel mit einem aufgabenfähigen Inhalt und drei Abonnenten.*
 
 Die entscheidende Trennung liegt zwischen **externer Quelle, gemeinsamer Verarbeitung und persönlicher Nutzung**. Ein Adapter vereinheitlicht PDF-, Link- und Aktivitätsinhalte. Stabile Inhalts-IDs ermöglichen den Vergleich mit dem letzten erfolgreichen Stand. Erst ein validierter Scan wird übernommen; bei einem Fehler bleiben vorhandene Daten erhalten.
 
-**Mein Beitrag:** Ich traf und bewertete Produktentscheidungen, prüfte den sichtbaren Benutzerablauf und verglich die Ergebnisse. KI-Agenten unterstützten Architekturarbeit, Implementierung, Tests und Dokumentation. Die Integration wurde bewusst mit einer kontrollierten Mock-Quelle entwickelt; eine reale Moodle-Anbindung war nicht Teil des Versuchs.
+**Mein Beitrag:** Ich traf und bewertete Produktentscheidungen, las Spezifikationen und Tests, prüfte den sichtbaren Benutzerablauf und verglich die Ergebnisse. KI-Agenten unterstützten Architekturarbeit, Implementierung, Tests und Dokumentation. Die Integration wurde bewusst mit einer kontrollierten Mock-Quelle entwickelt; eine reale Moodle-Anbindung war nicht Teil des Versuchs.
 
 <!-- pagebreak -->
 
 ## 2. Anforderungen und Versuchsaufbau
 
-Die vollständigen sieben FR und sieben NFR beschreiben den gemeinsamen Vergleichskern. Der Anhang ergänzt Variantenregeln und Prüfbelege; die Matrix fasst die historischen Anforderungen nachträglich zusammen.
+Die sieben FR und sieben NFR beschreiben den gemeinsamen Vergleichskern. Der Anhang ergänzt Variantenregeln und Prüfbelege; die Matrix rekonstruiert die historischen Anforderungen und ist kein nachträglich ausgeführter Abnahmetest.
 
 **Funktionale Anforderungen - was die Anwendung leisten soll**
 
@@ -52,11 +60,11 @@ Die vollständigen sieben FR und sieben NFR beschreiben den gemeinsamen Vergleic
 
 ### Vergleichbare Ausgangsbasis, unterschiedliche Schwerpunkte
 
-![Abbildung 2: Gemeinsame Ausgangsbasis mit getrennten Versuchen und unterschiedlichen Funktionsumfängen.](figures/02-versuchsaufbau.png)
+![Abbildung 3: Gemeinsame Ausgangsbasis mit getrennten Versuchen und unterschiedlichen Funktionsumfängen.](figures/02-versuchsaufbau.png)
 
-*Abbildung 2. Gleicher Start, getrennte Umsetzung. Reihenfolge und Umfang begrenzen die Vergleichbarkeit.*
+*Abbildung 3. Gleicher Start, getrennte Umsetzung. Reihenfolge, Vorwissen und Umfang begrenzen die direkte Vergleichbarkeit.*
 
-Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Verglichen werden Arbeitsweisen; echte Moodle-Zugänge, Polling und LLM-Erkennung waren ausgeschlossen.
+Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Echte Moodle-Zugänge, Polling und LLM-Erkennung waren ausgeschlossen.
 
 ### Git-Fakten zu den festgeschriebenen Vergleichsständen
 
@@ -67,96 +75,124 @@ Festgeschriebene Submodule erlaubten kontrollierte Skill-Updates. Verglichen wer
 | Handgeschriebener Produktcode, hinzugefügt / entfernt | +6.555 / -121 Zeilen | +3.240 / -70 Zeilen |
 | Branching-Strategie | Mehrere Feature-Branches und PRs | Ein isolierter Experiment-Branch |
 
-Die Werte beschreiben den Umfang, nicht die Qualität. Matt bearbeitete einen breiteren Funktionsumfang. Die Produktcode-Zeile schließt Tests, Dokumentation und generierte EF-Migrationen aus. Messbasis: gemeinsamer Start `e7d8b5e`, Matt `ab8249c`, Superpowers `a8801ff`; Zählregeln stehen in den Nachweisen.
+Die Werte beschreiben den Umfang, nicht die Qualität. Matt bearbeitete einen breiteren Lebenszyklus. Messbasis: gemeinsamer Start `e7d8b5e`, Matt `ab8249c`, Superpowers `a8801ff`; Zählregeln stehen in den Nachweisen.
 
 <!-- pagebreak -->
 
 ## 3. Was die beiden Arbeitsweisen leisten
 
-### 3.1 Beobachtete Arbeitsweisen
+### 3.1 Matt-Artefakte: Entscheidungen werden prüfbar
 
-![Abbildung 3: Zwei Wege von der Klärung zur Abnahme - Matt vertieft Entscheidungen, Superpowers strukturiert die Umsetzung.](figures/02-workflowvergleich.png)
+![Abbildung 4: Nachweiskette aus Matt-Spezifikation, Ticket, ADR sowie Test und Review.](figures/03-matt-nachweiskette.png)
 
-*Abbildung 3. Beobachtete Schwerpunkte: Matt macht offene Entscheidungen sichtbar; Superpowers organisiert die Umsetzung. Beide nutzen Tests und Reviews.*
+*Abbildung 4. Drei persönlich geprüfte Ausschnitte zeigen, was Leser von der Suite erwarten können: Issue #77 strukturiert Regeln und Nachweise, Issue #84 verbindet Ziel und Quellen, ADR 0003 hält die Transaktions- und Parallelitätsentscheidung fest.*
 
-### 3.2 Codeprüfung: Stärken und verbleibende Lücken
+Die Akzeptanzmatrix in **Issue #77** macht fachliche Regeln und den erforderlichen Nachweis transparent. Drei Beispiele sind Registrierung mit API-Prüfung, unterstützte Inhaltstypen mit Domänen- und PostgreSQL-Nachweis sowie Idempotenz mit Domänen- und PostgreSQL-Test. Das unterstützt TDD, ist mit 31 Matrixzeilen für einen Mock-Versuch aber umfangreich.
 
-Beide Umsetzungen trennen gemeinsame Kursdaten von persönlichen Aufgaben und sichern zentrale Regeln durch Tests ab. Eine ergänzende statische Codeprüfung fand dennoch drei konkrete UI-Lücken:
-
-| Variante | Bestätigte Lücke | Verbesserung |
-| --- | --- | --- |
-| Matt | Die Aufgabenkarte zeigt die externe Herkunft nicht an, obwohl die API sie liefert. | Quellenkennzeichnung und Link anzeigen. |
-| Superpowers | Der Scanstatus der Kurskarte kann nach einem Scan veraltet bleiben. | Status nach Erfolg oder Fehler aktualisieren. |
-| Superpowers | Prüfgründe aus dem Backend passen nicht zu den Übersetzungsschlüsseln. | Bezeichner vereinheitlichen und Darstellung testen. |
-
-Ein zweites KI-Modell prüfte die Befunde erneut an den festgeschriebenen Codeständen. Bei Matt betrifft die Lücke den nachträglich rekonstruierten gemeinsamen FR-07, nicht eine ausdrückliche Forderung aus Issue #77. Die beiden Superpowers-Lücken betreffen die eigene bestätigte UI-Spezifikation. Die Prüfung ist kein neuer Testlauf und kein vollständiger Qualitätsnachweis; Fundstellen und Grenzen stehen in den Nachweisen.
-
-**Technische Nachweise:** Matt: 225 Backendtests, 94 Frontendtests in 20 Vitest-Dateien (Anzahl nachträglich am unveränderten Abschlussstand ermittelt) und ein Playwright-End-to-End-Test; Type-Check, Lint und Build waren erfolgreich. Superpowers: 195 Backend- und 97 Frontendtests plus Type-Check, Lint, Build und Sichtabnahme. Unterschiedliche Testbestände begründen keinen Qualitätssieger.
+**Issue #84** trennt Ziel, Quellen und Umfang. Das Ticket verweist auf Wayfinder-, Scan-, Datenmodell- und Akzeptanzentscheidungen sowie zwei ADRs. **ADR 0003** begründet den Abruf außerhalb der Datenbanktransaktion, kurze atomare Speicherung, einen aktiven Scan pro Kurs und reale PostgreSQL-Tests. Diese Kette verbessert Rückverfolgbarkeit, kostet jedoch Vorbereitung und Pflege.
 
 <!-- pagebreak -->
 
-### 3.3 Persönliche Bewertung mit konkreten Gründen
+### 3.2 Superpowers-Artefakte: Umsetzung wird schrittweise prüfbar
 
-Skala: **5 = sehr gut ohne relevante Einschränkung, 4 = sehr gut mit konkreter Einschränkung, 3 = gemischt, 2 = eher schlecht, 1 = sehr schlecht.** Farbig markiert ist der jeweils höhere Wert. Die Punkte beschreiben meine Erfahrung, keine objektive Codequalität.
+![Abbildung 5: Nachweiskette aus Superpowers-Design, Plan, TDD sowie Review und Sichttest.](figures/04-superpowers-nachweiskette.png)
+
+*Abbildung 5. Superpowers hält zuerst Design und Akzeptanzkriterien fest, zerlegt sie danach in kleine Implementierungsschritte und führt diese mit TDD bis zum Abschlussreview und Browser-Walkthrough aus.*
+
+Das bestätigte **Design** grenzt den Mock-Umfang ab und hält Vertrauensregeln sowie 15 Akzeptanzkriterien fest. Der **Implementierungsplan** ordnet die Arbeit in kleine Tasks und benennt pro Schritt betroffene Dateien und Tests. Dadurch bleibt vor der Umsetzung sichtbar, welches Verhalten als Nächstes entstehen soll.
+
+TDD-Commits und Aktivitätslog dokumentieren anschließend den schrittweisen Weg von fehlschlagenden Tests zur kleinsten grünen Änderung. Abschlussreview und Browser-Walkthrough prüfen den vollständigen Benutzerablauf. Diese Kette ist kompakter und linearer als Matts Issue- und ADR-Struktur, dokumentiert Architekturentscheidungen aber weniger tief.
+
+<!-- pagebreak -->
+
+### 3.3 Tests: Anzahl ist nicht gleich Qualität
+
+![Abbildung 6: Testmengen, End-to-End-Nachweise und zwei persönlich bewertete Testbeispiele.](figures/04-testnachweis.png)
+
+*Abbildung 6. Abschlussstände: Matt 225 Backend- und 94 Frontendtests; Superpowers 195 Backend- und 97 Frontendtests. Die Funktionsumfänge unterscheiden sich. Laufzeiten werden deshalb nicht als Leistungsvergleich verwendet.*
+
+Ich habe nicht nur grüne Summen übernommen, sondern ausgewählte Tests gelesen. Der Superpowers-Test `Compare_DuplicateIncomingIds_ThrowsInvalidSnapshot` besitzt einen engen Arrange-Act-Assert-Aufbau: zwei gleiche externe IDs führen genau zu einer erwarteten Fachausnahme. Ursache und Regel sind sofort erkennbar.
+
+Matts `Register_ValidatesCourseUrl` deckt fehlende, relative, überlange und nicht unterstützte URLs ab. Die fachliche Abdeckung ist gut, aber mehrere unterschiedliche Regeln stehen in einer Methode. Getrennte oder parametrisierte Fälle würden Fehlerursachen schneller sichtbar machen. Bei Parallelität liefert Matt dagegen den stärkeren PostgreSQL-Belastungsnachweis; Superpowers formuliert das erwartete Verhalten kompakter. **Mein Urteil:** Testanzahl zeigt Aktivität, Testqualität zeigt Verständlichkeit, fachliche Aussage und realistische Infrastruktur.
+
+<!-- pagebreak -->
+
+### 3.4 Statische Codeprüfung mit SonarQube
+
+![Abbildung 7: SonarQube-Vergleich von gemeinsamer Baseline und beiden Endständen.](figures/05-sonarqube-vergleich.png)
+
+*Abbildung 7. SonarQube Community 25.6 und .NET Scanner 11.3, identische Ausschlüsse und dieselbe Baseline. Deltas sind aussagekräftiger als absolute Werte, weil Matt mehr Produktumfang enthält.*
+
+SonarQube meldete in allen drei Ständen **0 Bugs und 0 Schwachstellen**. Die 16 Security Hotspots blieben unverändert; sie sind Prüfpunkte, keine nachgewiesenen Sicherheitsfehler. Eine Coverage-Angabe wurde nicht bewertet, weil keine Coverage-Reports importiert wurden. Auch das bestandene Standard-Quality-Gate ist kein Beweis für Fehlerfreiheit.
+
+Der wichtigste Wartbarkeitsbefund lag in der Scanverarbeitung. Bei Matt erreicht `CourseScanOrchestrator.ScanAsync` eine kognitive Komplexität von **64 statt 15** und bündelt Validierung, Parallelität, Abruf, Transaktion und persönliche Auswirkungen. Superpowers trennt den Ablauf stärker, doch `PersistSuccessfulScanAsync` erreicht noch **36 statt 15**. Beide Befunde sind berechtigt; Matt deckt zugleich einen breiteren Lebenszyklus ab.
+
+Eine ergänzende manuelle Codeprüfung bestätigte drei sichtbare Lücken:
+
+| Variante | Bestätigte Lücke | Verbesserung |
+| --- | --- | --- |
+| Matt | Aufgabenkarte zeigt vorhandene externe Herkunft nicht. | Quelle und Link anzeigen. |
+| Superpowers | Scanstatus kann nach dem Scan veraltet bleiben. | Kartenstatus aktualisieren. |
+| Superpowers | Backend-Prüfgründe passen nicht zu den Übersetzungsschlüsseln. | Verträge vereinheitlichen und testen. |
+
+<!-- pagebreak -->
+
+### 3.5 Persönliche Bewertung mit konkreten Gründen
+
+Skala: **5 = sehr gut ohne relevante Einschränkung, 4 = sehr gut mit konkreter Einschränkung, 3 = gemischt, 2 = eher schlecht, 1 = sehr schlecht.** Die Punkte beschreiben meine Erfahrung, keine objektive Codequalität.
 
 | Kriterium | Matt | Superpowers | Beobachtung hinter den Punkten |
 | --- | --- | --- | --- |
-| Verständlichkeit | **4** | **5** | Matt war nachlesbar, aber durch viele Fragen und Issues weniger kompakt; Superpowers führte klar und geschlossen durch den Ablauf. |
-| Kontrolle | **4** | **4** | Beide ließen zentrale Entscheidungen zu; bei Matt erschwerten verteilte Runden den Überblick, bei Superpowers musste ich die Branch-Trennung korrigieren. |
-| Lerngewinn | **5** | **4** | Matt vertiefte Architektur und Datenlebenszyklus; Superpowers erklärte die Anwendungsschichten gut, aber weniger tief. |
-| Angemessener Aufwand | **4** | **3** | Matts Rückfragen waren hilfreich, aber zahlreich; Superpowers war gut strukturiert, wurde jedoch durch Kontingentpausen unterbrochen. |
-| Vertrauen | **5** | **4** | Matt deckte durch Rückfragen Risiken auf; Superpowers bestand den Praxistest, erreichte wegen anfänglicher Start- und Konfigurationsprobleme aber keine 5. |
-| Wiederaufnahme | **4** | **4** | Dokumente und Logs halfen bei beiden; ihre Menge erforderte dennoch erneute Orientierung. |
-| Anpassbarkeit | **4** | **4** | Beide ließen sich anpassen; Matt blieb prozessintensiv, Superpowers erforderte einzelne manuelle Korrekturen. |
+| Verständlichkeit | **4** | **5** | Matt war nachlesbar, aber durch viele Fragen und Issues weniger kompakt; Superpowers führte geschlossen durch den Ablauf. |
+| Kontrolle | **4** | **4** | Beide ließen zentrale Entscheidungen zu; bei Matt waren sie stärker verteilt, bei Superpowers korrigierte ich die Branch-Trennung. |
+| Lerngewinn | **5** | **4** | Matt vertiefte Architektur und Lebenszyklus; Superpowers erklärte die Anwendungsschichten gut, aber weniger tief. |
+| Angemessener Aufwand | **4** | **3** | Matts Rückfragen waren hilfreich, aber zahlreich; Superpowers wurde durch Kontingentpausen unterbrochen. |
+| Vertrauen | **5** | **4** | Matt deckte Risiken früh auf; Superpowers bestand den Praxistest, hatte aber anfängliche Startprobleme. |
+| Wiederaufnahme | **4** | **4** | Dokumente und Logs halfen bei beiden; ihre Menge erforderte dennoch Orientierung. |
+| Anpassbarkeit | **4** | **4** | Beide ließen sich anpassen; Matt blieb prozessintensiv, Superpowers erforderte manuelle Korrekturen. |
 
-Obwohl Matts Ablauf umfangreicher war, empfand ich seinen Aufwand als angemessen, weil die Rückfragen unmittelbar riskante Fachregeln klärten. Bei Superpowers belasteten dagegen wiederholte Wartezeiten den erlebten Aufwand. Kontingentpausen und lokale Startprobleme beeinflussten meine Erfahrung; sie belegen keine grundsätzliche Schwäche der Suite.
+![Abbildung 8: Persönliche Bewertungen von Matt und Superpowers über sieben Kriterien.](figures/06-bewertungsvergleich.png)
 
-![Abbildung 4: Persönliche Bewertungen von Matt und Superpowers im Vergleich über alle sieben Kriterien.](figures/03-bewertungsvergleich.png)
-
-*Abbildung 4. Bestätigte persönliche Bewertungen, 1 bis 5; höher ist günstiger. Keine Messung objektiver Softwarequalität.*
+*Abbildung 8. Bestätigte persönliche Bewertungen von 1 bis 5; höher ist günstiger. Keine Messung objektiver Softwarequalität.*
 
 <!-- pagebreak -->
 
 ## 4. Fazit: Den Prozess am Risiko ausrichten
 
-**Mein Ergebnis ist keine Rangliste, sondern eine begründete Empfehlung aus meinem Versuch: Für ein klar begrenztes Produktinkrement würde ich mit Superpowers beginnen. Sobald Fehler an Datenidentität, Berechtigungen oder Lebenszyklus schwer rückgängig zu machen sind, würde ich gezielt Matts vertiefte Architekturklärung und Spezifikationsprüfung ergänzen.**
+**Mein Ergebnis ist keine Rangliste:** Für ein klar begrenztes Produktinkrement würde ich mit Superpowers beginnen. Sobald Fehler an Datenidentität, Berechtigungen, Parallelität oder Lebenszyklus schwer rückgängig zu machen sind, würde ich Matts vertiefte Architekturklärung und Spezifikationsprüfung ergänzen.
 
-Die persönliche Bewertung stützt diese Entscheidung: Matt liegt bei Lerngewinn, angemessenem Aufwand und Vertrauen vorn; Superpowers bei Verständlichkeit. Kontrolle, Wiederaufnahme und Anpassbarkeit bewerte ich gleich. **Die weiterführende Forschungsfrage lautet daher: Lässt sich ein gemeinsamer Workflow entwickeln, der den klaren Umsetzungsfluss von Superpowers mit der Entscheidungstiefe und Absicherung von Matt verbindet, ohne gleichzeitig den Prozessaufwand beider Ansätze zu übernehmen?**
+### 4.1 Was Matt besonders gut leistet
 
-### 4.1 Matt: Entscheidungstiefe mit höherem Prozessgewicht
+Wayfinder, Grilling, ADRs und Akzeptanzmatrix machten fachliche Abhängigkeiten früh sichtbar. Der spätere Spezifikationsreview fand fehlende Cleanup-Regeln, obwohl das Haupt-Issue bereits geschlossen war. Der Qualitätsnutzen geht damit über grüne Tests hinaus. Das Risiko ist Überplanung: Nicht jede kleine Änderung benötigt dieselbe Tiefe wie eine irreversible Datenentscheidung.
 
-**Stärke.** Wayfinder, Grilling und ADRs machten fachliche Abhängigkeiten früh sichtbar. Das war bei stabiler Kursidentität und persönlichen Aufgaben besonders wertvoll: Eine falsche Regel hätte Duplikate erzeugen oder Benutzerdaten falsch zuordnen können. Die Akzeptanzmatrix verband Entscheidungen mit prüfbaren Kriterien. Der spätere Spezifikationsreview fand tatsächlich fehlende Cleanup-Regeln, obwohl das Haupt-Issue bereits geschlossen war. Damit zeigte der Ansatz einen konkreten Qualitätsnutzen über grüne Tests hinaus.
+### 4.2 Was Superpowers besonders gut leistet
 
-**Risiko.** Die vielen Klärungs- und Dokumentationsschritte vergrößerten den Prozess und passen nicht automatisch zu jeder kleinen Änderung. Entscheidungstiefe kann in Überplanung kippen, wenn risikoarme Fragen genauso ausführlich behandelt werden wie irreversible Architekturentscheidungen. Matt ist deshalb für mich besonders stark, wenn mehrere Schichten betroffen sind oder Datenregeln langfristig tragen müssen - nicht als pauschales Pflichtprogramm für jedes Feature.
+Brainstorming, bestätigtes Design, Plan und TDD führten klar von der Idee zum ausführbaren vertikalen Schnitt. Der Weg von der Kursregistrierung bis zur persönlichen Aufgabe war gut nachvollziehbar. Der Versuch umfasste jedoch keinen vollständigen Cleanup- und Reaktivierungslebenszyklus; außerdem zeigte erst der reale Start Konfigurationsprobleme.
 
-### 4.2 Superpowers: Umsetzungsfluss im engeren Versuchsrahmen
+### 4.3 Vorschlag für einen kombinierten Workflow
 
-**Stärke.** Brainstorming, bestätigtes Design, Plan und TDD führten klar von der Idee zum ausführbaren vertikalen Schnitt. Der zusammenhängende Weg von der Kursregistrierung bis zur sichtbaren persönlichen Aufgabe war leicht nachzuvollziehen und praktisch abnehmbar. Für einen klar definierten Umfang bietet Superpowers daher einen überzeugenden Standardprozess: kleine Schritte, unmittelbare Tests und ein sichtbares Ergebnis.
+![Abbildung 9: Risikoangepasster Workflow aus Superpowers-Grundfluss und gezielter Matt-Vertiefung.](figures/07-kombinierter-workflow.png)
 
-**Grenze des Versuchs.** Die gute Struktur garantiert weder geringe Kosten noch vollständige fachliche Abdeckung. Kontingentbedingte Wartezeiten bremsten die Ausführung; beim Wechsel auf Inline-Arbeit entfiel zudem eine unabhängige Reviewperspektive. Der Versuch umfasste bewusst keinen vollständigen Cleanup- und Reaktivierungslebenszyklus. Deshalb belegt das Ergebnis die Eignung für diesen engeren Schnitt, aber nicht, dass derselbe Ablauf Matts größeren und risikoreicheren Umfang schneller oder vollständiger geliefert hätte.
+*Abbildung 9. Superpowers strukturiert den Grundfluss. Ein kurzer Risikocheck entscheidet, ob Grilling, ADR und Akzeptanzmatrix ergänzt werden. Tests, unabhängiger Spezifikationsreview und sichtbare End-to-End-Abnahme schließen beide Wege ab.*
 
 <!-- pagebreak -->
 
-### 4.3 Was der Vergleich über Qualität zeigt
+### 4.4 Was der Vergleich über Qualität zeigt
 
-Grüne Tests allein genügten in keinem Versuch. Bei Matt fehlte zunächst vereinbartes Lebenszyklusverhalten; bei Superpowers scheiterte der lokale Start zunächst an Konfigurationsproblemen. Die ergänzende Codeprüfung zeigte außerdem verbliebene Lücken bei Quellenanzeige, Statusaktualisierung und Übersetzungsverträgen. Daraus folgt eine konkrete Verbesserung: UI-Tests müssen nicht nur vorhandene Elemente prüfen, sondern auch echte API-Werte und Zustandswechsel abdecken. Mein wichtigster Qualitätsmaßstab ist deshalb eine Nachweiskette aus **Regeltest, Spezifikationsreview und sichtbarer End-to-End-Abnahme**. Die zweite KI-Prüfung half, belegte Lücken von unbegründeten Fehlerbehauptungen zu trennen; sie ersetzt weder Tests noch menschliche Freigabe.
+Grüne Tests allein genügten in keinem Versuch. Mein wichtigster Qualitätsmaßstab ist eine Nachweiskette aus **Regeltest, Spezifikationsreview, statischer Analyse und sichtbarer End-to-End-Abnahme**. SonarQube ergänzt diese Kette um reproduzierbare Wartbarkeitsbefunde, ersetzt aber weder fachliche Tests noch menschliche Freigabe.
 
-### 4.4 Vorschlag für einen kombinierten Workflow
+### 4.5 Ausblick: Die Kombination kontrolliert prüfen
 
-**Superpowers bildet den Grundablauf:** Brainstorming, Design, Plan und TDD führen zügig zu einem ausführbaren vertikalen Schnitt. Vor der Implementierung folgt ein kurzer Risikocheck. Betrifft das Feature Datenidentität, Berechtigungen, Nebenläufigkeit, Datenverlust oder langfristige Lebenszyklen, werden gezielt Matts Grilling, ADRs und detaillierte Akzeptanzkriterien ergänzt. Den Abschluss bilden automatische Tests, ein unabhängiger Spezifikationsreview und ein sichtbarer End-to-End-Test. So strukturiert Superpowers den Arbeitsfluss, während Matt an risikoreichen Stellen zusätzliche Entscheidungssicherheit schafft.
-
-### 4.5 Ausblick: Den kombinierten Workflow prüfen
-
-**Der kombinierte Workflow ist eine begründete Hypothese, noch kein bewiesenes Ergebnis.** Ein Folgeversuch sollte dieselbe Aufgabe unter drei Bedingungen durchführen: nur Matt, nur Superpowers und der kombinierte Workflow. Verglichen werden Bearbeitungszeit, Tokenverbrauch, Anzahl der Rückfragen, Korrekturschleifen, gefundene Fehler und die persönliche Bewertung. Dadurch ließe sich prüfen, ob die Kombination tatsächlich beide Vorteile erhält oder lediglich zusätzlichen Prozessaufwand erzeugt.
-
-Der bisherige Vergleich ist praxisnah, aber kein kontrolliertes Benchmark. Matts Umfang war breiter; Superpowers wurde später und mit mehr Domänenwissen eingesetzt. Tokenlimits begrenzten unabhängige Reviews, eine Mock-Quelle ersetzte Moodle. Diese Grenzen muss auch der Folgeversuch durch gleichen Umfang und gleiche Ausgangsinformationen kontrollieren.
+Der kombinierte Workflow ist eine begründete Hypothese, noch kein bewiesenes Ergebnis. Ein Folgeversuch sollte dieselbe Aufgabe unter drei Bedingungen durchführen: nur Matt, nur Superpowers und die Kombination. Verglichen werden Bearbeitungszeit, Tokenverbrauch, Rückfragen, Korrekturschleifen, gefundene Fehler und persönliche Bewertung. Umfang, Ausgangsinformationen und Nachweise müssen dabei identisch sein.
 
 ## 5. Was ich persönlich mitnehme
 
-Fachlich kann ich nun begründen, warum Kurs, externer Inhalt und persönliche Aufgabe getrennte Identitäten und Lebenszyklen brauchen. Methodisch lernte ich, KI-Vorschläge nicht mit Produktentscheidungen gleichzusetzen: Annahmen, Risiken und Folgen muss ich selbst bewerten.
+- **Risiken zuerst benennen.** Identität, Rechte, Datenverlust und Nebenläufigkeit entscheiden, wie viel Spezifikation nötig ist.
+- **Tests lesen, nicht nur zählen.** Ein guter Test macht eine Fachregel und ihre Fehlerursache unmittelbar verständlich.
+- **Ergebnisse dreifach prüfen.** Regeltest, Soll-Ist-Review und sichtbarer Ablauf decken unterschiedliche Fehlerklassen ab.
 
-Mein größter Lernschritt war der Wechsel vom „Code erzeugen lassen“ zum **gezielten Steuern, Begründen und Prüfen**. Ich schärfte Anforderungen, bestätigte Architekturentscheidungen und nahm das Ergebnis im Browser ab. Agenten verbesserten Tempo und Struktur; die Verantwortung für Umfang, Qualität und Freigabe blieb bei mir.
+Mein größter Lernschritt war der Wechsel vom „Code erzeugen lassen“ zum **gezielten Steuern, Begründen und Prüfen**. Agenten verbesserten Tempo und Struktur; die Verantwortung für Umfang, Qualität und Freigabe blieb bei mir.
 
 ## Nachweise
 
-Die Aussagen stützen sich auf das [Versuchsprotokoll](experiment-protocol.md), die Beobachtungslogs beider Versuche und dokumentierte Test- und Reviewstände. [Methodik, Variantenregeln und Quellen](PAPER-ANHANG.md) liegen getrennt im Quellenpaket. Dort bleiben auch Versionsstände und die ausführliche Bewertungsgrundlage zugänglich.
+Die Aussagen stützen sich auf das [Versuchsprotokoll](experiment-protocol.md), die Beobachtungslogs, die persönlich geprüften Matt-Artefakte, dokumentierte Testläufe und die SonarQube-Baselineanalyse. [Methodik, Variantenregeln und Quellen](PAPER-ANHANG.md) liegen getrennt im Quellenpaket.
