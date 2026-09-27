@@ -6,7 +6,7 @@ Dieser Anhang ergänzt die kompakte Projektstudie. Er enthält Details für die 
 
 Die Versuche starteten von demselben Produktcommit, liefen aber nacheinander und in unterschiedlichen Arbeitsumgebungen. Die später bestätigten Funktionsumfänge wichen voneinander ab. Die ursprüngliche Protokollforderung gleicher Akzeptanzkriterien wurde daher nicht vollständig erreicht. Dies wird als Einschränkung behandelt, nicht nachträglich vereinheitlicht.
 
-Die hier zusammengefassten FR/NFR sind eine nachträgliche Rekonstruktion aus historischen Quellen. Sie ersetzen weder die bestätigten Variantenregeln noch ein neu ausgeführtes Abnahmeprotokoll. Es wurden für die redaktionelle Überarbeitung keine Produkttests wiederholt.
+Die hier zusammengefassten FR/NFR sind eine nachträgliche Rekonstruktion aus historischen Quellen. Sie ersetzen weder die bestätigten Variantenregeln noch ein neu ausgeführtes Abnahmeprotokoll. Für die redaktionelle Überarbeitung wurden die bestehenden Backend- und Frontend-Testbestände an beiden Endständen wiederholt; es wurden jedoch keine neuen Abnahmekriterien erfunden.
 
 ## B. Vollständige Anforderungen
 
@@ -54,13 +54,14 @@ Die FR/NFR sind über diese Verweise rückverfolgbar, jedoch kein neu ausgeführ
 
 ### B.3 Ergänzende Codeprüfung
 
-Die drei in Abschnitt 3.2 des Papers aufgeführten UI-Lücken stammen aus einer
-ergänzenden statischen Prüfung der festgeschriebenen Produktstände, nicht aus
-einer Wiederholung der Implementierungsversuche. Standards und Spezifikation
-wurden getrennt bewertet und die Kandidaten durch ein zweites KI-Modell anhand
-der Quellen überprüft. Fundstellen, korrigierte Aussagen, Wartungshinweise und
-Nachweisgrenzen stehen in [Ergänzende statische Codeprüfung](PAPER-NACHWEISE.md).
-Die persönliche Punktebewertung wird durch diesen Review nicht verändert.
+Die in Abschnitt 3.4 des Papers dokumentierte statische Analyse wurde lokal mit
+SonarQube Community 25.6 und .NET Scanner 11.3 gegen Baseline und beide
+Endstände ausgeführt. Identische Ausschlüsse und getrennte Projekte verhindern,
+dass die Stände vermischt werden. Coverage wurde nicht importiert. Die drei
+UI-Lücken stammen dagegen aus einer ergänzenden manuellen Codeprüfung und wurden
+durch ein zweites KI-Modell anhand der Quellen gegengeprüft. Messwerte,
+Fundstellen und Grenzen stehen in den [kompakten Nachweisen](PAPER-NACHWEISE.md).
+Die persönliche Punktebewertung wird durch diese Prüfungen nicht verändert.
 
 ## C. Herkunft und Grenzen der Bewertung
 
@@ -103,23 +104,33 @@ Das Hauptpapier enthält alle sieben FR und sieben NFR mit denselben IDs wie
 dieser Anhang. Hier bleiben die ausführlicheren Szenarien, Variantenregeln und
 Nachweisgrenzen zugänglich.
 
-- **Abbildung 1:** Die Architekturabbildung zeigt einen aufgabenfähigen Inhalt
+- **Abbildung 1:** Die Skill-Landkarte stellt die beobachteten Schwerpunkte der
+  beiden Abläufe früh gegenüber. Sie behauptet nicht, eine Technik gehöre
+  ausschließlich zu einer Suite.
+- **Abbildung 2:** Die Architekturabbildung zeigt einen aufgabenfähigen Inhalt
   und drei berechtigte Abonnenten. Sie veranschaulicht das gemeinsame Prinzip,
   nicht alle Variantenregeln.
-- **Abbildung 2:** Der Versuchsaufbau zeigt gleiche Codebasis, feste
+- **Abbildung 3:** Der Versuchsaufbau zeigt gleiche Codebasis, feste
   Skill-Versionen und getrennte Umsetzungen. Die Versuche liefen nacheinander;
   Umfang, Umgebung und Vorwissen waren nicht identisch. Grundlage: Q1 bis Q5.
-- **Abbildung 3:** Der Workflowvergleich „Zwei Wege von der Klärung zur Abnahme“
-  zeigt die beobachteten Arbeitsschwerpunkte beider Suiten. Planung, Tests und
-  Reviews gehören zu beiden Abläufen; keine dieser Methoden wird ausschließlich
-  einer Suite zugeschrieben. Grundlage: Q2, Q4 und Q6.
-- **Abbildung 4:** Der Punktvergleich übernimmt genau die 14 bestätigten
+- **Abbildung 4:** Die Matt-Nachweiskette verdichtet persönlich geprüfte Inhalte
+  aus Issue #77, Issue #84 und ADR 0003. Die Texte sind gekürzt, nicht erfunden.
+- **Abbildung 5:** Die Superpowers-Nachweiskette verbindet bestätigtes Design,
+  Implementierungsplan, TDD-Schritte und Abschlussreview aus Q4 bis Q6.
+- **Abbildung 6:** Der Testnachweis verbindet wiederholte Abschlussläufe mit zwei
+  gelesenen Beispielen. Testzahlen und Laufzeiten sind kein Effizienzranking.
+- **Abbildung 7:** Die SonarQube-Grafik zeigt dieselbe Baseline und getrennte
+  Endstände. Absolute Werte hängen vom unterschiedlichen Produktumfang ab.
+- **Abbildung 8:** Der Punktvergleich übernimmt genau die 14 bestätigten
   Bewertungen aus Abschnitt C und der Nachweisdatei. Kreis steht für Matt,
   Raute für Superpowers. Die horizontale Position zeigt den Wert von 1 bis 5;
   ein kleiner vertikaler Versatz hält gleiche Werte sichtbar. Verbindungen
   bestehen nur innerhalb eines Kriteriums, nicht als Verlauf über die Kriterien.
   Höhere Punkte bedeuten eine günstigere persönliche Einschätzung. Sie belegen
   weder objektiv bessere Software noch allgemeine Überlegenheit.
+- **Abbildung 9:** Der kombinierte Workflow ist eine aus dem Versuch abgeleitete
+  Hypothese. Ein Folgeversuch muss erst zeigen, ob der Risikocheck tatsächlich
+  Tiefe gewinnt, ohne beide Prozesskosten zu addieren.
 
 Der empfohlene kombinierte Prozess wurde nicht als zusätzlicher Versuch ausgeführt. Im Superpowers-Versuch wurden keine Matt-Skills eingesetzt.
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="940" height="560" preserveAspectRatio="xMinYMin meet" viewBox="0 0 940 560" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="940" height="560"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-560)" style="clip-path: url(#clip)">
+		<g transform="">
+			<text x="0" y="542" style="font-family: BodyBold; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,1084) scale(1,-1)">TESTNACHWEIS: MENGE EINORDNEN, QUALITÄT LESEN</text>
+			<text x="0" y="481" style="font-family: BodyBold; font-size: 18px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,962) scale(1,-1)">Backend</text>
+			<rect x="105" y="462" width="297.0" height="18" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="445" y="463" style="font-family: BodyBold; font-size: 16px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,926) scale(1,-1)">Matt: 225</text>
+			<rect x="105" y="434" width="257.4" height="18" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="445" y="435" style="font-family: BodyBold; font-size: 16px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,870) scale(1,-1)">Superpowers: 195</text>
+			<text x="0" y="405" style="font-family: BodyBold; font-size: 18px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,810) scale(1,-1)">Frontend</text>
+			<rect x="105" y="386" width="124.07999999999998" height="18" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="445" y="387" style="font-family: BodyBold; font-size: 16px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,774) scale(1,-1)">Matt: 94</text>
+			<rect x="105" y="358" width="128.04" height="18" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="445" y="359" style="font-family: BodyBold; font-size: 16px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,718) scale(1,-1)">Superpowers: 97</text>
+			<rect x="590" y="352" width="330" height="158" rx="10" ry="10" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="610" y="475" style="font-family: BodyBold; font-size: 17px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,950) scale(1,-1)">END-TO-END-NACHWEIS</text>
+			<text x="610" y="437" style="font-family: BodyBold; font-size: 17px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,874) scale(1,-1)">Matt</text>
+			<text x="610" y="410" style="font-family: Body; font-size: 15px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,820) scale(1,-1)">1 automatisierter Playwright-Test</text>
+			<text x="610" y="379" style="font-family: BodyBold; font-size: 17px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,758) scale(1,-1)">Superpowers</text>
+			<text x="610" y="354" style="font-family: Body; font-size: 15px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,708) scale(1,-1)">manueller Browser-Walkthrough</text>
+			<rect x="0" y="28" width="445" height="278" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="0" y="288" width="445" height="18" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="18" y="252" style="font-family: BodyBold; font-size: 17px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,504) scale(1,-1)">KLARER EINZELTEST · SUPERPOWERS</text>
+			<rect x="18" y="202" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="30" y="209" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,418) scale(1,-1)">zwei Inhalte mit gleicher ID</text>
+			<rect x="18" y="163" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="30" y="170" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,340) scale(1,-1)">Compare(...) ausführen</text>
+			<rect x="18" y="124" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="30" y="131" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,262) scale(1,-1)">InvalidCourseSnapshotException erwartet</text>
+			<text x="18" y="58" style="font-family: BodyBold; font-size: 16px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,116) scale(1,-1)">Eine Regel, Ursache sofort sichtbar.</text>
+			<rect x="475" y="28" width="445" height="278" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="475" y="288" width="445" height="18" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="493" y="252" style="font-family: BodyBold; font-size: 17px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,504) scale(1,-1)">BREITER VALIDIERUNGSTEST · MATT</text>
+			<rect x="493" y="202" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="505" y="209" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,418) scale(1,-1)">fehlend / relativ / zu lang  →  400</text>
+			<rect x="493" y="163" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="505" y="170" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,340) scale(1,-1)">unbekannter Anbieter  →  422</text>
+			<rect x="493" y="124" width="408" height="29" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="505" y="131" style="font-family: Body; font-size: 16px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,262) scale(1,-1)">vier Regeln in einer Testmethode</text>
+			<text x="493" y="58" style="font-family: BodyBold; font-size: 16px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,116) scale(1,-1)">Gute Abdeckung, Fehlerursache weniger isoliert.</text>
+		</g>
+	</g>
+</svg>

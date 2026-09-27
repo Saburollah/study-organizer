@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="940" height="430" preserveAspectRatio="xMinYMin meet" viewBox="0 0 940 430" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="940" height="430"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-430)" style="clip-path: url(#clip)">
+		<g transform="">
+			<text x="0" y="412" style="font-family: BodyBold; font-size: 18px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,824) scale(1,-1)">SONARQUBE: GEMEINSAME BASELINE, GETRENNTE ENDSTÄNDE</text>
+			<rect x="0" y="105" width="250" height="254" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="0" y="341" width="250" height="18" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(8%,17%,25%); fill-rule: evenodd;"/>
+			<text x="16" y="305" style="font-family: BodyBold; font-size: 18px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,610) scale(1,-1)">Baseline  e7d8b5e</text>
+			<rect x="280" y="105" width="310" height="254" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="280" y="341" width="310" height="18" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(38%,34%,64%); fill-rule: evenodd;"/>
+			<text x="296" y="305" style="font-family: BodyBold; font-size: 18px;fill: rgb(38%,34%,64%); stroke:none;" transform="translate(0,610) scale(1,-1)">Matt  ab8249c</text>
+			<rect x="620" y="105" width="310" height="254" rx="12" ry="12" style="stroke: rgb(83%,87%,89%); stroke-linecap: butt; stroke-width: 1.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="620" y="341" width="310" height="18" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(3%,49%,50%); fill-rule: evenodd;"/>
+			<text x="636" y="305" style="font-family: BodyBold; font-size: 18px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,610) scale(1,-1)">Superpowers  a8801ff</text>
+			<rect x="10" y="247" width="230" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="18" y="257" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,514) scale(1,-1)">10.686 LOC</text>
+			<rect x="290" y="247" width="290" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="298" y="257" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,514) scale(1,-1)">16.924 LOC  (+6.238)</text>
+			<rect x="630" y="247" width="290" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="638" y="257" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,514) scale(1,-1)">13.628 LOC  (+2.942)</text>
+			<text x="18" y="211" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,422) scale(1,-1)">33 Code Smells</text>
+			<text x="298" y="211" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,422) scale(1,-1)">83  (+50)</text>
+			<text x="638" y="211" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,422) scale(1,-1)">55  (+22)</text>
+			<rect x="10" y="155" width="230" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="18" y="165" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,330) scale(1,-1)">Komplexität 220</text>
+			<rect x="290" y="155" width="290" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="298" y="165" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,330) scale(1,-1)">578  (+358)</text>
+			<rect x="630" y="155" width="290" height="32" rx="5" ry="5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,96%,96%); fill-rule: evenodd;"/>
+			<text x="638" y="165" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,330) scale(1,-1)">387  (+167)</text>
+			<text x="18" y="119" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,238) scale(1,-1)">Duplikation 6,1 %</text>
+			<text x="298" y="119" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,238) scale(1,-1)">5,0 %  (-1,1 PP)</text>
+			<text x="638" y="119" style="font-family: Body; font-size: 17px;fill: rgb(8%,17%,25%); stroke:none;" transform="translate(0,238) scale(1,-1)">5,7 %  (-0,4 PP)</text>
+			<rect x="0" y="28" width="930" height="54" rx="9" ry="9" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(87%,94%,94%); fill-rule: evenodd;"/>
+			<text x="18" y="50" style="font-family: BodyBold; font-size: 18px;fill: rgb(3%,49%,50%); stroke:none;" transform="translate(0,100) scale(1,-1)">Alle drei Stände: 0 Bugs · 0 Schwachstellen · 16 Security Hotspots</text>
+			<text x="18" y="4" style="font-family: Body; font-size: 16px;fill: rgb(32%,39%,47%); stroke:none;" transform="translate(0,8) scale(1,-1)">LOC und Funktionsumfang unterscheiden sich; absolute Werte sind kein Qualitätssieger.</text>
+		</g>
+	</g>
+</svg>
