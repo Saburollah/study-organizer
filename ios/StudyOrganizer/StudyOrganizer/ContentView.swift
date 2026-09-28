@@ -4,52 +4,70 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 32) {
-                    Image(systemName: "book.closed.fill")
-                        .font(.largeTitle)
+                VStack(spacing: 16) {
+                    Image(systemName: "graduationcap.fill")
+                        .font(.system(size: 40, weight: .semibold))
                         .foregroundStyle(.tint)
+                        .frame(width: 88, height: 88)
+                        .background(.tint.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 22))
                         .accessibilityHidden(true)
 
                     VStack(spacing: 12) {
                         Text("Study Organizer")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.tint)
+
+                        Text("Dein Studium. Einfach organisiert.")
                             .font(.largeTitle.bold())
 
-                        Text("Willkommen! Organisiere dein Studium an einem Ort.")
+                        Text("Kurse, Aufgaben und Termine an einem Ort.")
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
                     .multilineTextAlignment(.center)
 
-                    VStack(spacing: 16) {
+                    VStack(spacing: 20) {
                         NavigationLink {
                             AuthenticationPlaceholderView(
                                 title: "Anmelden",
                                 message: "Hier kannst du dich bald anmelden."
                             )
                         } label: {
-                            Text("Anmelden")
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                            HStack(spacing: 8) {
+                                Text("Anmelden")
+                                    .fontWeight(.semibold)
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 48)
                         }
                         .buttonStyle(.borderedProminent)
 
-                        NavigationLink {
-                            AuthenticationPlaceholderView(
-                                title: "Registrieren",
-                                message: "Hier kannst du bald ein Konto erstellen."
-                            )
-                        } label: {
-                            Text("Registrieren")
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                        VStack(spacing: 4) {
+                            Text("Noch kein Konto?")
+                                .foregroundStyle(.secondary)
+
+                            NavigationLink {
+                                AuthenticationPlaceholderView(
+                                    title: "Registrieren",
+                                    message: "Hier kannst du bald ein Konto erstellen."
+                                )
+                            } label: {
+                                Text("Registrieren")
+                                    .fontWeight(.semibold)
+                            }
                         }
-                        .buttonStyle(.bordered)
+                        .font(.subheadline)
                     }
                 }
                 .frame(maxWidth: 480)
                 .frame(maxWidth: .infinity)
                 .padding(24)
+                .padding(.top, 40)
             }
-            .navigationTitle("Startseite")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
