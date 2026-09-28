@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: production-migrations-${{ github.ref }}
@@ -17,7 +18,43 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      - name: Geänderte Dateien prüfen
+        id: changes
+        uses: actions/github-script@v8
+        with:
+          script: |
+            if (context.eventName !== 'pull_request') {
+              return true;
+            }
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                ...context.repo,
+                pull_number: context.issue.number,
+                per_page: 100
+              }
+            );
+
+            // Bei leerer oder möglicherweise gekürzter Liste testen.
+            const onlyIos =
+              files.length > 0 &&
+              files.length < 3000 &&
+              files.every(file =>
+                file.filename.startsWith('ios/') &&
+                (!file.previous_filename ||
+                  file.previous_filename.startsWith('ios/'))
+              );
+
+            core.info(onlyIos
+              ? 'Nur iOS-Dateien geändert: Migrationstests werden übersprungen.'
+              : 'Migrationstests werden ausgeführt.');
+
+            return !onlyIos;
+
       - uses: actions/checkout@v4
+        if: steps.changes.outputs.result == 'true'
 
       - name: Produktionsmigrationen prüfen
+        if: steps.changes.outputs.result == 'true'
         run: scripts/test-production-migrations.sh

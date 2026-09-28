@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: playwright-e2e-${{ github.ref }}
@@ -17,43 +18,86 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      - name: Geänderte Dateien prüfen
+        id: changes
+        uses: actions/github-script@v8
+        with:
+          script: |
+            if (context.eventName !== 'pull_request') {
+              return true;
+            }
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                ...context.repo,
+                pull_number: context.issue.number,
+                per_page: 100
+              }
+            );
+
+            // Bei leerer oder möglicherweise gekürzter Liste testen.
+            const onlyIos =
+              files.length > 0 &&
+              files.length < 3000 &&
+              files.every(file =>
+                file.filename.startsWith('ios/') &&
+                (!file.previous_filename ||
+                  file.previous_filename.startsWith('ios/'))
+              );
+
+            core.info(onlyIos
+              ? 'Nur iOS-Dateien geändert: Webtests werden übersprungen.'
+              : 'Webtests werden ausgeführt.');
+
+            return !onlyIos;
+
       - uses: actions/checkout@v4
+        if: steps.changes.outputs.result == 'true'
 
       - uses: actions/setup-dotnet@v4
+        if: steps.changes.outputs.result == 'true'
         with:
           dotnet-version: 8.0.x
 
       - uses: pnpm/action-setup@v4
+        if: steps.changes.outputs.result == 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.changes.outputs.result == 'true'
         with:
           node-version: 22.18.0
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Frontend-Abhängigkeiten installieren
+        if: steps.changes.outputs.result == 'true'
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
       - name: Chromium installieren
+        if: steps.changes.outputs.result == 'true'
         working-directory: frontend
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Lokale Testkonfiguration anlegen
+        if: steps.changes.outputs.result == 'true'
         run: cp .env.example .env
 
       - name: Course-Import-Golden-Path ausführen
+        if: steps.changes.outputs.result == 'true'
         working-directory: frontend
         run: pnpm test:e2e
 
       - name: Responsive Navigation prüfen
+        if: steps.changes.outputs.result == 'true'
         working-directory: frontend
         run: pnpm test:e2e:layout
 
       - name: Playwright-Artefakte hochladen
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.changes.outputs.result == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
