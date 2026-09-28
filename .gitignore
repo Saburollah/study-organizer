@@ -31,3 +31,8 @@ __pycache__/
 *.py[cod]
 tmp/
 output/pdf/*/
+
+# Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
