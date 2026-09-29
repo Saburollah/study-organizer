@@ -48,10 +48,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
 
                             NavigationLink {
-                                AuthenticationPlaceholderView(
-                                    title: "Registrieren",
-                                    message: "Hier kannst du bald ein Konto erstellen."
-                                )
+                                RegistrationView()
                             } label: {
                                 Text("Registrieren")
                                     .fontWeight(.semibold)
