@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F03306BE2B4007A13BE /* SwiftUIView.swift */; };
+		77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F11306C3A59007A13BE /* RegistrationService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		778CA07E306A726A00806778 /* StudyOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77C96F03306BE2B4007A13BE /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
+		77C96F11306C3A59007A13BE /* RegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,6 +39,7 @@
 		778CA075306A726A00806778 = {
 			isa = PBXGroup;
 			children = (
+				77C96F11306C3A59007A13BE /* RegistrationService.swift */,
 				77C96F03306BE2B4007A13BE /* SwiftUIView.swift */,
 				778CA080306A726A00806778 /* StudyOrganizer */,
 				778CA07F306A726A00806778 /* Products */,
@@ -125,6 +128,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */,
 				77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

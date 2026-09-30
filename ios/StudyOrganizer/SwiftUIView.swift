@@ -11,7 +11,10 @@ struct RegistrationView: View {
     // MARK: - UI
 
     @State private var submitted = false
-    @State private var showUnavailableAlert = false
+    @State private var isSubmitting = false
+    @State private var showSuccessAlert = false
+    @State private var registeredEmail = ""
+    @State private var requestError: String?
 
     @FocusState private var focusedField: Field?
 
@@ -343,7 +346,7 @@ struct RegistrationView: View {
 
                     HStack(spacing: 8) {
 
-                        Text("Konto erstellen")
+                        Text(isSubmitting ? "Konto wird erstellt …" : "Konto erstellen")
                             .fontWeight(.semibold)
 
                         Image(
@@ -386,13 +389,14 @@ struct RegistrationView: View {
 
                 .buttonStyle(.plain)
 
-                Text(
-                    "Die Kontoerstellung ist noch nicht verbunden."
-                )
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .multilineTextAlignment(.center)
+                if isSubmitting {
+                    ProgressView("Registrierung läuft")
+                        .frame(maxWidth: .infinity)
+                }
+
+                if let requestError {
+                    errorMessage(requestError)
+                }
             }
 
             .frame(maxWidth: 480)
@@ -412,6 +416,9 @@ struct RegistrationView: View {
             )
             .ignoresSafeArea()
         )
+        
+        .disabled(isSubmitting)
+        .navigationBarBackButtonHidden(isSubmitting)
 
         // MARK: - Tastatur/Fokus schließen
         //
@@ -442,14 +449,12 @@ struct RegistrationView: View {
         // MARK: - Alert
 
         .alert(
-            "Die Registrierung ist noch nicht verfügbar.",
-            isPresented: $showUnavailableAlert
+            "Konto erstellt",
+            isPresented: $showSuccessAlert
         ) {
-
-            Button(
-                "OK",
-                role: .cancel
-            ) { }
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Das Konto für \(registeredEmail) wurde erfolgreich erstellt.")
         }
     }
 
@@ -748,26 +753,48 @@ struct RegistrationView: View {
     // MARK: - Validierung
     // MARK: =====================================================
 
+    @MainActor
     private func validate() {
+        guard !isSubmitting else { return }
 
-        email = email.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
+        requestError = nil
+        email = email.trimmingCharacters(in: .whitespacesAndNewlines)
         submitted = true
 
-        guard
-            emailError == nil,
-            fulfilledCount == requirements.count,
-            confirmationError == nil
-
-        else {
+        guard emailError == nil,
+              fulfilledCount == requirements.count,
+              confirmationError == nil else {
             return
         }
 
         dismissKeyboard()
+        isSubmitting = true
 
-        showUnavailableAlert = true
+        let submittedEmail = email
+        let submittedPassword = password
+
+        Task { @MainActor in
+            defer { isSubmitting = false }
+
+            do {
+                let result = try await RegistrationService().register(
+                    email: submittedEmail,
+                    password: submittedPassword
+                )
+
+                registeredEmail = result.email
+                email = ""
+                password = ""
+                confirmation = ""
+                submitted = false
+                showSuccessAlert = true
+            } catch is CancellationError {
+                requestError = "Die Anfrage wurde abgebrochen. "
+                    + "Das Konto wurde möglicherweise bereits erstellt."
+            } catch {
+                requestError = error.localizedDescription
+            }
+        }
     }
 }
 
