@@ -1,16 +1,31 @@
 import Foundation
 
-struct RegistrationResponse: Decodable {
-    let userId: String
-    let email: String
+struct LoginResponse: Decodable {
+    let accessToken: String
+    let expiresAtUtc: String
+
+    var expirationDate: Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+
+        if let date = formatter.date(from: expiresAtUtc) {
+            return date
+        }
+
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: expiresAtUtc)
+    }
 }
 
-private struct RegistrationRequest: Encodable {
+private struct LoginRequest: Encodable {
     let email: String
     let password: String
 }
 
-private struct RegistrationProblem: Decodable {
+private struct LoginProblem: Decodable {
     let title: String?
     let detail: String?
     let errors: [String: [String]]?
@@ -27,8 +42,9 @@ private struct RegistrationProblem: Decodable {
     }
 }
 
-enum RegistrationError: LocalizedError {
+enum LoginError: LocalizedError {
     case configuration
+    case invalidCredentials
     case server(String)
     case invalidResponse
     case network
@@ -38,44 +54,33 @@ enum RegistrationError: LocalizedError {
         switch self {
         case .configuration:
             return "Für diese App-Version ist noch kein Server eingerichtet."
+        case .invalidCredentials:
+            return "E-Mail-Adresse oder Passwort ist falsch."
         case .server(let message):
             return message
         case .invalidResponse:
-            return "Die Serverantwort konnte nicht bestätigt werden. "
-                + "Das Konto wurde möglicherweise bereits erstellt."
+            return "Die Anmeldung konnte wegen einer ungültigen "
+                + "Serverantwort nicht abgeschlossen werden."
         case .network:
-            return "Der Server ist nicht erreichbar oder die Verbindung "
-                + "wurde unterbrochen. Bitte prüfe deine Verbindung. "
-                + "Das Konto wurde möglicherweise bereits erstellt."
+            return "Der Server ist nicht erreichbar. "
+                + "Bitte prüfe deine Verbindung und versuche es erneut."
         case .timeout:
             return "Der Server hat nicht rechtzeitig geantwortet. "
-                + "Das Konto wurde möglicherweise bereits erstellt."
+                + "Bitte versuche es erneut."
         }
     }
 }
 
-enum APIConfiguration {
-    static var baseURL: URL? {
-        #if DEBUG && targetEnvironment(simulator)
-        return URL(string: "http://localhost:5101")
-        #else
-        // Eine produktive HTTPS-Adresse wird später eingerichtet.
-        return nil
-        #endif
-    }
-}
-
-struct RegistrationService {
-    func register(
+struct LoginService {
+    func login(
         email: String,
         password: String
-    ) async throws -> RegistrationResponse {
-        guard let baseURL = APIConfiguration.baseURL
-        else {
-            throw RegistrationError.configuration
+    ) async throws -> LoginResponse {
+        guard let baseURL = APIConfiguration.baseURL else {
+            throw LoginError.configuration
         }
 
-        let url = baseURL.appendingPathComponent("api/auth/register")
+        let url = baseURL.appendingPathComponent("api/auth/login")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -89,7 +94,7 @@ struct RegistrationService {
             forHTTPHeaderField: "Accept"
         )
         request.httpBody = try JSONEncoder().encode(
-            RegistrationRequest(
+            LoginRequest(
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines),
                 password: password
             )
@@ -105,35 +110,42 @@ struct RegistrationService {
                 throw CancellationError()
             }
             if error.code == .timedOut {
-                throw RegistrationError.timeout
+                throw LoginError.timeout
             }
-            throw RegistrationError.network
+            throw LoginError.network
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw RegistrationError.invalidResponse
+            throw LoginError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 401 {
+            throw LoginError.invalidCredentials
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
             let problem = try? JSONDecoder().decode(
-                RegistrationProblem.self,
+                LoginProblem.self,
                 from: data
             )
 
-            throw RegistrationError.server(
+            throw LoginError.server(
                 problem?.message
-                    ?? "Die Registrierung ist fehlgeschlagen "
+                    ?? "Die Anmeldung ist fehlgeschlagen "
                     + "(HTTP \(httpResponse.statusCode))."
             )
         }
 
         guard let result = try? JSONDecoder().decode(
-            RegistrationResponse.self,
+            LoginResponse.self,
             from: data
         ),
-        !result.userId.isEmpty,
-        !result.email.isEmpty else {
-            throw RegistrationError.invalidResponse
+        !result.accessToken.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty,
+        let expirationDate = result.expirationDate,
+        expirationDate > Date() else {
+            throw LoginError.invalidResponse
         }
 
         return result

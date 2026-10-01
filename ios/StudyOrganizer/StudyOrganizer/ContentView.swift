@@ -89,6 +89,10 @@ private struct AuthenticationPlaceholderView: View {
 }
 
 private struct LoginView: View {
+    
+    @EnvironmentObject private var sessionManager: SessionManager
+    @State private var isSubmitting = false
+    @State private var requestError: String?
 
     // MARK: - Eingaben
 
@@ -101,8 +105,6 @@ private struct LoginView: View {
     @State private var passwordError: String?
 
     // MARK: - UI-Zustände
-
-    @State private var showUnavailableAlert = false
     @State private var isPasswordVisible = false
 
     // Speichert, welches Eingabefeld gerade aktiv ist.
@@ -350,7 +352,7 @@ private struct LoginView: View {
                 } label: {
                     HStack(spacing: 8) {
 
-                        Text("Anmelden")
+                        Text(isSubmitting ? "Anmeldung läuft …" : "Anmelden")
                             .fontWeight(.semibold)
 
                         Image(systemName: "arrow.right")
@@ -378,6 +380,19 @@ private struct LoginView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 4)
+                if isSubmitting {
+                    ProgressView("Anmeldung läuft")
+                        .frame(maxWidth: .infinity)
+                }
+
+                if let requestError {
+                    Label(
+                        requestError,
+                        systemImage: "exclamationmark.circle.fill"
+                    )
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                }
             }
             .frame(maxWidth: 480)
             .frame(maxWidth: .infinity)
@@ -397,15 +412,8 @@ private struct LoginView: View {
 
         // MARK: Alert
 
-        .alert(
-            "Die Anmeldung ist noch nicht verfügbar.",
-            isPresented: $showUnavailableAlert
-        ) {
-            Button(
-                "OK",
-                role: .cancel
-            ) { }
-        }
+        .disabled(isSubmitting)
+        .navigationBarBackButtonHidden(isSubmitting)
     }
 
 
@@ -463,55 +471,57 @@ private struct LoginView: View {
 
     // MARK: - Validierung
 
+    @MainActor
     private func validate() {
+        guard !isSubmitting else { return }
 
-        let trimmedEmail = email.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
+        requestError = nil
+        email = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        email = trimmedEmail
-
-
-        // E-Mail prüfen
-
-        if trimmedEmail.isEmpty {
-
-            emailError =
-                "Bitte gib deine E-Mail-Adresse ein."
-
-        } else if !isPlausibleEmail(trimmedEmail) {
-
-            emailError =
-                "Bitte gib eine gültige E-Mail-Adresse ein."
-
+        if email.isEmpty {
+            emailError = "Bitte gib deine E-Mail-Adresse ein."
+        } else if !isPlausibleEmail(email) {
+            emailError = "Bitte gib eine gültige E-Mail-Adresse ein."
         } else {
-
             emailError = nil
         }
 
-
-        // Passwort prüfen
-
-        passwordError =
-            password.isEmpty
-                ? "Bitte gib dein Passwort ein."
-                : nil
-
-
-        // Zum ersten fehlerhaften Feld springen
+        passwordError = password.isEmpty
+            ? "Bitte gib dein Passwort ein."
+            : nil
 
         if emailError != nil {
-
             focusedField = .email
+            return
+        }
 
-        } else if passwordError != nil {
-
+        if passwordError != nil {
             focusedField = .password
+            return
+        }
 
-        } else {
+        focusedField = nil
+        isSubmitting = true
 
-            focusedField = nil
-            showUnavailableAlert = true
+        let submittedEmail = email
+        let submittedPassword = password
+
+        Task { @MainActor in
+            defer { isSubmitting = false }
+
+            do {
+                try await sessionManager.signIn(
+                    email: submittedEmail,
+                    password: submittedPassword
+                )
+
+                password = ""
+                isPasswordVisible = false
+            } catch is CancellationError {
+                requestError = "Die Anmeldung wurde abgebrochen."
+            } catch {
+                requestError = error.localizedDescription
+            }
         }
     }
 
@@ -534,4 +544,5 @@ private struct LoginView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(SessionManager())
 }
