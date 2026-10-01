@@ -78,6 +78,24 @@ final class SessionManager: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+    
+    func invalidateSession(accessToken: String) {
+        // Eine verspätete Antwort darf keine neuere Sitzung beenden.
+        guard session?.accessToken == accessToken else { return }
+
+        expirationTask?.cancel()
+        session = nil
+
+        do {
+            try store.delete()
+            errorMessage = "Deine Sitzung ist nicht mehr gültig. "
+                + "Bitte melde dich erneut an."
+        } catch {
+            errorMessage = "Deine Sitzung wurde beendet, konnte aber "
+                + "nicht aus der sicheren Speicherung entfernt werden. "
+                + error.localizedDescription
+        }
+    }
 
     private func scheduleExpiration() {
         expirationTask?.cancel()
