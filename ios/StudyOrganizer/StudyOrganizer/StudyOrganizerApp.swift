@@ -9,21 +9,8 @@ struct StudyOrganizerApp: App {
         WindowGroup {
             Group {
                 if let session = sessionManager.session {
-                    NavigationStack {
-                        VStack(spacing: 24) {
-                            Text("Angemeldet")
-                                .font(.largeTitle.bold())
-
-                            Text(session.email)
-                                .multilineTextAlignment(.center)
-
-                            Button("Abmelden") {
-                                sessionManager.signOut()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .padding(24)
-                    }
+                    ModulesView(session: session)
+                        .id(session.accessToken)
                 } else {
                     ContentView()
                 }
