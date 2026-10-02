@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		7756F665306E8F7F003B47E2 /* ModuleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F664306E8F7F003B47E2 /* ModuleService.swift */; };
 		7756F667306ED745003B47E2 /* ModulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F666306ED745003B47E2 /* ModulesView.swift */; };
+		7756F675306EDD34003B47E2 /* CreateModuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F674306EDD34003B47E2 /* CreateModuleView.swift */; };
 		77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F03306BE2B4007A13BE /* SwiftUIView.swift */; };
 		77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F11306C3A59007A13BE /* RegistrationService.swift */; };
 		77C96F20306D8505007A13BE /* LoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F1F306D8505007A13BE /* LoginService.swift */; };
@@ -19,6 +20,7 @@
 /* Begin PBXFileReference section */
 		7756F664306E8F7F003B47E2 /* ModuleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleService.swift; sourceTree = "<group>"; };
 		7756F666306ED745003B47E2 /* ModulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModulesView.swift; sourceTree = "<group>"; };
+		7756F674306EDD34003B47E2 /* CreateModuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateModuleView.swift; sourceTree = "<group>"; };
 		778CA07E306A726A00806778 /* StudyOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77C96F03306BE2B4007A13BE /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
 		77C96F11306C3A59007A13BE /* RegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
@@ -49,6 +51,7 @@
 		778CA075306A726A00806778 = {
 			isa = PBXGroup;
 			children = (
+				7756F674306EDD34003B47E2 /* CreateModuleView.swift */,
 				7756F666306ED745003B47E2 /* ModulesView.swift */,
 				7756F664306E8F7F003B47E2 /* ModuleService.swift */,
 				77C96F23306D85E7007A13BE /* SessionManager.swift */,
@@ -145,6 +148,7 @@
 			files = (
 				77C96F22306D8563007A13BE /* SessionStore.swift in Sources */,
 				77C96F20306D8505007A13BE /* LoginService.swift in Sources */,
+				7756F675306EDD34003B47E2 /* CreateModuleView.swift in Sources */,
 				77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */,
 				7756F667306ED745003B47E2 /* ModulesView.swift in Sources */,
 				7756F665306E8F7F003B47E2 /* ModuleService.swift in Sources */,
