@@ -9,7 +9,8 @@ struct ModulesView: View {
     @State private var hasLoaded = false
     @State private var errorMessage: String?
     @State private var reloadID = UUID()
-
+    @State private var showCreateModule = false
+    
     var body: some View {
         NavigationStack {
             List {
@@ -71,11 +72,33 @@ struct ModulesView: View {
             }
             .navigationTitle("Meine Lernmodule")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showCreateModule = true
+                    } label: {
+                        Label("Lernmodul hinzufügen", systemImage: "plus")
+                    }
+                    .disabled(isLoading)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Abmelden") {
                         sessionManager.signOut()
                     }
                 }
+            }
+            .sheet(isPresented: $showCreateModule) {
+                CreateModuleView(session: session) { module in
+                    guard sessionManager.session?.accessToken
+                            == session.accessToken else {
+                        return
+                    }
+
+                    modules.removeAll { $0.id == module.id }
+                    modules.insert(module, at: 0)
+                    hasLoaded = true
+                    errorMessage = nil
+                }
+                .environmentObject(sessionManager)
             }
             .task(id: reloadID) {
                 await loadModules()
@@ -99,6 +122,11 @@ struct ModulesView: View {
 
     @MainActor
     private func loadModules() async {
+        guard !isLoading,
+              !showCreateModule,
+              sessionManager.session?.accessToken == session.accessToken else {
+            return
+        }
         guard !isLoading,
               sessionManager.session?.accessToken == session.accessToken else {
             return
