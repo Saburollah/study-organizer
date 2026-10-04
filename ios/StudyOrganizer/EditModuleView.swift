@@ -1,16 +1,17 @@
 import SwiftUI
 
-struct CreateModuleView: View {
+struct EditModuleView: View {
+    let module: StudyModule
     let session: AuthSession
-    let onCreated: (StudyModule) -> Void
+    let onUpdated: (StudyModule) -> Void
 
     @EnvironmentObject private var sessionManager: SessionManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var name = ""
-    @State private var code = ""
-    @State private var description = ""
-    @State private var selectedColor = "#0C66E4"
+    @State private var name: String
+    @State private var code: String
+    @State private var description: String
+    @State private var selectedColor: String
 
     @State private var submitted = false
     @State private var isSubmitting = false
@@ -85,6 +86,28 @@ struct CreateModuleView: View {
         )
     ]
 
+    // MARK: - Initialisierung
+
+    init(
+        module: StudyModule,
+        session: AuthSession,
+        onUpdated: @escaping (StudyModule) -> Void
+    ) {
+        self.module = module
+        self.session = session
+        self.onUpdated = onUpdated
+
+        _name = State(initialValue: module.name)
+        _code = State(initialValue: module.code ?? "")
+        _description = State(
+            initialValue: module.description ?? ""
+        )
+
+        _selectedColor = State(
+            initialValue: module.color ?? "#0C66E4"
+        )
+    }
+
     // MARK: - Normalisierte Werte
 
     private var normalizedName: String {
@@ -142,11 +165,15 @@ struct CreateModuleView: View {
 
                     formCard
 
+                    if module.isExternalCourseLinked {
+                        externalCourseCard
+                    }
+
                     if let requestError {
                         serverErrorCard(requestError)
                     }
 
-                    createButton
+                    saveButton
                 }
                 .frame(maxWidth: 520)
                 .frame(maxWidth: .infinity)
@@ -185,7 +212,7 @@ struct CreateModuleView: View {
 
     private var header: some View {
         VStack(spacing: 10) {
-            Image(systemName: "books.vertical.fill")
+            Image(systemName: "square.and.pencil")
                 .font(
                     .system(
                         size: 27,
@@ -203,18 +230,18 @@ struct CreateModuleView: View {
                 )
                 .accessibilityHidden(true)
 
-            Text("Neues Lernmodul")
+            Text("Lernmodul bearbeiten")
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Organisiere dein neues Fach.")
+            Text("Passe dein Lernmodul an.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Formular-Card
+    // MARK: - Formular
 
     private var formCard: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -224,10 +251,20 @@ struct CreateModuleView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 3) {
                     Text("Name")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(
+                            .system(
+                                size: 16,
+                                weight: .semibold
+                            )
+                        )
 
                     Text("*")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(
+                            .system(
+                                size: 16,
+                                weight: .semibold
+                            )
+                        )
                         .foregroundStyle(.red)
                 }
 
@@ -251,7 +288,12 @@ struct CreateModuleView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Modulcode")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(
+                        .system(
+                            size: 16,
+                            weight: .semibold
+                        )
+                    )
 
                 inputField(
                     icon: "number",
@@ -275,7 +317,12 @@ struct CreateModuleView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Beschreibung")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(
+                        .system(
+                            size: 16,
+                            weight: .semibold
+                        )
+                    )
 
                 descriptionField
 
@@ -286,9 +333,14 @@ struct CreateModuleView: View {
 
             // Farbe
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Farbe")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(
+                        .system(
+                            size: 16,
+                            weight: .semibold
+                        )
+                    )
 
                 colorSelection
             }
@@ -318,7 +370,7 @@ struct CreateModuleView: View {
         )
     }
 
-    // MARK: - Normales Eingabefeld
+    // MARK: - Eingabefeld
 
     private func inputField(
         icon: String,
@@ -409,6 +461,7 @@ struct CreateModuleView: View {
                 $focusedField,
                 equals: .description
             )
+            .accessibilityLabel("Beschreibung")
         }
         .padding(13)
         .frame(
@@ -441,10 +494,10 @@ struct CreateModuleView: View {
         )
     }
 
-    // MARK: - Farben
+    // MARK: - Farbauswahl
 
     private var colorSelection: some View {
-        HStack {
+        HStack(spacing: 12) {
             ForEach(moduleColors, id: \.hex) { item in
                 Button {
                     withAnimation(
@@ -496,18 +549,38 @@ struct CreateModuleView: View {
                         ? .isSelected
                         : []
                 )
-
-                if item.hex != moduleColors.last?.hex {
-                    Spacer(minLength: 3)
-                }
             }
         }
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Button
+    // MARK: - Externer Kurs
 
-    private var createButton: some View {
+    private var externalCourseCard: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "link")
+                .foregroundStyle(.secondary)
+
+            Text("Mit externem Kurs verknüpft")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(
+            Color(uiColor: .systemBackground),
+            in: RoundedRectangle(
+                cornerRadius: 14,
+                style: .continuous
+            )
+        )
+    }
+
+    // MARK: - Speichern Button
+
+    private var saveButton: some View {
         Button {
             focusedField = nil
             save()
@@ -521,7 +594,7 @@ struct CreateModuleView: View {
                 Text(
                     isSubmitting
                         ? "Wird gespeichert …"
-                        : "Lernmodul erstellen"
+                        : "Änderungen speichern"
                 )
                 .fontWeight(.semibold)
             }
@@ -655,7 +728,7 @@ struct CreateModuleView: View {
             return
         }
 
-        let input = CreateModuleRequest(
+        let input = UpdateModuleRequest(
             name: normalizedName,
             code: normalizedCode.isEmpty
                 ? nil
@@ -675,9 +748,10 @@ struct CreateModuleView: View {
             }
 
             do {
-                let module =
-                    try await ModuleService().create(
-                        input,
+                let updatedModule =
+                    try await ModuleService().update(
+                        moduleId: module.id,
+                        input: input,
                         accessToken: session.accessToken
                     )
 
@@ -688,7 +762,7 @@ struct CreateModuleView: View {
                     return
                 }
 
-                onCreated(module)
+                onUpdated(updatedModule)
                 dismiss()
 
             } catch {
@@ -711,8 +785,7 @@ struct CreateModuleView: View {
                     return
                 }
 
-                requestError =
-                    error.localizedDescription
+                requestError = error.localizedDescription
             }
         }
     }
