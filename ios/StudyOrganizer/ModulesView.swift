@@ -356,7 +356,7 @@ struct ModulesView: View {
 
         HStack(spacing: 0) {
 
-            // Farbiger Streifen
+            // MARK: - Farbiger Streifen
 
             RoundedRectangle(
                 cornerRadius: 3,
@@ -374,233 +374,260 @@ struct ModulesView: View {
             )
 
 
-            VStack(
-                alignment: .leading,
+            HStack(
+                alignment: .top,
                 spacing: 8
             ) {
 
-                // MARK: Name + Optionen
+                // MARK: - Navigation zu Aufgaben
 
-                HStack(
-                    alignment: .top,
-                    spacing: 12
-                ) {
+                NavigationLink {
+
+                    ModuleTasksView(
+                        module: module,
+                        session: session
+                    )
+                    .environmentObject(
+                        sessionManager
+                    )
+
+                } label: {
 
                     VStack(
                         alignment: .leading,
-                        spacing: 6
+                        spacing: 8
                     ) {
 
-                        Text(
-                            module.name
-                        )
-                        .font(
-                            .system(
-                                size: 18,
-                                weight: .semibold
-                            )
-                        )
-                        .foregroundStyle(
-                            .primary
-                        )
+                        // MARK: Name + Modulcode
 
+                        VStack(
+                            alignment: .leading,
+                            spacing: 6
+                        ) {
 
-                        if let code =
-                            nonEmpty(
-                                module.code
-                            ) {
-
-                            Text(code)
-                                .font(
-                                    .system(
-                                        size: 13,
-                                        weight: .semibold
-                                    )
-                                )
-                                .foregroundStyle(
-                                    color(
-                                        for:
-                                            module.color
-                                    )
-                                )
-                                .padding(
-                                    .horizontal,
-                                    8
-                                )
-                                .padding(
-                                    .vertical,
-                                    4
-                                )
-                                .background(
-                                    color(
-                                        for:
-                                            module.color
-                                    )
-                                    .opacity(
-                                        0.10
-                                    ),
-                                    in:
-                                        Capsule()
-                                )
-                        }
-                    }
-
-                    Spacer()
-
-
-                    // MARK: Optionen
-
-                    if deletingModuleID
-                        == module.id {
-
-                        ProgressView()
-                            .controlSize(
-                                .small
-                            )
-                            .frame(
-                                width: 32,
-                                height: 32
-                            )
-
-                    } else {
-
-                        Menu {
-
-                            // Bearbeiten
-
-                            Button {
-
-                                moduleToEdit =
-                                    module
-
-                            } label: {
-
-                                Label(
-                                    "Bearbeiten",
-                                    systemImage:
-                                        "pencil"
-                                )
-                            }
-
-
-                            // Löschen
-
-                            Button(
-                                role:
-                                    .destructive
-                            ) {
-
-                                moduleToDelete =
-                                    module
-
-                            } label: {
-
-                                Label(
-                                    "Löschen",
-                                    systemImage:
-                                        "trash"
-                                )
-                            }
-
-                        } label: {
-
-                            Image(
-                                systemName:
-                                    "ellipsis"
+                            Text(
+                                module.name
                             )
                             .font(
                                 .system(
-                                    size: 16,
+                                    size: 18,
                                     weight: .semibold
                                 )
                             )
                             .foregroundStyle(
                                 .primary
-                                    .opacity(
-                                        0.55
+                            )
+
+
+                            if let code =
+                                nonEmpty(
+                                    module.code
+                                ) {
+
+                                Text(code)
+                                    .font(
+                                        .system(
+                                            size: 13,
+                                            weight: .semibold
+                                        )
                                     )
+                                    .foregroundStyle(
+                                        color(
+                                            for:
+                                                module.color
+                                        )
+                                    )
+                                    .padding(
+                                        .horizontal,
+                                        8
+                                    )
+                                    .padding(
+                                        .vertical,
+                                        4
+                                    )
+                                    .background(
+                                        color(
+                                            for:
+                                                module.color
+                                        )
+                                        .opacity(
+                                            0.10
+                                        ),
+                                        in:
+                                            Capsule()
+                                    )
+                            }
+                        }
+
+
+                        // MARK: Beschreibung
+
+                        if let description =
+                            nonEmpty(
+                                module.description
+                            ) {
+
+                            Text(
+                                description
                             )
-                            .frame(
-                                width: 32,
-                                height: 32
+                            .font(
+                                .system(
+                                    size: 15
+                                )
                             )
-                            .contentShape(
-                                Rectangle()
+                            .foregroundStyle(
+                                .secondary
+                            )
+                            .lineLimit(3)
+                            .fixedSize(
+                                horizontal: false,
+                                vertical: true
                             )
                         }
-                        .buttonStyle(.plain)
 
-                        .disabled(
-                            isLoading
-                                || isDeletingModule
+
+                        // MARK: Externer Kurs
+
+                        if module
+                            .isExternalCourseLinked {
+
+                            Label(
+                                "Mit externem Kurs verknüpft",
+                                systemImage:
+                                    "link"
+                            )
+                            .font(
+                                .system(
+                                    size: 12,
+                                    weight: .medium
+                                )
+                            )
+                            .foregroundStyle(
+                                .secondary
+                            )
+                            .padding(
+                                .horizontal,
+                                9
+                            )
+                            .padding(
+                                .vertical,
+                                5
+                            )
+                            .background(
+                                Color.secondary
+                                    .opacity(
+                                        0.08
+                                    ),
+                                in:
+                                    Capsule()
+                            )
+                        }
+                    }
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                    .contentShape(
+                        Rectangle()
+                    )
+                }
+                .buttonStyle(
+                    .plain
+                )
+                .disabled(
+                    isDeletingModule
+                )
+
+
+                // MARK: - Optionen
+
+                if deletingModuleID
+                    == module.id {
+
+                    ProgressView()
+                        .controlSize(
+                            .small
+                        )
+                        .frame(
+                            width: 32,
+                            height: 32
                         )
 
-                        .accessibilityLabel(
-                            "\(module.name) Optionen"
+                } else {
+
+                    Menu {
+
+                        // MARK: Bearbeiten
+
+                        Button {
+
+                            moduleToEdit =
+                                module
+
+                        } label: {
+
+                            Label(
+                                "Bearbeiten",
+                                systemImage:
+                                    "pencil"
+                            )
+                        }
+
+
+                        // MARK: Löschen
+
+                        Button(
+                            role:
+                                .destructive
+                        ) {
+
+                            moduleToDelete =
+                                module
+
+                        } label: {
+
+                            Label(
+                                "Löschen",
+                                systemImage:
+                                    "trash"
+                            )
+                        }
+
+                    } label: {
+
+                        Image(
+                            systemName:
+                                "ellipsis"
+                        )
+                        .font(
+                            .system(
+                                size: 16,
+                                weight: .semibold
+                            )
+                        )
+                        .foregroundStyle(
+                            .primary
+                                .opacity(
+                                    0.55
+                                )
+                        )
+                        .frame(
+                            width: 32,
+                            height: 32
+                        )
+                        .contentShape(
+                            Rectangle()
                         )
                     }
-                }
-
-
-                // MARK: Beschreibung
-
-                if let description =
-                    nonEmpty(
-                        module.description
-                    ) {
-
-                    Text(
-                        description
+                    .buttonStyle(
+                        .plain
                     )
-                    .font(
-                        .system(
-                            size: 15
-                        )
+                    .disabled(
+                        isLoading
+                            || isDeletingModule
                     )
-                    .foregroundStyle(
-                        .secondary
-                    )
-                    .lineLimit(3)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-                }
-
-
-                // MARK: Externer Kurs
-
-                if module
-                    .isExternalCourseLinked {
-
-                    Label(
-                        "Mit externem Kurs verknüpft",
-                        systemImage:
-                            "link"
-                    )
-                    .font(
-                        .system(
-                            size: 12,
-                            weight: .medium
-                        )
-                    )
-                    .foregroundStyle(
-                        .secondary
-                    )
-                    .padding(
-                        .horizontal,
-                        9
-                    )
-                    .padding(
-                        .vertical,
-                        5
-                    )
-                    .background(
-                        Color.secondary
-                            .opacity(
-                                0.08
-                            ),
-                        in: Capsule()
+                    .accessibilityLabel(
+                        "\(module.name) Optionen"
                     )
                 }
             }
@@ -618,16 +645,15 @@ struct ModulesView: View {
             )
         }
         .background(
-
             Color(
                 uiColor:
                     .systemBackground
             ),
-
-            in: RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
+            in:
+                RoundedRectangle(
+                    cornerRadius: 18,
+                    style: .continuous
+                )
         )
         .overlay {
 
