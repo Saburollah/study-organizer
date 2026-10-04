@@ -1,41 +1,64 @@
 import SwiftUI
 
 struct ModulesView: View {
+
     let session: AuthSession
 
     @EnvironmentObject private var sessionManager: SessionManager
 
     @State private var modules: [StudyModule] = []
+
     @State private var isLoading = false
     @State private var hasLoaded = false
+
     @State private var errorMessage: String?
+
     @State private var reloadID = UUID()
 
     @State private var showCreateModule = false
+
     @State private var moduleToEdit: StudyModule?
 
+    // MARK: - Löschen
+
+    @State private var moduleToDelete: StudyModule?
+
+    @State private var isDeletingModule = false
+
+    @State private var deletingModuleID: String?
+
+
+    // MARK: - Body
+
     var body: some View {
+
         NavigationStack {
+
             ScrollView {
+
                 LazyVStack(spacing: 14) {
 
                     header
 
                     if isLoading && modules.isEmpty {
+
                         loadingView
                     }
 
                     if let errorMessage {
+
                         errorCard(errorMessage)
                     }
 
                     if hasLoaded
                         && modules.isEmpty
                         && !isLoading {
+
                         emptyState
                     }
 
                     ForEach(modules) { module in
+
                         moduleCard(module)
                     }
                 }
@@ -46,33 +69,57 @@ struct ModulesView: View {
                 .padding(.bottom, 40)
             }
             .background(
+
                 Color(uiColor: .systemGroupedBackground)
                     .ignoresSafeArea()
             )
+
             .refreshable {
+
                 await loadModules()
             }
+
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+
+                ToolbarItem(
+                    placement: .topBarTrailing
+                ) {
+
                     Menu {
-                        Button(role: .destructive) {
+
+                        Button(
+                            role: .destructive
+                        ) {
+
                             sessionManager.signOut()
+
                         } label: {
+
                             Label(
                                 "Abmelden",
                                 systemImage:
                                     "rectangle.portrait.and.arrow.right"
                             )
                         }
+
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+
+                        Image(
+                            systemName:
+                                "ellipsis.circle"
+                        )
                     }
                 }
             }
 
+
             // MARK: - Neues Lernmodul
 
-            .sheet(isPresented: $showCreateModule) {
+            .sheet(
+                isPresented:
+                    $showCreateModule
+            ) {
+
                 CreateModuleView(
                     session: session
                 ) { module in
@@ -80,11 +127,13 @@ struct ModulesView: View {
                     guard sessionManager
                         .session?
                         .accessToken
-                        == session.accessToken else {
+                        == session.accessToken
+                    else {
                         return
                     }
 
                     modules.removeAll {
+
                         $0.id == module.id
                     }
 
@@ -94,14 +143,22 @@ struct ModulesView: View {
                     )
 
                     hasLoaded = true
+
                     errorMessage = nil
                 }
-                .environmentObject(sessionManager)
+                .environmentObject(
+                    sessionManager
+                )
             }
+
 
             // MARK: - Lernmodul bearbeiten
 
-            .sheet(item: $moduleToEdit) { module in
+            .sheet(
+                item:
+                    $moduleToEdit
+            ) { module in
+
                 EditModuleView(
                     module: module,
                     session: session
@@ -110,40 +167,121 @@ struct ModulesView: View {
                     guard sessionManager
                         .session?
                         .accessToken
-                        == session.accessToken else {
+                        == session.accessToken
+                    else {
                         return
                     }
 
-                    if let index = modules.firstIndex(
-                        where: {
-                            $0.id == updatedModule.id
-                        }
-                    ) {
-                        modules[index] = updatedModule
+                    if let index =
+                        modules.firstIndex(
+                            where: {
+                                $0.id
+                                    == updatedModule.id
+                            }
+                        ) {
+
+                        modules[index] =
+                            updatedModule
                     }
 
                     errorMessage = nil
                 }
-                .environmentObject(sessionManager)
+                .environmentObject(
+                    sessionManager
+                )
             }
 
-            .task(id: reloadID) {
+
+            // MARK: - Löschen bestätigen
+
+            .confirmationDialog(
+                "Lernmodul löschen?",
+                isPresented:
+                    deleteConfirmationBinding,
+                titleVisibility: .visible,
+                presenting:
+                    moduleToDelete
+            ) { module in
+
+                Button(
+                    "Löschen",
+                    role: .destructive
+                ) {
+
+                    Task {
+
+                        await deleteModule(
+                            module
+                        )
+                    }
+                }
+
+                Button(
+                    "Abbrechen",
+                    role: .cancel
+                ) {
+
+                    moduleToDelete = nil
+                }
+
+            } message: { module in
+
+                Text(
+                    "Möchtest du das Lernmodul "
+                    + "„\(module.name)“ wirklich löschen?"
+                )
+            }
+
+
+            // MARK: - Module laden
+
+            .task(
+                id: reloadID
+            ) {
+
                 await loadModules()
             }
         }
     }
 
+
+    // MARK: - Delete Dialog Binding
+
+    private var deleteConfirmationBinding:
+        Binding<Bool> {
+
+        Binding(
+
+            get: {
+
+                moduleToDelete != nil
+            },
+
+            set: { isPresented in
+
+                if !isPresented {
+
+                    moduleToDelete = nil
+                }
+            }
+        )
+    }
+
+
     // MARK: - Header
 
     private var header: some View {
+
         HStack(
             alignment: .center,
             spacing: 16
         ) {
+
             VStack(
                 alignment: .leading,
                 spacing: 5
             ) {
+
                 Text("Meine Lernmodule")
                     .font(
                         .system(
@@ -152,41 +290,63 @@ struct ModulesView: View {
                         )
                     )
 
-                Text("Deine Fächer auf einen Blick.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Deine Fächer auf einen Blick."
+                )
+                .font(.subheadline)
+                .foregroundStyle(
+                    .secondary
+                )
             }
 
-            Spacer(minLength: 8)
+            Spacer(
+                minLength: 8
+            )
 
             Button {
+
                 showCreateModule = true
+
             } label: {
-                Image(systemName: "plus")
-                    .font(
-                        .system(
-                            size: 16,
-                            weight: .semibold
-                        )
+
+                Image(
+                    systemName: "plus"
+                )
+                .font(
+                    .system(
+                        size: 16,
+                        weight: .semibold
                     )
-                    .foregroundStyle(.white)
-                    .frame(
-                        width: 40,
-                        height: 40
-                    )
-                    .background(
-                        Color.accentColor,
-                        in: Circle()
-                    )
+                )
+                .foregroundStyle(
+                    .white
+                )
+                .frame(
+                    width: 40,
+                    height: 40
+                )
+                .background(
+                    Color.accentColor,
+                    in: Circle()
+                )
             }
             .buttonStyle(.plain)
-            .disabled(isLoading)
+
+            .disabled(
+                isLoading
+                    || isDeletingModule
+            )
+
             .accessibilityLabel(
                 "Lernmodul hinzufügen"
             )
         }
-        .padding(.bottom, 6)
+        .padding(
+            .bottom,
+            6
+        )
     }
+
 
     // MARK: - Modul Card
 
@@ -203,10 +363,16 @@ struct ModulesView: View {
                 style: .continuous
             )
             .fill(
-                color(for: module.color)
+                color(
+                    for: module.color
+                )
             )
             .frame(width: 6)
-            .padding(.vertical, 10)
+            .padding(
+                .vertical,
+                10
+            )
+
 
             VStack(
                 alignment: .leading,
@@ -225,18 +391,25 @@ struct ModulesView: View {
                         spacing: 6
                     ) {
 
-                        Text(module.name)
-                            .font(
-                                .system(
-                                    size: 18,
-                                    weight: .semibold
-                                )
+                        Text(
+                            module.name
+                        )
+                        .font(
+                            .system(
+                                size: 18,
+                                weight: .semibold
                             )
-                            .foregroundStyle(.primary)
+                        )
+                        .foregroundStyle(
+                            .primary
+                        )
 
-                        if let code = nonEmpty(
-                            module.code
-                        ) {
+
+                        if let code =
+                            nonEmpty(
+                                module.code
+                            ) {
+
                             Text(code)
                                 .font(
                                     .system(
@@ -246,7 +419,8 @@ struct ModulesView: View {
                                 )
                                 .foregroundStyle(
                                     color(
-                                        for: module.color
+                                        for:
+                                            module.color
                                     )
                                 )
                                 .padding(
@@ -259,27 +433,81 @@ struct ModulesView: View {
                                 )
                                 .background(
                                     color(
-                                        for: module.color
+                                        for:
+                                            module.color
                                     )
-                                    .opacity(0.10),
-                                    in: Capsule()
+                                    .opacity(
+                                        0.10
+                                    ),
+                                    in:
+                                        Capsule()
                                 )
                         }
                     }
 
                     Spacer()
 
-                    Menu {
-                        Button {
-                            moduleToEdit = module
-                        } label: {
-                            Label(
-                                "Bearbeiten",
-                                systemImage: "pencil"
+
+                    // MARK: Optionen
+
+                    if deletingModuleID
+                        == module.id {
+
+                        ProgressView()
+                            .controlSize(
+                                .small
                             )
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
+                            .frame(
+                                width: 32,
+                                height: 32
+                            )
+
+                    } else {
+
+                        Menu {
+
+                            // Bearbeiten
+
+                            Button {
+
+                                moduleToEdit =
+                                    module
+
+                            } label: {
+
+                                Label(
+                                    "Bearbeiten",
+                                    systemImage:
+                                        "pencil"
+                                )
+                            }
+
+
+                            // Löschen
+
+                            Button(
+                                role:
+                                    .destructive
+                            ) {
+
+                                moduleToDelete =
+                                    module
+
+                            } label: {
+
+                                Label(
+                                    "Löschen",
+                                    systemImage:
+                                        "trash"
+                                )
+                            }
+
+                        } label: {
+
+                            Image(
+                                systemName:
+                                    "ellipsis"
+                            )
                             .font(
                                 .system(
                                     size: 16,
@@ -287,7 +515,10 @@ struct ModulesView: View {
                                 )
                             )
                             .foregroundStyle(
-                                .primary.opacity(0.55)
+                                .primary
+                                    .opacity(
+                                        0.55
+                                    )
                             )
                             .frame(
                                 width: 32,
@@ -296,37 +527,56 @@ struct ModulesView: View {
                             .contentShape(
                                 Rectangle()
                             )
+                        }
+                        .buttonStyle(.plain)
+
+                        .disabled(
+                            isLoading
+                                || isDeletingModule
+                        )
+
+                        .accessibilityLabel(
+                            "\(module.name) Optionen"
+                        )
                     }
-                    .buttonStyle(.plain)
-                    .disabled(isLoading)
-                    .accessibilityLabel(
-                        "\(module.name) Optionen"
-                    )
                 }
+
 
                 // MARK: Beschreibung
 
-                if let description = nonEmpty(
-                    module.description
-                ) {
-                    Text(description)
-                        .font(
-                            .system(size: 15)
+                if let description =
+                    nonEmpty(
+                        module.description
+                    ) {
+
+                    Text(
+                        description
+                    )
+                    .font(
+                        .system(
+                            size: 15
                         )
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .fixedSize(
-                            horizontal: false,
-                            vertical: true
-                        )
+                    )
+                    .foregroundStyle(
+                        .secondary
+                    )
+                    .lineLimit(3)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
                 }
+
 
                 // MARK: Externer Kurs
 
-                if module.isExternalCourseLinked {
+                if module
+                    .isExternalCourseLinked {
+
                     Label(
                         "Mit externem Kurs verknüpft",
-                        systemImage: "link"
+                        systemImage:
+                            "link"
                     )
                     .font(
                         .system(
@@ -334,7 +584,9 @@ struct ModulesView: View {
                             weight: .medium
                         )
                     )
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(
+                        .secondary
+                    )
                     .padding(
                         .horizontal,
                         9
@@ -344,111 +596,208 @@ struct ModulesView: View {
                         5
                     )
                     .background(
-                        Color.secondary.opacity(0.08),
+                        Color.secondary
+                            .opacity(
+                                0.08
+                            ),
                         in: Capsule()
                     )
                 }
             }
-            .padding(.leading, 14)
-            .padding(.trailing, 13)
-            .padding(.vertical, 13)
+            .padding(
+                .leading,
+                14
+            )
+            .padding(
+                .trailing,
+                13
+            )
+            .padding(
+                .vertical,
+                13
+            )
         }
         .background(
-            Color(uiColor: .systemBackground),
+
+            Color(
+                uiColor:
+                    .systemBackground
+            ),
+
             in: RoundedRectangle(
                 cornerRadius: 18,
                 style: .continuous
             )
         )
         .overlay {
+
             RoundedRectangle(
                 cornerRadius: 18,
                 style: .continuous
             )
             .stroke(
-                Color.secondary.opacity(0.11),
+                Color.secondary
+                    .opacity(
+                        0.11
+                    ),
                 lineWidth: 1
             )
         }
         .shadow(
-            color: Color.black.opacity(0.035),
+            color:
+                Color.black
+                    .opacity(
+                        0.035
+                    ),
             radius: 9,
             y: 3
         )
     }
 
+
     // MARK: - Loading
 
-    private var loadingView: some View {
-        VStack(spacing: 12) {
+    private var loadingView:
+        some View {
+
+        VStack(
+            spacing: 12
+        ) {
+
             ProgressView()
 
-            Text("Lernmodule werden geladen …")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Text(
+                "Lernmodule werden geladen …"
+            )
+            .font(
+                .subheadline
+            )
+            .foregroundStyle(
+                .secondary
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 50)
+        .frame(
+            maxWidth: .infinity
+        )
+        .padding(
+            .vertical,
+            50
+        )
     }
+
 
     // MARK: - Empty State
 
-    private var emptyState: some View {
-        VStack(spacing: 16) {
+    private var emptyState:
+        some View {
 
-            Image(systemName: "books.vertical")
-                .font(
-                    .system(
-                        size: 30,
-                        weight: .medium
-                    )
+        VStack(
+            spacing: 16
+        ) {
+
+            Image(
+                systemName:
+                    "books.vertical"
+            )
+            .font(
+                .system(
+                    size: 30,
+                    weight: .medium
                 )
-                .foregroundStyle(.secondary)
+            )
+            .foregroundStyle(
+                .secondary
+            )
 
-            VStack(spacing: 5) {
-                Text("Noch keine Lernmodule")
-                    .font(.headline)
+
+            VStack(
+                spacing: 5
+            ) {
 
                 Text(
-                    "Erstelle dein erstes Lernmodul und organisiere deine Fächer."
+                    "Noch keine Lernmodule"
                 )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                .font(
+                    .headline
+                )
+
+                Text(
+                    "Erstelle dein erstes Lernmodul "
+                    + "und organisiere deine Fächer."
+                )
+                .font(
+                    .subheadline
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+                .multilineTextAlignment(
+                    .center
+                )
             }
 
+
             Button {
+
                 showCreateModule = true
+
             } label: {
+
                 Label(
                     "Lernmodul erstellen",
-                    systemImage: "plus"
+                    systemImage:
+                        "plus"
                 )
-                .fontWeight(.semibold)
+                .fontWeight(
+                    .semibold
+                )
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(
+                .borderedProminent
+            )
+            .disabled(
+                isDeletingModule
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 42)
-        .padding(.horizontal, 24)
+        .frame(
+            maxWidth: .infinity
+        )
+        .padding(
+            .vertical,
+            42
+        )
+        .padding(
+            .horizontal,
+            24
+        )
         .background(
-            Color(uiColor: .systemBackground),
+
+            Color(
+                uiColor:
+                    .systemBackground
+            ),
+
             in: RoundedRectangle(
                 cornerRadius: 18,
                 style: .continuous
             )
         )
         .overlay {
+
             RoundedRectangle(
                 cornerRadius: 18,
                 style: .continuous
             )
             .stroke(
-                Color.secondary.opacity(0.11),
+                Color.secondary
+                    .opacity(
+                        0.11
+                    ),
                 lineWidth: 1
             )
         }
     }
+
 
     // MARK: - Fehler
 
@@ -465,28 +814,47 @@ struct ModulesView: View {
                 alignment: .top,
                 spacing: 10
             ) {
+
                 Image(
                     systemName:
                         "exclamationmark.circle.fill"
                 )
-                .foregroundStyle(.red)
+                .foregroundStyle(
+                    .red
+                )
 
                 Text(message)
-                    .font(.subheadline)
-                    .foregroundStyle(.red)
+                    .font(
+                        .subheadline
+                    )
+                    .foregroundStyle(
+                        .red
+                    )
             }
 
+
             Button {
+
                 reloadID = UUID()
+
             } label: {
+
                 Label(
                     "Erneut versuchen",
-                    systemImage: "arrow.clockwise"
+                    systemImage:
+                        "arrow.clockwise"
                 )
-                .font(.subheadline)
-                .fontWeight(.semibold)
+                .font(
+                    .subheadline
+                )
+                .fontWeight(
+                    .semibold
+                )
             }
-            .disabled(isLoading)
+            .disabled(
+                isLoading
+                    || isDeletingModule
+            )
         }
         .frame(
             maxWidth: .infinity,
@@ -494,13 +862,168 @@ struct ModulesView: View {
         )
         .padding(16)
         .background(
-            Color.red.opacity(0.07),
+
+            Color.red
+                .opacity(
+                    0.07
+                ),
+
             in: RoundedRectangle(
                 cornerRadius: 14,
                 style: .continuous
             )
         )
     }
+
+
+    // MARK: - Lernmodul löschen
+
+    @MainActor
+    private func deleteModule(
+        _ module: StudyModule
+    ) async {
+
+        guard !isDeletingModule
+        else {
+            return
+        }
+
+
+        // Prüfen, ob dieselbe Sitzung
+        // weiterhin aktiv ist.
+
+        guard sessionManager
+            .session?
+            .accessToken
+            == session.accessToken
+        else {
+            return
+        }
+
+
+        sessionManager
+            .checkExpiration()
+
+
+        guard sessionManager
+            .session?
+            .accessToken
+            == session.accessToken
+        else {
+            return
+        }
+
+
+        isDeletingModule = true
+
+        deletingModuleID =
+            module.id
+
+        errorMessage = nil
+
+
+        defer {
+
+            isDeletingModule = false
+
+            deletingModuleID = nil
+        }
+
+
+        do {
+
+            try await ModuleService()
+                .deleteModule(
+                    id: module.id,
+                    accessToken:
+                        session.accessToken
+                )
+
+
+            try Task
+                .checkCancellation()
+
+
+            sessionManager
+                .checkExpiration()
+
+
+            // Antwort einer alten Sitzung
+            // darf nicht übernommen werden.
+
+            guard sessionManager
+                .session?
+                .accessToken
+                == session.accessToken
+            else {
+                return
+            }
+
+
+            // Nur nach erfolgreicher
+            // Serverantwort lokal entfernen.
+
+            modules.removeAll {
+
+                $0.id == module.id
+            }
+
+
+            hasLoaded = true
+
+            errorMessage = nil
+
+
+        } catch is CancellationError {
+
+            return
+
+
+        } catch {
+
+            guard !Task.isCancelled,
+
+                  sessionManager
+                    .session?
+                    .accessToken
+                    == session.accessToken
+
+            else {
+                return
+            }
+
+
+            // MARK: 401
+
+            if let serviceError =
+                error as?
+                    ModuleServiceError,
+
+               case .unauthorized =
+                    serviceError {
+
+                modules = []
+
+                sessionManager
+                    .invalidateSession(
+                        accessToken:
+                            session.accessToken
+                    )
+
+                return
+            }
+
+
+            // 404, 409, Timeout,
+            // Netzwerk und Serverfehler
+            // verwenden ihre vorhandene
+            // LocalizedError-Nachricht.
+
+            errorMessage =
+                error.localizedDescription
+        }
+    }
+
 
     // MARK: - Backend-Farbe
 
@@ -509,12 +1032,18 @@ struct ModulesView: View {
     ) -> Color {
 
         guard let hex,
-              let parsedColor = Color(hex: hex) else {
+              let parsedColor =
+                Color(
+                    hex: hex
+                )
+        else {
+
             return .accentColor
         }
 
         return parsedColor
     }
+
 
     // MARK: - String prüfen
 
@@ -523,133 +1052,213 @@ struct ModulesView: View {
     ) -> String? {
 
         guard let value,
+
               !value
                 .trimmingCharacters(
-                    in: .whitespacesAndNewlines
+                    in:
+                        .whitespacesAndNewlines
                 )
-                .isEmpty else {
+                .isEmpty
+
+        else {
+
             return nil
         }
 
         return value
     }
 
+
     // MARK: - Module laden
 
     @MainActor
-    private func loadModules() async {
+    private func loadModules()
+        async {
 
         guard !isLoading,
+
+              !isDeletingModule,
+
               !showCreateModule,
+
               moduleToEdit == nil,
-              sessionManager.session?.accessToken
-                == session.accessToken else {
+
+              sessionManager
+                .session?
+                .accessToken
+                == session.accessToken
+
+        else {
             return
         }
 
-        sessionManager.checkExpiration()
 
-        guard sessionManager.session?.accessToken
-                == session.accessToken else {
+        sessionManager
+            .checkExpiration()
+
+
+        guard sessionManager
+            .session?
+            .accessToken
+            == session.accessToken
+        else {
             return
         }
+
 
         isLoading = true
+
         errorMessage = nil
 
+
         defer {
+
             isLoading = false
         }
 
+
         do {
+
             let result =
-                try await ModuleService().getAll(
-                    accessToken:
-                        session.accessToken
-                )
+                try await ModuleService()
+                    .getAll(
+                        accessToken:
+                            session.accessToken
+                    )
 
-            try Task.checkCancellation()
 
-            sessionManager.checkExpiration()
+            try Task
+                .checkCancellation()
 
-            // Eine verspätete Antwort einer alten
-            // Sitzung darf nicht übernommen werden.
-            guard sessionManager.session?.accessToken
-                    == session.accessToken else {
+
+            sessionManager
+                .checkExpiration()
+
+
+            // Eine verspätete Antwort
+            // einer alten Sitzung darf
+            // nicht übernommen werden.
+
+            guard sessionManager
+                .session?
+                .accessToken
+                == session.accessToken
+            else {
                 return
             }
 
-            modules = result
-            hasLoaded = true
+
+            modules =
+                result
+
+            hasLoaded =
+                true
+
 
         } catch is CancellationError {
+
             return
+
 
         } catch {
 
             guard !Task.isCancelled,
-                  sessionManager.session?.accessToken
-                    == session.accessToken else {
+
+                  sessionManager
+                    .session?
+                    .accessToken
+                    == session.accessToken
+
+            else {
                 return
             }
 
+
             if let serviceError =
-                error as? ModuleServiceError,
-               case .unauthorized = serviceError {
+                error as?
+                    ModuleServiceError,
+
+               case .unauthorized =
+                    serviceError {
 
                 modules = []
 
-                sessionManager.invalidateSession(
-                    accessToken:
-                        session.accessToken
-                )
+                sessionManager
+                    .invalidateSession(
+                        accessToken:
+                            session.accessToken
+                    )
 
                 return
             }
 
-            // Bei einem Refresh-Fehler bleiben bereits
-            // geladene Module weiterhin sichtbar.
+
+            // Bei einem Refresh-Fehler
+            // bleiben bereits geladene
+            // Module sichtbar.
+
             errorMessage =
                 error.localizedDescription
         }
     }
 }
 
+
 // MARK: - Hex-Farbe
 
 private extension Color {
 
-    init?(hex: String) {
-        var hex = hex.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
+    init?(
+        hex: String
+    ) {
+
+        var hex =
+            hex.trimmingCharacters(
+                in:
+                    .whitespacesAndNewlines
+            )
+
 
         if hex.hasPrefix("#") {
+
             hex.removeFirst()
         }
 
+
         guard hex.count == 6,
-              let value = UInt64(
-                hex,
-                radix: 16
-              ) else {
+
+              let value =
+                UInt64(
+                    hex,
+                    radix: 16
+                )
+
+        else {
+
             return nil
         }
 
+
         let red =
             Double(
-                (value >> 16) & 0xFF
+                (value >> 16)
+                    & 0xFF
             ) / 255
+
 
         let green =
             Double(
-                (value >> 8) & 0xFF
+                (value >> 8)
+                    & 0xFF
             ) / 255
+
 
         let blue =
             Double(
-                value & 0xFF
+                value
+                    & 0xFF
             ) / 255
+
 
         self.init(
             red: red,
