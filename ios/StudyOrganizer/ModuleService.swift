@@ -22,6 +22,7 @@ enum ModuleServiceError: LocalizedError {
     case updateRejected(String)
     case updateUncertain
     case notFound
+    case linkedExternalCourse
 
     var errorDescription: String? {
         switch self {
@@ -31,7 +32,7 @@ enum ModuleServiceError: LocalizedError {
             return "Deine Sitzung ist nicht mehr gültig. "
                 + "Bitte melde dich erneut an."
         case .server(let status):
-            return "Die Lernmodule konnten nicht geladen werden "
+            return "Die Anfrage konnte nicht abgeschlossen werden "
                 + "(HTTP \(status)). Bitte versuche es erneut."
         case .invalidResponse:
             return "Die Antwort des Servers konnte nicht gelesen werden."
@@ -56,6 +57,9 @@ enum ModuleServiceError: LocalizedError {
         case .notFound:
             return "Dieses Lernmodul ist nicht mehr verfügbar. "
                 + "Bitte aktualisiere die Übersicht."
+        case .linkedExternalCourse:
+            return "Dieses Lernmodul kann nicht gelöscht werden, "
+                + "weil es mit einem externen Kurs verknüpft ist."
         }
     }
 }
@@ -355,5 +359,81 @@ extension ModuleService {
         }
 
         return module
+    }
+    
+    func deleteModule(
+        id: String,
+        accessToken: String
+    ) async throws {
+        guard let baseURL = APIConfiguration.baseURL else {
+            throw ModuleServiceError.configuration
+        }
+
+        guard let moduleId = UUID(uuidString: id) else {
+            throw ModuleServiceError.invalidResponse
+        }
+
+        let url = baseURL
+            .appendingPathComponent("api/modules")
+            .appendingPathComponent(moduleId.uuidString)
+
+        var request = URLRequest(url: url)
+
+        request.httpMethod = "DELETE"
+        request.timeoutInterval = 20
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Accept"
+        )
+
+        request.setValue(
+            "Bearer \(accessToken)",
+            forHTTPHeaderField: "Authorization"
+        )
+
+        let response: URLResponse
+
+        do {
+            let configuration = URLSessionConfiguration.ephemeral
+            let session = URLSession(configuration: configuration)
+
+            (_, response) = try await session.data(for: request)
+
+        } catch let error as URLError {
+            if error.code == .cancelled {
+                throw CancellationError()
+            }
+
+            if error.code == .timedOut {
+                throw ModuleServiceError.timeout
+            }
+
+            throw ModuleServiceError.network
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ModuleServiceError.invalidResponse
+        }
+
+        switch httpResponse.statusCode {
+
+        case 204:
+            return
+
+        case 401:
+            throw ModuleServiceError.unauthorized
+
+        case 404:
+            throw ModuleServiceError.notFound
+
+        case 409:
+            throw ModuleServiceError.linkedExternalCourse
+
+        default:
+            throw ModuleServiceError.server(
+                httpResponse.statusCode
+            )
+        }
     }
 }
