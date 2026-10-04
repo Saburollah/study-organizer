@@ -19,6 +19,9 @@ enum ModuleServiceError: LocalizedError {
     case timeout
     case creationRejected(String)
     case creationUncertain
+    case updateRejected(String)
+    case updateUncertain
+    case notFound
 
     var errorDescription: String? {
         switch self {
@@ -44,6 +47,15 @@ enum ModuleServiceError: LocalizedError {
             return "Die Erstellung konnte nicht bestätigt werden. "
                 + "Das Lernmodul wurde möglicherweise bereits gespeichert. "
                 + "Bitte prüfe die Übersicht, bevor du erneut speicherst."
+        case .updateRejected(let message):
+            return message
+        case .updateUncertain:
+            return "Die Änderung konnte nicht bestätigt werden. "
+                + "Sie wurde möglicherweise bereits gespeichert. "
+                + "Bitte prüfe die Übersicht, bevor du erneut speicherst."
+        case .notFound:
+            return "Dieses Lernmodul ist nicht mehr verfügbar. "
+                + "Bitte aktualisiere die Übersicht."
         }
     }
 }
@@ -120,6 +132,7 @@ struct CreateModuleRequest: Encodable {
     let name: String
     let code: String?
     let description: String?
+    let color: String?
 }
 
 private struct ModuleProblem: Decodable {
@@ -223,6 +236,122 @@ extension ModuleService {
             in: .whitespacesAndNewlines
         ).isEmpty else {
             throw ModuleServiceError.creationUncertain
+        }
+
+        return module
+    }
+}
+struct UpdateModuleRequest: Encodable {
+    let name: String
+    let code: String?
+    let description: String?
+    let color: String?
+
+    enum CodingKeys: String, CodingKey {
+        case name, code, description, color
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(code, forKey: .code)
+        try container.encode(description, forKey: .description)
+        try container.encode(color, forKey: .color)
+    }
+}
+
+extension ModuleService {
+    func update(
+        moduleId: String,
+        input: UpdateModuleRequest,
+        accessToken: String
+    ) async throws -> StudyModule {
+        guard let baseURL = APIConfiguration.baseURL else {
+            throw ModuleServiceError.configuration
+        }
+
+        guard let requestedID = UUID(uuidString: moduleId) else {
+            throw ModuleServiceError.notFound
+        }
+
+        let url = baseURL
+            .appendingPathComponent("api/modules")
+            .appendingPathComponent(requestedID.uuidString)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.timeoutInterval = 20
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField: "Accept"
+        )
+        request.setValue(
+            "Bearer \(accessToken)",
+            forHTTPHeaderField: "Authorization"
+        )
+        request.httpBody = try JSONEncoder().encode(input)
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.urlCache = nil
+        configuration.httpCookieStorage = nil
+
+        let client = URLSession(configuration: configuration)
+        defer { client.finishTasksAndInvalidate() }
+
+        try Task.checkCancellation()
+
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await client.data(for: request)
+        } catch {
+            throw ModuleServiceError.updateUncertain
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ModuleServiceError.updateUncertain
+        }
+
+        if httpResponse.statusCode == 401 {
+            throw ModuleServiceError.unauthorized
+        }
+
+        if httpResponse.statusCode == 404 {
+            throw ModuleServiceError.notFound
+        }
+
+        if httpResponse.statusCode >= 500
+            || httpResponse.statusCode == 408 {
+            throw ModuleServiceError.updateUncertain
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let problem = try? JSONDecoder().decode(
+                ModuleProblem.self,
+                from: data
+            )
+
+            throw ModuleServiceError.updateRejected(
+                problem?.message
+                    ?? "Das Lernmodul konnte nicht geändert werden "
+                    + "(HTTP \(httpResponse.statusCode))."
+            )
+        }
+
+        guard let module = try? JSONDecoder().decode(
+            StudyModule.self,
+            from: data
+        ),
+        UUID(uuidString: module.id) == requestedID,
+        !module.name.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty else {
+            throw ModuleServiceError.updateUncertain
         }
 
         return module
