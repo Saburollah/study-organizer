@@ -3,23 +3,41 @@ import SwiftUI
 @main
 struct StudyOrganizerApp: App {
     @StateObject private var sessionManager = SessionManager()
-    @Environment(\.scenePhase) private var scenePhase
+
+    @Environment(\.scenePhase)
+    private var scenePhase
+
+    @AppStorage("hasSeenFirstLaunch")
+    private var hasSeenFirstLaunch = false
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if let session = sessionManager.session {
+
+                if !hasSeenFirstLaunch {
+
+                    FirstLaunchView {
+                        hasSeenFirstLaunch = true
+                    }
+
+                } else if let session = sessionManager.session {
+
                     ModulesView(session: session)
                         .id(session.accessToken)
+
                 } else {
+
                     ContentView()
                 }
             }
             .environmentObject(sessionManager)
+
             .alert(
                 "Hinweis",
                 isPresented: Binding(
-                    get: { sessionManager.errorMessage != nil },
+                    get: {
+                        sessionManager.errorMessage != nil
+                    },
                     set: { isPresented in
                         if !isPresented {
                             sessionManager.errorMessage = nil
@@ -27,12 +45,18 @@ struct StudyOrganizerApp: App {
                     }
                 )
             ) {
-                Button("OK", role: .cancel) {
+                Button(
+                    "OK",
+                    role: .cancel
+                ) {
                     sessionManager.errorMessage = nil
                 }
             } message: {
-                Text(sessionManager.errorMessage ?? "")
+                Text(
+                    sessionManager.errorMessage ?? ""
+                )
             }
+
             .onChange(of: scenePhase) {
                 if scenePhase == .active {
                     sessionManager.checkExpiration()
