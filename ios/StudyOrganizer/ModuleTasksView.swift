@@ -27,6 +27,12 @@ struct ModuleTasksView: View {
 
     @State
     private var showCreateTask = false
+    
+    @State
+    private var updatingTaskID: String?
+
+    @State
+    private var statusErrorMessage: String?
 
 
     var body: some View {
@@ -51,6 +57,22 @@ struct ModuleTasksView: View {
 
                     errorCard(
                         errorMessage
+                    )
+                }
+                if let statusErrorMessage {
+
+                    Text(
+                        statusErrorMessage
+                    )
+                    .font(
+                        .subheadline
+                    )
+                    .foregroundStyle(
+                        .red
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
                     )
                 }
 
@@ -290,6 +312,15 @@ struct ModuleTasksView: View {
                 spacing: 12
             ) {
 
+                statusButton(
+                    task
+                )
+                .padding(
+                    .top,
+                    1
+                )
+
+
                 VStack(
                     alignment: .leading,
                     spacing: 6
@@ -305,7 +336,13 @@ struct ModuleTasksView: View {
                         )
                     )
                     .foregroundStyle(
-                        .primary
+                        task.isCompleted
+                            ? Color.secondary
+                            : Color.primary
+                    )
+                    .strikethrough(
+                        task.isCompleted,
+                        color: .secondary
                     )
 
 
@@ -447,6 +484,86 @@ struct ModuleTasksView: View {
                     ),
             radius: 9,
             y: 3
+        )
+    }
+    
+    // MARK: - Status Button
+
+    private func statusButton(
+        _ task: StudyTask
+    ) -> some View {
+
+        Button {
+
+            Task {
+
+                await toggleStatus(
+                    for: task
+                )
+            }
+
+        } label: {
+
+            ZStack {
+
+                Circle()
+                    .stroke(
+                        task.isCompleted
+                            ? Color.green
+                            : Color.secondary.opacity(0.45),
+                        lineWidth: 2
+                    )
+                    .frame(
+                        width: 26,
+                        height: 26
+                    )
+
+
+                if updatingTaskID == task.id {
+
+                    ProgressView()
+                        .controlSize(
+                            .mini
+                        )
+
+
+                } else if task.isCompleted {
+
+                    Circle()
+                        .fill(
+                            Color.green
+                        )
+                        .frame(
+                            width: 26,
+                            height: 26
+                        )
+
+
+                    Image(
+                        systemName: "checkmark"
+                    )
+                    .font(
+                        .system(
+                            size: 12,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundStyle(
+                        .white
+                    )
+                }
+            }
+        }
+        .buttonStyle(
+            .plain
+        )
+        .disabled(
+            updatingTaskID != nil
+        )
+        .accessibilityLabel(
+            task.isCompleted
+                ? "Aufgabe wieder öffnen"
+                : "Aufgabe als erledigt markieren"
         )
     }
 
@@ -837,6 +954,109 @@ struct ModuleTasksView: View {
 
             errorMessage =
                 error.localizedDescription
+        }
+    }
+    
+    private func toggleStatus(
+        for task: StudyTask
+    ) async {
+
+        guard updatingTaskID == nil
+        else {
+            return
+        }
+
+
+        guard let currentSession =
+                sessionManager.session
+        else {
+
+            errorMessage =
+                "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an."
+
+            return
+        }
+
+
+        updatingTaskID =
+            task.id
+
+        statusErrorMessage =
+            nil
+
+
+        let newStatus: StudyTaskStatus =
+            task.isCompleted
+                ? .open
+                : .completed
+
+
+        do {
+
+            let updatedTask =
+                try await StudyTaskService()
+                    .updateStatus(
+                        moduleId: module.id,
+                        taskId: task.id,
+                        status: newStatus,
+                        accessToken:
+                            currentSession.accessToken
+                    )
+
+
+            if let index =
+                tasks.firstIndex(
+                    where: {
+                        $0.id == task.id
+                    }
+                ) {
+
+                tasks[index] =
+                    updatedTask
+            }
+
+
+            updatingTaskID =
+                nil
+
+
+        } catch is CancellationError {
+
+            updatingTaskID =
+                nil
+
+
+        } catch let serviceError
+            as StudyTaskServiceError {
+
+            updatingTaskID =
+                nil
+
+
+            if case .unauthorized =
+                serviceError {
+
+                sessionManager
+                    .invalidateSession(
+                        accessToken:
+                            currentSession.accessToken
+                    )
+
+                return
+            }
+
+
+            statusErrorMessage =
+                serviceError.localizedDescription
+
+
+        } catch {
+
+            updatingTaskID =
+                nil
+
+            statusErrorMessage =
+                "Der Aufgabenstatus konnte nicht geändert werden. Bitte versuche es erneut."
         }
     }
 
