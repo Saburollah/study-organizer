@@ -1,17 +1,32 @@
 import SwiftUI
 
+
 struct ModuleTasksView: View {
 
     let module: StudyModule
+
     let session: AuthSession
 
-    @EnvironmentObject private var sessionManager: SessionManager
 
-    @State private var tasks: [StudyTask] = []
+    @EnvironmentObject
+    private var sessionManager: SessionManager
 
-    @State private var isLoading = false
-    @State private var hasLoaded = false
-    @State private var errorMessage: String?
+
+    @State
+    private var tasks: [StudyTask] = []
+
+
+    @State
+    private var isLoading = false
+
+    @State
+    private var hasLoaded = false
+
+    @State
+    private var errorMessage: String?
+
+    @State
+    private var showCreateTask = false
 
 
     var body: some View {
@@ -89,6 +104,37 @@ struct ModuleTasksView: View {
         .navigationBarTitleDisplayMode(
             .inline
         )
+        .sheet(
+            isPresented:
+                $showCreateTask
+        ) {
+
+            CreateTaskView(
+                module: module,
+                session: session
+            ) { createdTask in
+
+                tasks.removeAll {
+
+                    $0.id
+                        == createdTask.id
+                }
+
+
+                tasks.insert(
+                    createdTask,
+                    at: 0
+                )
+
+
+                hasLoaded = true
+
+                errorMessage = nil
+            }
+            .environmentObject(
+                sessionManager
+            )
+        }
         .refreshable {
 
             await loadTasks()
@@ -105,92 +151,125 @@ struct ModuleTasksView: View {
     private var header:
         some View {
 
-        VStack(
-            alignment: .leading,
+        HStack(
+            alignment: .center,
             spacing: 12
         ) {
 
-            HStack(
-                alignment: .center,
-                spacing: 12
+            RoundedRectangle(
+                cornerRadius: 4,
+                style: .continuous
+            )
+            .fill(
+                color(
+                    for:
+                        module.color
+                )
+            )
+            .frame(
+                width: 7,
+                height: 52
+            )
+
+
+            VStack(
+                alignment: .leading,
+                spacing: 5
             ) {
 
-                RoundedRectangle(
-                    cornerRadius: 4,
-                    style: .continuous
+                Text(
+                    module.name
                 )
-                .fill(
-                    color(
-                        for:
-                            module.color
+                .font(
+                    .system(
+                        size: 28,
+                        weight: .bold
                     )
                 )
-                .frame(
-                    width: 7,
-                    height: 52
-                )
 
 
-                VStack(
-                    alignment: .leading,
-                    spacing: 5
-                ) {
+                if let code =
+                    nonEmpty(
+                        module.code
+                    ) {
 
                     Text(
-                        module.name
+                        code
                     )
                     .font(
                         .system(
-                            size: 28,
-                            weight: .bold
+                            size: 13,
+                            weight: .semibold
                         )
                     )
-
-
-                    if let code =
-                        nonEmpty(
-                            module.code
-                        ) {
-
-                        Text(code)
-                            .font(
-                                .system(
-                                    size: 13,
-                                    weight:
-                                        .semibold
-                                )
-                            )
-                            .foregroundStyle(
-                                color(
-                                    for:
-                                        module.color
-                                )
-                            )
-                            .padding(
-                                .horizontal,
-                                8
-                            )
-                            .padding(
-                                .vertical,
-                                4
-                            )
-                            .background(
-                                color(
-                                    for:
-                                        module.color
-                                )
-                                .opacity(
-                                    0.10
-                                ),
-                                in:
-                                    Capsule()
-                            )
-                    }
+                    .foregroundStyle(
+                        color(
+                            for:
+                                module.color
+                        )
+                    )
+                    .padding(
+                        .horizontal,
+                        8
+                    )
+                    .padding(
+                        .vertical,
+                        4
+                    )
+                    .background(
+                        color(
+                            for:
+                                module.color
+                        )
+                        .opacity(
+                            0.10
+                        ),
+                        in:
+                            Capsule()
+                    )
                 }
-
-
-                Spacer()
             }
+
+
+            Spacer()
+
+
+            Button {
+
+                showCreateTask = true
+
+            } label: {
+
+                Image(
+                    systemName: "plus"
+                )
+                .font(
+                    .system(
+                        size: 18,
+                        weight: .medium
+                    )
+                )
+                .foregroundStyle(
+                    .white
+                )
+                .frame(
+                    width: 42,
+                    height: 42
+                )
+                .background(
+                    Color.accentColor,
+                    in: Circle()
+                )
+            }
+            .buttonStyle(
+                .plain
+            )
+            .accessibilityLabel(
+                "Neue Aufgabe erstellen"
+            )
+            .accessibilityLabel(
+                "Neue Aufgabe erstellen"
+            )
         }
     }
 
@@ -272,6 +351,7 @@ struct ModuleTasksView: View {
                             dueDate
                         )
                     )
+
                 } icon: {
 
                     Image(
@@ -631,15 +711,19 @@ struct ModuleTasksView: View {
 
         guard !isLoading
         else {
+
             return
         }
 
 
-        guard sessionManager
-            .session?
-            .accessToken
-            == session.accessToken
+        guard
+            sessionManager
+                .session?
+                .accessToken
+                == session.accessToken
+
         else {
+
             return
         }
 
@@ -648,11 +732,14 @@ struct ModuleTasksView: View {
             .checkExpiration()
 
 
-        guard sessionManager
-            .session?
-            .accessToken
-            == session.accessToken
+        guard
+            sessionManager
+                .session?
+                .accessToken
+                == session.accessToken
+
         else {
+
             return
         }
 
@@ -688,21 +775,21 @@ struct ModuleTasksView: View {
                 .checkExpiration()
 
 
-            guard sessionManager
-                .session?
-                .accessToken
-                == session.accessToken
+            guard
+                sessionManager
+                    .session?
+                    .accessToken
+                    == session.accessToken
+
             else {
+
                 return
             }
 
 
-            tasks =
-                result
+            tasks = result
 
-
-            hasLoaded =
-                true
+            hasLoaded = true
 
 
         } catch is CancellationError {
@@ -712,24 +799,27 @@ struct ModuleTasksView: View {
 
         } catch {
 
-            guard !Task.isCancelled,
+            guard
+                !Task.isCancelled,
 
-                  sessionManager
+                sessionManager
                     .session?
                     .accessToken
                     == session.accessToken
 
             else {
+
                 return
             }
 
 
             if let serviceError =
-                error as?
-                    StudyTaskServiceError,
+                error
+                    as?
+                        StudyTaskServiceError,
 
                case .unauthorized =
-                    serviceError {
+                serviceError {
 
                 tasks = []
 
@@ -757,9 +847,10 @@ struct ModuleTasksView: View {
         for hex: String?
     ) -> Color {
 
-        guard let hex,
+        guard
+            let hex,
 
-              let parsed =
+            let parsed =
                 Color(
                     hex: hex
                 )
@@ -779,9 +870,10 @@ struct ModuleTasksView: View {
         _ value: String?
     ) -> String? {
 
-        guard let value,
+        guard
+            let value,
 
-              !value
+            !value
                 .trimmingCharacters(
                     in:
                         .whitespacesAndNewlines
@@ -796,19 +888,26 @@ struct ModuleTasksView: View {
 
         return value
     }
-    
+
+
     private func formattedDueDate(
         _ date: Date
     ) -> String {
 
-        let formatter = DateFormatter()
+        let formatter =
+            DateFormatter()
 
-        formatter.locale = Locale(
-            identifier: "de_DE"
-        )
+
+        formatter.locale =
+            Locale(
+                identifier:
+                    "de_DE"
+            )
+
 
         formatter.dateFormat =
             "dd.MM.yyyy, HH:mm 'Uhr'"
+
 
         return formatter.string(
             from: date
@@ -840,10 +939,10 @@ private extension Color {
         }
 
 
-        guard hex.count
-                == 6,
+        guard
+            hex.count == 6,
 
-              let value =
+            let value =
                 UInt64(
                     hex,
                     radix: 16

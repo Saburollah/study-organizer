@@ -13,6 +13,7 @@
 		7756F68330703191003B47E2 /* EditModuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F68230703191003B47E2 /* EditModuleView.swift */; };
 		7793BB6930729931007BD573 /* StudyTaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB6830729931007BD573 /* StudyTaskService.swift */; };
 		7793BB6B30729973007BD573 /* ModuleTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB6A30729973007BD573 /* ModuleTasksView.swift */; };
+		7793BB7D30729FC3007BD573 /* CreateTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB7C30729FC3007BD573 /* CreateTaskView.swift */; };
 		77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F03306BE2B4007A13BE /* SwiftUIView.swift */; };
 		77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F11306C3A59007A13BE /* RegistrationService.swift */; };
 		77C96F20306D8505007A13BE /* LoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C96F1F306D8505007A13BE /* LoginService.swift */; };
@@ -28,6 +29,7 @@
 		778CA07E306A726A00806778 /* StudyOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7793BB6830729931007BD573 /* StudyTaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyTaskService.swift; sourceTree = "<group>"; };
 		7793BB6A30729973007BD573 /* ModuleTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleTasksView.swift; sourceTree = "<group>"; };
+		7793BB7C30729FC3007BD573 /* CreateTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskView.swift; sourceTree = "<group>"; };
 		77C96F03306BE2B4007A13BE /* SwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView.swift; sourceTree = "<group>"; };
 		77C96F11306C3A59007A13BE /* RegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 		77C96F1F306D8505007A13BE /* LoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginService.swift; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 		778CA075306A726A00806778 = {
 			isa = PBXGroup;
 			children = (
+				7793BB7C30729FC3007BD573 /* CreateTaskView.swift */,
 				7793BB6A30729973007BD573 /* ModuleTasksView.swift */,
 				7793BB6830729931007BD573 /* StudyTaskService.swift */,
 				7756F68230703191003B47E2 /* EditModuleView.swift */,
@@ -160,6 +163,7 @@
 				77C96F20306D8505007A13BE /* LoginService.swift in Sources */,
 				7756F675306EDD34003B47E2 /* CreateModuleView.swift in Sources */,
 				7793BB6930729931007BD573 /* StudyTaskService.swift in Sources */,
+				7793BB7D30729FC3007BD573 /* CreateTaskView.swift in Sources */,
 				7756F68330703191003B47E2 /* EditModuleView.swift in Sources */,
 				77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */,
 				7756F667306ED745003B47E2 /* ModulesView.swift in Sources */,
