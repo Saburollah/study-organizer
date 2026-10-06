@@ -95,6 +95,17 @@ struct CreateStudyTaskRequest: Encodable {
     let dueDateUtc: String
 }
 
+// MARK: - Aufgabe bearbeiten
+
+struct UpdateStudyTaskRequest: Encodable {
+
+    let title: String
+
+    let description: String?
+
+    let dueDateUtc: String
+}
+
 // MARK: - Aufgabenstatus
 
 enum StudyTaskStatus: String, Encodable {
@@ -184,6 +195,12 @@ enum StudyTaskServiceError:
     case statusRejected(String)
     
     case statusUpdateUncertain
+    
+    case updateRejected(String)
+    
+    case updateConflict(String)
+    
+    case updateUncertain
 
 
     var errorDescription: String? {
@@ -269,6 +286,22 @@ enum StudyTaskServiceError:
 
             return
                 "Die Statusänderung konnte nicht bestätigt werden. "
+                + "Bitte aktualisiere die Aufgabenliste."
+            
+        case .updateRejected(let message):
+
+            return message
+
+
+        case .updateConflict(let message):
+
+            return message
+
+
+        case .updateUncertain:
+
+            return
+                "Die Änderung der Aufgabe konnte nicht bestätigt werden. "
                 + "Bitte aktualisiere die Aufgabenliste."
         }
     }
@@ -1061,6 +1094,326 @@ extension StudyTaskService {
             throw
                 StudyTaskServiceError
                     .statusUpdateUncertain
+        }
+
+
+        return task
+    }
+}
+
+// MARK: - Aufgabe bearbeiten
+
+extension StudyTaskService {
+
+    func update(
+        moduleId: String,
+        taskId: String,
+        title: String,
+        description: String?,
+        dueDate: Date,
+        accessToken: String
+    ) async throws -> StudyTask {
+
+        guard let baseURL =
+                APIConfiguration.baseURL
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .configuration
+        }
+
+
+        guard let requestedModuleId =
+                UUID(
+                    uuidString: moduleId
+                )
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .invalidModuleId
+        }
+
+
+        guard let requestedTaskId =
+                UUID(
+                    uuidString: taskId
+                )
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .invalidTaskId
+        }
+
+
+        let url = baseURL
+            .appendingPathComponent(
+                "api/modules"
+            )
+            .appendingPathComponent(
+                requestedModuleId.uuidString
+            )
+            .appendingPathComponent(
+                "tasks"
+            )
+            .appendingPathComponent(
+                requestedTaskId.uuidString
+            )
+
+
+        let formatter =
+            ISO8601DateFormatter()
+
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+
+
+        let normalizedTitle =
+            title.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+
+        let normalizedDescription =
+            description?
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+
+
+        let body =
+            UpdateStudyTaskRequest(
+                title: normalizedTitle,
+                description:
+                    normalizedDescription?.isEmpty == true
+                    ? nil
+                    : normalizedDescription,
+                dueDateUtc:
+                    formatter.string(
+                        from: dueDate
+                    )
+            )
+
+
+        var request =
+            URLRequest(
+                url: url
+            )
+
+
+        request.httpMethod =
+            "PUT"
+
+
+        request.timeoutInterval =
+            20
+
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField:
+                "Content-Type"
+        )
+
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField:
+                "Accept"
+        )
+
+
+        request.setValue(
+            "Bearer \(accessToken)",
+            forHTTPHeaderField:
+                "Authorization"
+        )
+
+
+        request.httpBody =
+            try JSONEncoder()
+                .encode(
+                    body
+                )
+
+
+        let configuration =
+            URLSessionConfiguration
+                .ephemeral
+
+
+        configuration.urlCache =
+            nil
+
+
+        configuration.httpCookieStorage =
+            nil
+
+
+        let client =
+            URLSession(
+                configuration:
+                    configuration
+            )
+
+
+        defer {
+
+            client
+                .finishTasksAndInvalidate()
+        }
+
+
+        try Task
+            .checkCancellation()
+
+
+        let data: Data
+        let response: URLResponse
+
+
+        do {
+
+            (data, response) =
+                try await client.data(
+                    for: request
+                )
+
+        } catch let error as URLError {
+
+            if error.code == .cancelled {
+
+                throw CancellationError()
+            }
+
+
+            if error.code == .timedOut {
+
+                throw
+                    StudyTaskServiceError
+                        .updateUncertain
+            }
+
+
+            throw
+                StudyTaskServiceError
+                    .updateUncertain
+        }
+
+
+        try Task
+            .checkCancellation()
+
+
+        guard let httpResponse =
+                response
+                    as? HTTPURLResponse
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .updateUncertain
+        }
+
+
+        switch httpResponse.statusCode {
+
+        case 200:
+
+            break
+
+
+        case 400:
+
+            let problem =
+                try? JSONDecoder()
+                    .decode(
+                        StudyTaskProblem.self,
+                        from: data
+                    )
+
+
+            throw
+                StudyTaskServiceError
+                    .updateRejected(
+                        problem?.message
+                        ?? "Die Aufgabe konnte nicht gespeichert werden."
+                    )
+
+
+        case 401:
+
+            throw
+                StudyTaskServiceError
+                    .unauthorized
+
+
+        case 404:
+
+            throw
+                StudyTaskServiceError
+                    .updateRejected(
+                        "Die Aufgabe oder das Lernmodul ist nicht mehr verfügbar."
+                    )
+
+
+        case 409:
+
+            let problem =
+                try? JSONDecoder()
+                    .decode(
+                        StudyTaskProblem.self,
+                        from: data
+                    )
+
+
+            throw
+                StudyTaskServiceError
+                    .updateConflict(
+                        problem?.message
+                        ?? "Die Aufgabe wurde inzwischen geändert. Bitte aktualisiere die Aufgabenliste."
+                    )
+
+
+        case 408:
+
+            throw
+                StudyTaskServiceError
+                    .updateUncertain
+
+
+        case 500...599:
+
+            throw
+                StudyTaskServiceError
+                    .updateUncertain
+
+
+        default:
+
+            throw
+                StudyTaskServiceError
+                    .server(
+                        httpResponse.statusCode
+                    )
+        }
+
+
+        guard let task =
+                try? JSONDecoder()
+                    .decode(
+                        StudyTask.self,
+                        from: data
+                    )
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .updateUncertain
         }
 
 
