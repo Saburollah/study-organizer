@@ -1,5 +1,18 @@
 import SwiftUI
 
+private enum TaskFilter: String, CaseIterable, Identifiable {
+
+    case all = "Alle"
+    case open = "Offen"
+    case overdue = "Überfällig"
+    case completed = "Erledigt"
+
+
+    var id: Self {
+        self
+    }
+}
+
 
 struct ModuleTasksView: View {
 
@@ -44,6 +57,9 @@ struct ModuleTasksView: View {
 
     @State
     private var deleteErrorMessage: String?
+    
+    @State
+    private var selectedFilter: TaskFilter = .all
     
     private var sortedTasks: [StudyTask] {
 
@@ -110,6 +126,36 @@ struct ModuleTasksView: View {
             ) == .orderedAscending
         }
     }
+    
+    private var visibleTasks: [StudyTask] {
+
+        sortedTasks.filter { task in
+
+            switch selectedFilter {
+
+            case .all:
+
+                return true
+
+
+            case .open:
+
+                return !task.isCompleted
+
+
+            case .overdue:
+
+                return isOverdue(
+                    task
+                )
+
+
+            case .completed:
+
+                return task.isCompleted
+            }
+        }
+    }
 
 
     var body: some View {
@@ -121,6 +167,13 @@ struct ModuleTasksView: View {
             ) {
 
                 header
+                
+                
+                if hasLoaded
+                    && !tasks.isEmpty {
+
+                    filterBar
+                }
 
 
                 if isLoading
@@ -178,10 +231,18 @@ struct ModuleTasksView: View {
 
                     emptyState
                 }
+                
+                if hasLoaded
+                    && !tasks.isEmpty
+                    && visibleTasks.isEmpty
+                    && !isLoading {
+
+                    filterEmptyState
+                }
 
 
                 ForEach(
-                    sortedTasks
+                    visibleTasks
                 ) { task in
 
                     taskCard(
@@ -427,6 +488,91 @@ struct ModuleTasksView: View {
             .accessibilityLabel(
                 "Neue Aufgabe erstellen"
             )
+        }
+    }
+    
+    // MARK: - Filter
+
+    private var filterBar: some View {
+
+        ScrollView(
+            .horizontal,
+            showsIndicators: false
+        ) {
+
+            HStack(
+                spacing: 8
+            ) {
+
+                ForEach(
+                    TaskFilter.allCases
+                ) { filter in
+
+                    Button {
+
+                        withAnimation(
+                            .easeInOut(
+                                duration: 0.18
+                            )
+                        ) {
+
+                            selectedFilter =
+                                filter
+                        }
+
+                    } label: {
+
+                        Text(
+                            filter.rawValue
+                        )
+                        .font(
+                            .system(
+                                size: 14,
+                                weight: .semibold
+                            )
+                        )
+                        .foregroundStyle(
+                            selectedFilter == filter
+                                ? Color.white
+                                : Color.primary
+                        )
+                        .padding(
+                            .horizontal,
+                            14
+                        )
+                        .frame(
+                            height: 36
+                        )
+                        .background(
+                            selectedFilter == filter
+                                ? Color.accentColor
+                                : Color(
+                                    uiColor:
+                                        .secondarySystemBackground
+                                ),
+                            in:
+                                Capsule()
+                        )
+                        .overlay {
+
+                            if selectedFilter != filter {
+
+                                Capsule()
+                                    .stroke(
+                                        Color.secondary
+                                            .opacity(
+                                                0.16
+                                            ),
+                                        lineWidth: 1
+                                    )
+                            }
+                        }
+                    }
+                    .buttonStyle(
+                        .plain
+                    )
+                }
+            }
         }
     }
 
@@ -1135,6 +1281,91 @@ struct ModuleTasksView: View {
             )
         }
     }
+    
+    private var filterEmptyState: some View {
+
+        VStack(
+            spacing: 14
+        ) {
+
+            Image(
+                systemName:
+                    filterEmptyIcon
+            )
+            .font(
+                .system(
+                    size: 30,
+                    weight: .medium
+                )
+            )
+            .foregroundStyle(
+                .secondary
+            )
+
+
+            VStack(
+                spacing: 6
+            ) {
+
+                Text(
+                    filterEmptyTitle
+                )
+                .font(
+                    .headline
+                )
+
+
+                Text(
+                    "Für diesen Filter wurden keine Aufgaben gefunden."
+                )
+                .font(
+                    .subheadline
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+                .multilineTextAlignment(
+                    .center
+                )
+            }
+        }
+        .frame(
+            maxWidth: .infinity
+        )
+        .padding(
+            .vertical,
+            42
+        )
+        .padding(
+            .horizontal,
+            24
+        )
+        .background(
+            Color(
+                uiColor:
+                    .systemBackground
+            ),
+            in:
+                RoundedRectangle(
+                    cornerRadius: 18,
+                    style: .continuous
+                )
+        )
+        .overlay {
+
+            RoundedRectangle(
+                cornerRadius: 18,
+                style: .continuous
+            )
+            .stroke(
+                Color.secondary
+                    .opacity(
+                        0.11
+                    ),
+                lineWidth: 1
+            )
+        }
+    }
 
 
     // MARK: - Error
@@ -1711,6 +1942,56 @@ struct ModuleTasksView: View {
 
 
         return 1
+    }
+    
+    private var filterEmptyTitle: String {
+
+        switch selectedFilter {
+
+        case .all:
+
+            return "Keine Aufgaben"
+
+
+        case .open:
+
+            return "Keine offenen Aufgaben"
+
+
+        case .overdue:
+
+            return "Keine überfälligen Aufgaben"
+
+
+        case .completed:
+
+            return "Keine erledigten Aufgaben"
+        }
+    }
+    
+    private var filterEmptyIcon: String {
+
+        switch selectedFilter {
+
+        case .all:
+
+            return "checklist"
+
+
+        case .open:
+
+            return "circle"
+
+
+        case .overdue:
+
+            return "clock.badge.exclamationmark"
+
+
+        case .completed:
+
+            return "checkmark.circle"
+        }
     }
 }
 
