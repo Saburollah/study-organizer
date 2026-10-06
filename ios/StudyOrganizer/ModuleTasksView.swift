@@ -450,7 +450,15 @@ struct ModuleTasksView: View {
             if let dueDate =
                 task.dueDate {
 
-                Label {
+                HStack(
+                    spacing: 6
+                ) {
+
+                    Image(
+                        systemName:
+                            "calendar"
+                    )
+
 
                     Text(
                         formattedDueDate(
@@ -458,12 +466,37 @@ struct ModuleTasksView: View {
                         )
                     )
 
-                } icon: {
 
-                    Image(
-                        systemName:
-                            "calendar"
-                    )
+                    if isOverdue(
+                        task
+                    ) {
+
+                        Text(
+                            "Überfällig"
+                        )
+                        .font(
+                            .system(
+                                size: 12,
+                                weight: .semibold
+                            )
+                        )
+                        .padding(
+                            .horizontal,
+                            7
+                        )
+                        .padding(
+                            .vertical,
+                            3
+                        )
+                        .background(
+                            Color.red
+                                .opacity(
+                                    0.10
+                                ),
+                            in:
+                                Capsule()
+                        )
+                    }
                 }
                 .font(
                     .system(
@@ -472,7 +505,9 @@ struct ModuleTasksView: View {
                     )
                 )
                 .foregroundStyle(
-                    .secondary
+                    isOverdue(task)
+                        ? Color.red
+                        : Color.secondary
                 )
             }
 
@@ -1547,6 +1582,23 @@ struct ModuleTasksView: View {
 
 
         return value
+    }
+    
+    private func isOverdue(
+        _ task: StudyTask
+    ) -> Bool {
+
+        guard
+            !task.isCompleted,
+            let dueDate =
+                task.dueDate
+        else {
+
+            return false
+        }
+
+
+        return dueDate < Date()
     }
 
 
