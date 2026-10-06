@@ -4,7 +4,6 @@ import SwiftUI
 struct ModuleTasksView: View {
 
     let module: StudyModule
-
     let session: AuthSession
 
 
@@ -27,12 +26,15 @@ struct ModuleTasksView: View {
 
     @State
     private var showCreateTask = false
-    
+
     @State
     private var updatingTaskID: String?
 
     @State
     private var statusErrorMessage: String?
+
+    @State
+    private var taskToEdit: StudyTask?
 
 
     var body: some View {
@@ -59,6 +61,8 @@ struct ModuleTasksView: View {
                         errorMessage
                     )
                 }
+
+
                 if let statusErrorMessage {
 
                     Text(
@@ -126,6 +130,9 @@ struct ModuleTasksView: View {
         .navigationBarTitleDisplayMode(
             .inline
         )
+
+        // MARK: Aufgabe erstellen
+
         .sheet(
             isPresented:
                 $showCreateTask
@@ -137,9 +144,7 @@ struct ModuleTasksView: View {
             ) { createdTask in
 
                 tasks.removeAll {
-
-                    $0.id
-                        == createdTask.id
+                    $0.id == createdTask.id
                 }
 
 
@@ -149,9 +154,48 @@ struct ModuleTasksView: View {
                 )
 
 
-                hasLoaded = true
+                hasLoaded =
+                    true
 
-                errorMessage = nil
+                errorMessage =
+                    nil
+            }
+            .environmentObject(
+                sessionManager
+            )
+        }
+
+        // MARK: Aufgabe bearbeiten
+
+        .sheet(
+            item:
+                $taskToEdit
+        ) { task in
+
+            EditTaskView(
+                module: module,
+                task: task,
+                session: session
+            ) { updatedTask in
+
+                if let index =
+                    tasks.firstIndex(
+                        where: {
+                            $0.id
+                                == updatedTask.id
+                        }
+                    ) {
+
+                    tasks[index] =
+                        updatedTask
+                }
+
+
+                errorMessage =
+                    nil
+
+                statusErrorMessage =
+                    nil
             }
             .environmentObject(
                 sessionManager
@@ -258,12 +302,14 @@ struct ModuleTasksView: View {
 
             Button {
 
-                showCreateTask = true
+                showCreateTask =
+                    true
 
             } label: {
 
                 Image(
-                    systemName: "plus"
+                    systemName:
+                        "plus"
                 )
                 .font(
                     .system(
@@ -280,14 +326,12 @@ struct ModuleTasksView: View {
                 )
                 .background(
                     Color.accentColor,
-                    in: Circle()
+                    in:
+                        Circle()
                 )
             }
             .buttonStyle(
                 .plain
-            )
-            .accessibilityLabel(
-                "Neue Aufgabe erstellen"
             )
             .accessibilityLabel(
                 "Neue Aufgabe erstellen"
@@ -442,6 +486,74 @@ struct ModuleTasksView: View {
                         Capsule()
                 )
             }
+
+
+            Divider()
+                .padding(
+                    .top,
+                    2
+                )
+
+
+            HStack {
+
+                Button {
+
+                    taskToEdit = task
+
+                } label: {
+
+                    Label(
+                        "Bearbeiten",
+                        systemImage: "pencil"
+                    )
+                    .font(
+                        .system(
+                            size: 14,
+                            weight: .semibold
+                        )
+                    )
+                    .padding(
+                        .horizontal,
+                        12
+                    )
+                    .frame(
+                        height: 34
+                    )
+                }
+                .buttonStyle(
+                    .plain
+                )
+                .foregroundStyle(
+                    Color.accentColor
+                )
+                .background(
+                    Color(
+                        uiColor: .secondarySystemBackground
+                    ),
+                    in:
+                        RoundedRectangle(
+                            cornerRadius: 8,
+                            style: .continuous
+                        )
+                )
+                .overlay {
+
+                    RoundedRectangle(
+                        cornerRadius: 8,
+                        style: .continuous
+                    )
+                    .stroke(
+                        Color.secondary.opacity(0.20),
+                        lineWidth: 1
+                    )
+                }                .disabled(
+                    updatingTaskID != nil
+                )
+
+
+                Spacer()
+            }
         }
         .frame(
             maxWidth: .infinity,
@@ -486,7 +598,8 @@ struct ModuleTasksView: View {
             y: 3
         )
     }
-    
+
+
     // MARK: - Status Button
 
     private func statusButton(
@@ -510,7 +623,10 @@ struct ModuleTasksView: View {
                     .stroke(
                         task.isCompleted
                             ? Color.green
-                            : Color.secondary.opacity(0.45),
+                            : Color.secondary
+                                .opacity(
+                                    0.45
+                                ),
                         lineWidth: 2
                     )
                     .frame(
@@ -519,7 +635,8 @@ struct ModuleTasksView: View {
                     )
 
 
-                if updatingTaskID == task.id {
+                if updatingTaskID
+                    == task.id {
 
                     ProgressView()
                         .controlSize(
@@ -540,7 +657,8 @@ struct ModuleTasksView: View {
 
 
                     Image(
-                        systemName: "checkmark"
+                        systemName:
+                            "checkmark"
                     )
                     .font(
                         .system(
@@ -861,14 +979,17 @@ struct ModuleTasksView: View {
         }
 
 
-        isLoading = true
+        isLoading =
+            true
 
-        errorMessage = nil
+        errorMessage =
+            nil
 
 
         defer {
 
-            isLoading = false
+            isLoading =
+                false
         }
 
 
@@ -904,9 +1025,11 @@ struct ModuleTasksView: View {
             }
 
 
-            tasks = result
+            tasks =
+                result
 
-            hasLoaded = true
+            hasLoaded =
+                true
 
 
         } catch is CancellationError {
@@ -938,7 +1061,8 @@ struct ModuleTasksView: View {
                case .unauthorized =
                 serviceError {
 
-                tasks = []
+                tasks =
+                    []
 
 
                 sessionManager
@@ -956,13 +1080,18 @@ struct ModuleTasksView: View {
                 error.localizedDescription
         }
     }
-    
+
+
+    // MARK: - Status ändern
+
+    @MainActor
     private func toggleStatus(
         for task: StudyTask
     ) async {
 
         guard updatingTaskID == nil
         else {
+
             return
         }
 
@@ -972,7 +1101,8 @@ struct ModuleTasksView: View {
         else {
 
             errorMessage =
-                "Deine Sitzung ist nicht mehr gültig. Bitte melde dich erneut an."
+                "Deine Sitzung ist nicht mehr gültig. "
+                + "Bitte melde dich erneut an."
 
             return
         }
@@ -985,8 +1115,9 @@ struct ModuleTasksView: View {
             nil
 
 
-        let newStatus: StudyTaskStatus =
-            task.isCompleted
+        let newStatus:
+            StudyTaskStatus =
+                task.isCompleted
                 ? .open
                 : .completed
 
@@ -996,18 +1127,23 @@ struct ModuleTasksView: View {
             let updatedTask =
                 try await StudyTaskService()
                     .updateStatus(
-                        moduleId: module.id,
-                        taskId: task.id,
-                        status: newStatus,
+                        moduleId:
+                            module.id,
+                        taskId:
+                            task.id,
+                        status:
+                            newStatus,
                         accessToken:
-                            currentSession.accessToken
+                            currentSession
+                                .accessToken
                     )
 
 
             if let index =
                 tasks.firstIndex(
                     where: {
-                        $0.id == task.id
+                        $0.id
+                            == task.id
                     }
                 ) {
 
@@ -1039,7 +1175,8 @@ struct ModuleTasksView: View {
                 sessionManager
                     .invalidateSession(
                         accessToken:
-                            currentSession.accessToken
+                            currentSession
+                                .accessToken
                     )
 
                 return
@@ -1047,7 +1184,8 @@ struct ModuleTasksView: View {
 
 
             statusErrorMessage =
-                serviceError.localizedDescription
+                serviceError
+                    .localizedDescription
 
 
         } catch {
@@ -1056,7 +1194,9 @@ struct ModuleTasksView: View {
                 nil
 
             statusErrorMessage =
-                "Der Aufgabenstatus konnte nicht geändert werden. Bitte versuche es erneut."
+                "Der Aufgabenstatus konnte "
+                + "nicht geändert werden. "
+                + "Bitte versuche es erneut."
         }
     }
 
