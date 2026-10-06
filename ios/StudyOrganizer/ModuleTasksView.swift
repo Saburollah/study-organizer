@@ -35,6 +35,15 @@ struct ModuleTasksView: View {
 
     @State
     private var taskToEdit: StudyTask?
+    
+    @State
+    private var taskToDelete: StudyTask?
+
+    @State
+    private var deletingTaskID: String?
+
+    @State
+    private var deleteErrorMessage: String?
 
 
     var body: some View {
@@ -79,7 +88,23 @@ struct ModuleTasksView: View {
                         alignment: .leading
                     )
                 }
+                
+                if let deleteErrorMessage {
 
+                    Text(
+                        deleteErrorMessage
+                    )
+                    .font(
+                        .subheadline
+                    )
+                    .foregroundStyle(
+                        .red
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                }
 
                 if hasLoaded
                     && tasks.isEmpty
@@ -495,7 +520,9 @@ struct ModuleTasksView: View {
                 )
 
 
-            HStack {
+            HStack(
+                spacing: 10
+            ) {
 
                 Button {
 
@@ -529,7 +556,8 @@ struct ModuleTasksView: View {
                 )
                 .background(
                     Color(
-                        uiColor: .secondarySystemBackground
+                        uiColor:
+                            .secondarySystemBackground
                     ),
                     in:
                         RoundedRectangle(
@@ -544,11 +572,165 @@ struct ModuleTasksView: View {
                         style: .continuous
                     )
                     .stroke(
-                        Color.secondary.opacity(0.20),
+                        Color.secondary
+                            .opacity(
+                                0.20
+                            ),
                         lineWidth: 1
                     )
-                }                .disabled(
+                }
+                .disabled(
                     updatingTaskID != nil
+                    || deletingTaskID != nil
+                )
+
+
+                Button {
+
+                    taskToDelete = task
+
+                } label: {
+
+                    HStack(
+                        spacing: 5
+                    ) {
+
+                        if deletingTaskID == task.id {
+
+                            ProgressView()
+                                .controlSize(.small)
+                                .tint(.red)
+
+                        } else {
+
+                            Image(
+                                systemName: "trash"
+                            )
+                        }
+
+
+                        Text(
+                            deletingTaskID == task.id
+                                ? "Wird gelöscht …"
+                                : "Löschen"
+                        )
+                    }
+                    .font(
+                        .system(
+                            size: 14,
+                            weight: .semibold
+                        )
+                    )
+                    .padding(
+                        .horizontal,
+                        12
+                    )
+                    .frame(
+                        height: 34
+                    )
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+                .background(
+                    Color.red.opacity(0.07),
+                    in:
+                        RoundedRectangle(
+                            cornerRadius: 8,
+                            style: .continuous
+                        )
+                )
+                .overlay {
+
+                    RoundedRectangle(
+                        cornerRadius: 8,
+                        style: .continuous
+                    )
+                    .stroke(
+                        Color.red.opacity(0.22),
+                        lineWidth: 1
+                    )
+                }
+                .disabled(
+                    updatingTaskID != nil
+                    || deletingTaskID != nil
+                )
+                .confirmationDialog(
+                    "„\(task.title)“ löschen?",
+                    isPresented:
+                        Binding(
+                            get: {
+
+                                taskToDelete?.id
+                                    == task.id
+                            },
+                            set: { isPresented in
+
+                                if !isPresented,
+                                   taskToDelete?.id
+                                    == task.id {
+
+                                    taskToDelete =
+                                        nil
+                                }
+                            }
+                        ),
+                    titleVisibility:
+                        .visible
+                ) {
+
+                    Button(
+                        "Löschen",
+                        role: .destructive
+                    ) {
+
+                        Task {
+
+                            await deleteTask(
+                                task
+                            )
+                        }
+                    }
+
+                } message: {
+
+                    Text(
+                        "Diese Aufgabe wird dauerhaft gelöscht."
+                    )
+                }
+                .buttonStyle(
+                    .plain
+                )
+                .foregroundStyle(
+                    .red
+                )
+                .background(
+                    Color.red
+                        .opacity(
+                            0.07
+                        ),
+                    in:
+                        RoundedRectangle(
+                            cornerRadius: 8,
+                            style: .continuous
+                        )
+                )
+                .overlay {
+
+                    RoundedRectangle(
+                        cornerRadius: 8,
+                        style: .continuous
+                    )
+                    .stroke(
+                        Color.red
+                            .opacity(
+                                0.22
+                            ),
+                        lineWidth: 1
+                    )
+                }
+                .disabled(
+                    updatingTaskID != nil
+                    || deletingTaskID != nil
                 )
 
 
@@ -1199,7 +1381,125 @@ struct ModuleTasksView: View {
                 + "Bitte versuche es erneut."
         }
     }
+    
+    @MainActor
+    private func deleteTask(
+        _ task: StudyTask
+    ) async {
 
+        guard deletingTaskID == nil
+        else {
+
+            return
+        }
+
+
+        guard let currentSession =
+                sessionManager.session
+        else {
+
+            deleteErrorMessage =
+                "Deine Sitzung ist nicht mehr gültig. "
+                + "Bitte melde dich erneut an."
+
+            return
+        }
+
+
+        deletingTaskID =
+            task.id
+
+        deleteErrorMessage =
+            nil
+
+
+        defer {
+
+            deletingTaskID =
+                nil
+
+            taskToDelete =
+                nil
+        }
+
+
+        do {
+
+            try await StudyTaskService()
+                .delete(
+                    moduleId:
+                        module.id,
+                    taskId:
+                        task.id,
+                    accessToken:
+                        currentSession
+                            .accessToken
+                )
+
+
+            try Task
+                .checkCancellation()
+
+
+            sessionManager
+                .checkExpiration()
+
+
+            guard
+                sessionManager
+                    .session?
+                    .accessToken
+                    == currentSession
+                        .accessToken
+            else {
+
+                return
+            }
+
+
+            tasks.removeAll {
+                $0.id == task.id
+            }
+
+
+            hasLoaded =
+                true
+
+
+        } catch is CancellationError {
+
+            return
+
+
+        } catch let serviceError
+            as StudyTaskServiceError {
+
+            if case .unauthorized =
+                serviceError {
+
+                sessionManager
+                    .invalidateSession(
+                        accessToken:
+                            currentSession
+                                .accessToken
+                    )
+
+                return
+            }
+
+
+            deleteErrorMessage =
+                serviceError
+                    .localizedDescription
+
+
+        } catch {
+
+            deleteErrorMessage =
+                "Die Aufgabe konnte nicht gelöscht werden. "
+                + "Bitte versuche es erneut."
+        }
+    }
 
     // MARK: - Helpers
 

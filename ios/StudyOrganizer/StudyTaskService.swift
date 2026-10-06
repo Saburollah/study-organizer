@@ -201,6 +201,10 @@ enum StudyTaskServiceError:
     case updateConflict(String)
     
     case updateUncertain
+    
+    case deleteConflict(String)
+    
+    case deletionUncertain
 
 
     var errorDescription: String? {
@@ -302,6 +306,17 @@ enum StudyTaskServiceError:
 
             return
                 "Die Änderung der Aufgabe konnte nicht bestätigt werden. "
+                + "Bitte aktualisiere die Aufgabenliste."
+            
+        case .deleteConflict(let message):
+
+            return message
+
+
+        case .deletionUncertain:
+
+            return
+                "Das Löschen der Aufgabe konnte nicht bestätigt werden. "
                 + "Bitte aktualisiere die Aufgabenliste."
         }
     }
@@ -1418,5 +1433,230 @@ extension StudyTaskService {
 
 
         return task
+    }
+}
+
+// MARK: - Aufgabe löschen
+
+extension StudyTaskService {
+
+    func delete(
+        moduleId: String,
+        taskId: String,
+        accessToken: String
+    ) async throws {
+
+        guard let baseURL =
+                APIConfiguration.baseURL
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .configuration
+        }
+
+
+        guard let requestedModuleId =
+                UUID(
+                    uuidString: moduleId
+                )
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .invalidModuleId
+        }
+
+
+        guard let requestedTaskId =
+                UUID(
+                    uuidString: taskId
+                )
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .invalidTaskId
+        }
+
+
+        let url = baseURL
+            .appendingPathComponent(
+                "api/modules"
+            )
+            .appendingPathComponent(
+                requestedModuleId.uuidString
+            )
+            .appendingPathComponent(
+                "tasks"
+            )
+            .appendingPathComponent(
+                requestedTaskId.uuidString
+            )
+
+
+        var request =
+            URLRequest(
+                url: url
+            )
+
+
+        request.httpMethod =
+            "DELETE"
+
+
+        request.timeoutInterval =
+            20
+
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField:
+                "Accept"
+        )
+
+
+        request.setValue(
+            "Bearer \(accessToken)",
+            forHTTPHeaderField:
+                "Authorization"
+        )
+
+
+        let configuration =
+            URLSessionConfiguration
+                .ephemeral
+
+
+        configuration.urlCache =
+            nil
+
+
+        configuration.httpCookieStorage =
+            nil
+
+
+        let client =
+            URLSession(
+                configuration:
+                    configuration
+            )
+
+
+        defer {
+
+            client
+                .finishTasksAndInvalidate()
+        }
+
+
+        try Task
+            .checkCancellation()
+
+
+        let data: Data
+        let response: URLResponse
+
+
+        do {
+
+            (data, response) =
+                try await client.data(
+                    for: request
+                )
+
+        } catch let error as URLError {
+
+            if error.code == .cancelled {
+
+                throw
+                    CancellationError()
+            }
+
+
+            throw
+                StudyTaskServiceError
+                    .deletionUncertain
+        }
+
+
+        try Task
+            .checkCancellation()
+
+
+        guard let httpResponse =
+                response
+                    as? HTTPURLResponse
+        else {
+
+            throw
+                StudyTaskServiceError
+                    .deletionUncertain
+        }
+
+
+        switch httpResponse.statusCode {
+
+        case 204:
+
+            return
+
+
+        case 401:
+
+            throw
+                StudyTaskServiceError
+                    .unauthorized
+
+
+        case 404:
+
+            throw
+                StudyTaskServiceError
+                    .server(
+                        404
+                    )
+
+
+        case 409:
+
+            let problem =
+                try? JSONDecoder()
+                    .decode(
+                        StudyTaskProblem.self,
+                        from: data
+                    )
+
+
+            throw
+                StudyTaskServiceError
+                    .deleteConflict(
+                        problem?.message
+                        ?? "Die Aufgabe kann derzeit nicht gelöscht werden."
+                    )
+
+
+        case 408:
+
+            throw
+                StudyTaskServiceError
+                    .deletionUncertain
+
+
+        case 500...599:
+
+            throw
+                StudyTaskServiceError
+                    .deletionUncertain
+
+
+        default:
+
+            throw
+                StudyTaskServiceError
+                    .server(
+                        httpResponse.statusCode
+                    )
+        }
     }
 }
