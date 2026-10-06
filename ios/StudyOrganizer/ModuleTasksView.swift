@@ -44,6 +44,72 @@ struct ModuleTasksView: View {
 
     @State
     private var deleteErrorMessage: String?
+    
+    private var sortedTasks: [StudyTask] {
+
+        tasks.sorted { lhs, rhs in
+
+            let lhsGroup = sortGroup(
+                for: lhs
+            )
+
+            let rhsGroup = sortGroup(
+                for: rhs
+            )
+
+
+            if lhsGroup != rhsGroup {
+
+                return lhsGroup < rhsGroup
+            }
+
+
+            switch (
+                lhs.dueDate,
+                rhs.dueDate
+            ) {
+
+            case let (
+                lhsDate?,
+                rhsDate?
+            ):
+
+                if lhsDate != rhsDate {
+
+                    return lhsDate < rhsDate
+                }
+
+
+            case (
+                .some,
+                .none
+            ):
+
+                return true
+
+
+            case (
+                .none,
+                .some
+            ):
+
+                return false
+
+
+            case (
+                .none,
+                .none
+            ):
+
+                break
+            }
+
+
+            return lhs.title.localizedCaseInsensitiveCompare(
+                rhs.title
+            ) == .orderedAscending
+        }
+    }
 
 
     var body: some View {
@@ -115,7 +181,7 @@ struct ModuleTasksView: View {
 
 
                 ForEach(
-                    tasks
+                    sortedTasks
                 ) { task in
 
                     taskCard(
@@ -1624,6 +1690,27 @@ struct ModuleTasksView: View {
         return formatter.string(
             from: date
         )
+    }
+    
+    private func sortGroup(
+        for task: StudyTask
+    ) -> Int {
+
+        if task.isCompleted {
+
+            return 2
+        }
+
+
+        if isOverdue(
+            task
+        ) {
+
+            return 0
+        }
+
+
+        return 1
     }
 }
 
