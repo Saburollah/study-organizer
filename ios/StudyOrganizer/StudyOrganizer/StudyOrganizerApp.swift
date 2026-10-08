@@ -22,7 +22,7 @@ struct StudyOrganizerApp: App {
 
                 } else if let session = sessionManager.session {
 
-                    ModulesView(session: session)
+                    MainTabView(session: session)
                         .id(session.accessToken)
 
                 } else {
