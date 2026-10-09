@@ -4,10 +4,16 @@ import SwiftUI
 struct MainTabView: View {
 
     let session: AuthSession
+    
+    @EnvironmentObject
+    private var sessionManager: SessionManager
 
 
     @State
     private var selectedTab: AppTab = .dashboard
+    
+    @State
+    private var dashboardRefreshID = 0
 
 
     private enum AppTab: Int, Hashable, CaseIterable {
@@ -74,12 +80,12 @@ struct MainTabView: View {
 
             NavigationStack {
 
-                PlaceholderView(
-                    title: "Dashboard",
-                    subtitle:
-                        "Behalte deine Lernmodule und Aufgaben im Blick.",
-                    icon:
-                        "rectangle.grid.2x2.fill"
+                DashboardView(
+                    session: session,
+                    refreshID: dashboardRefreshID
+                )
+                .environmentObject(
+                    sessionManager
                 )
             }
             .tag(
@@ -402,10 +408,14 @@ struct MainTabView: View {
                 )
             ) {
 
-                selectedTab =
-                    tab
+                selectedTab = tab
             }
 
+
+            if tab == .dashboard {
+
+                dashboardRefreshID += 1
+            }
         } label: {
 
             VStack(
