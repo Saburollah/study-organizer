@@ -11,6 +11,7 @@
 		7756F667306ED745003B47E2 /* ModulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F666306ED745003B47E2 /* ModulesView.swift */; };
 		7756F675306EDD34003B47E2 /* CreateModuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F674306EDD34003B47E2 /* CreateModuleView.swift */; };
 		7756F68330703191003B47E2 /* EditModuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7756F68230703191003B47E2 /* EditModuleView.swift */; };
+		775BABE23077DAA100A48CAB /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775BABE13077DAA100A48CAB /* DashboardView.swift */; };
 		776243FC30745EF500C944C4 /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776243FB30745EF500C944C4 /* EditTaskView.swift */; };
 		7762440E3075A79D00C944C4 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7762440D3075A79D00C944C4 /* MainTabView.swift */; };
 		7793BB6930729931007BD573 /* StudyTaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB6830729931007BD573 /* StudyTaskService.swift */; };
@@ -28,6 +29,7 @@
 		7756F666306ED745003B47E2 /* ModulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModulesView.swift; sourceTree = "<group>"; };
 		7756F674306EDD34003B47E2 /* CreateModuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateModuleView.swift; sourceTree = "<group>"; };
 		7756F68230703191003B47E2 /* EditModuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditModuleView.swift; sourceTree = "<group>"; };
+		775BABE13077DAA100A48CAB /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		776243FB30745EF500C944C4 /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
 		7762440D3075A79D00C944C4 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		778CA07E306A726A00806778 /* StudyOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +65,7 @@
 		778CA075306A726A00806778 = {
 			isa = PBXGroup;
 			children = (
+				775BABE13077DAA100A48CAB /* DashboardView.swift */,
 				7762440D3075A79D00C944C4 /* MainTabView.swift */,
 				776243FB30745EF500C944C4 /* EditTaskView.swift */,
 				7793BB7C30729FC3007BD573 /* CreateTaskView.swift */,
@@ -174,6 +177,7 @@
 				7756F68330703191003B47E2 /* EditModuleView.swift in Sources */,
 				77C96F12306C3A59007A13BE /* RegistrationService.swift in Sources */,
 				7762440E3075A79D00C944C4 /* MainTabView.swift in Sources */,
+				775BABE23077DAA100A48CAB /* DashboardView.swift in Sources */,
 				7756F667306ED745003B47E2 /* ModulesView.swift in Sources */,
 				7756F665306E8F7F003B47E2 /* ModuleService.swift in Sources */,
 				77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */,
