@@ -584,10 +584,33 @@ struct GlobalTasksView: View {
                             \.element.id
                     ) { index, item in
 
-                        taskCard(
-                            item,
-                            index:
-                                index
+                        TaskCardView(
+                            task: item.task,
+                            module: item.module,
+                            style: .standard
+                        )
+                        .opacity(
+                            animateContent
+                                ? 1
+                                : 0
+                        )
+                        .offset(
+                            y:
+                                animateContent
+                                    ? 0
+                                    : 7
+                        )
+                        .animation(
+                            .spring(
+                                response: 0.38,
+                                dampingFraction: 0.89
+                            )
+                            .delay(
+                                Double(index)
+                                    * 0.02
+                            ),
+                            value:
+                                animateContent
                         )
                     }
                 }
@@ -694,301 +717,6 @@ struct GlobalTasksView: View {
                     + "erscheinen hier."
             )
         }
-    }
-
-
-    // MARK: - Task Card
-
-    private func taskCard(
-        _ item: GlobalTaskItem,
-        index: Int
-    ) -> some View {
-
-        let overdue =
-            isOverdue(
-                item.task
-            )
-
-
-        let completed =
-            item.task.isCompleted
-
-
-        let moduleAccent =
-            moduleColor(
-                item.module.color
-            )
-
-
-        let accent =
-            overdue
-                ? Color.red
-                : completed
-                    ? Color.green
-                    : moduleAccent
-
-
-        return HStack(
-            spacing: 11
-        ) {
-
-            // Dezenter linker Status-Akzent
-
-            RoundedRectangle(
-                cornerRadius: 3,
-                style: .continuous
-            )
-            .fill(
-                accent.opacity(
-                    overdue
-                        ? 0.75
-                        : 0.65
-                )
-            )
-            .frame(
-                width: 3
-            )
-            .padding(
-                .vertical,
-                7
-            )
-
-
-            VStack(
-                alignment: .leading,
-                spacing: 6
-            ) {
-
-                // Modul + Status
-
-                HStack(
-                    alignment: .center
-                ) {
-
-                    Text(
-                        moduleCode(
-                            item.module
-                        )
-                    )
-                    .font(
-                        .system(
-                            size: 10,
-                            weight: .bold
-                        )
-                    )
-                    .foregroundStyle(
-                        moduleAccent
-                    )
-                    .padding(
-                        .horizontal,
-                        7
-                    )
-                    .padding(
-                        .vertical,
-                        3
-                    )
-                    .background(
-                        moduleAccent.opacity(
-                            0.07
-                        ),
-                        in:
-                            Capsule()
-                    )
-
-
-                    Spacer()
-
-
-                    statusBadge(
-                        item.task
-                    )
-                }
-
-
-                // Titel
-
-                Text(
-                    item.task.title
-                )
-                .font(
-                    .system(
-                        size: 15.5,
-                        weight: .semibold
-                    )
-                )
-                .foregroundStyle(
-                    completed
-                        ? Color.secondary
-                        : Color.primary
-                )
-                .strikethrough(
-                    completed,
-                    color:
-                        .secondary
-                )
-                .lineLimit(
-                    2
-                )
-
-
-                // Modulname
-
-                Text(
-                    item.module.name
-                )
-                .font(
-                    .system(
-                        size: 12.5,
-                        weight: .medium
-                    )
-                )
-                .foregroundStyle(
-                    .secondary
-                )
-                .lineLimit(
-                    1
-                )
-
-
-                // Datum
-
-                if let dueDate =
-                    item.task.dueDate {
-
-                    HStack(
-                        spacing: 5
-                    ) {
-
-                        Image(
-                            systemName:
-                                "calendar"
-                        )
-                        .foregroundStyle(
-                            overdue
-                                ? Color.red.opacity(
-                                    0.80
-                                )
-                                : Color.secondary
-                        )
-
-
-                        Text(
-                            formattedDate(
-                                dueDate
-                            )
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-                    .font(
-                        .system(
-                            size: 11.5,
-                            weight: .medium
-                        )
-                    )
-                }
-            }
-            .padding(
-                .vertical,
-                11
-            )
-            .padding(
-                .trailing,
-                13
-            )
-        }
-        .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-        )
-        .background {
-
-            RoundedRectangle(
-                cornerRadius: 17,
-                style: .continuous
-            )
-            .fill(
-                Color(
-                    uiColor:
-                        .systemBackground
-                )
-            )
-
-
-            // sehr dezenter Modul-/Statusfarbton
-
-            RoundedRectangle(
-                cornerRadius: 17,
-                style: .continuous
-            )
-            .fill(
-                LinearGradient(
-                    colors: [
-                        accent.opacity(
-                            overdue
-                                ? 0.018
-                                : 0.012
-                        ),
-                        Color.clear
-                    ],
-                    startPoint:
-                        .topLeading,
-                    endPoint:
-                        .bottomTrailing
-                )
-            )
-        }
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: 17,
-                style: .continuous
-            )
-        )
-        .overlay {
-
-            RoundedRectangle(
-                cornerRadius: 17,
-                style: .continuous
-            )
-            .stroke(
-                Color.secondary.opacity(
-                    0.075
-                ),
-                lineWidth: 1
-            )
-        }
-        .shadow(
-            color:
-                Color.black.opacity(
-                    0.025
-                ),
-            radius: 6,
-            y: 2
-        )
-        .opacity(
-            animateContent
-                ? 1
-                : 0
-        )
-        .offset(
-            y:
-                animateContent
-                    ? 0
-                    : 7
-        )
-        .animation(
-            .spring(
-                response: 0.38,
-                dampingFraction: 0.89
-            )
-            .delay(
-                Double(index)
-                    * 0.02
-            ),
-            value:
-                animateContent
-        )
     }
 
 

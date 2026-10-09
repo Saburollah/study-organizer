@@ -245,9 +245,77 @@ struct ModuleTasksView: View {
                     visibleTasks
                 ) { task in
 
-                    taskCard(
-                        task
+                    TaskCardView(
+                        task: task,
+                        module: module,
+                        style: .management,
+                        onToggleStatus: {
+
+                            Task {
+
+                                await toggleStatus(
+                                    for: task
+                                )
+                            }
+                        },
+                        onEdit: {
+
+                            taskToEdit =
+                                task
+                        },
+                        onDelete: {
+
+                            taskToDelete =
+                                task
+                        }
                     )
+                    .disabled(
+                        updatingTaskID != nil
+                        || deletingTaskID != nil
+                    )
+                    .confirmationDialog(
+                        "„\(task.title)“ löschen?",
+                        isPresented:
+                            Binding(
+                                get: {
+
+                                    taskToDelete?.id
+                                        == task.id
+                                },
+                                set: { isPresented in
+
+                                    if !isPresented,
+                                       taskToDelete?.id
+                                        == task.id {
+
+                                        taskToDelete =
+                                            nil
+                                    }
+                                }
+                            ),
+                        titleVisibility:
+                            .visible
+                    ) {
+
+                        Button(
+                            "Löschen",
+                            role: .destructive
+                        ) {
+
+                            Task {
+
+                                await deleteTask(
+                                    task
+                                )
+                            }
+                        }
+
+                    } message: {
+
+                        Text(
+                            "Diese Aufgabe wird dauerhaft gelöscht."
+                        )
+                    }
                 }
             }
             .frame(
@@ -574,589 +642,6 @@ struct ModuleTasksView: View {
                 }
             }
         }
-    }
-
-
-    // MARK: - Task Card
-
-    private func taskCard(
-        _ task: StudyTask
-    ) -> some View {
-
-        VStack(
-            alignment: .leading,
-            spacing: 12
-        ) {
-
-            HStack(
-                alignment: .top,
-                spacing: 12
-            ) {
-
-                statusButton(
-                    task
-                )
-                .padding(
-                    .top,
-                    1
-                )
-
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 6
-                ) {
-
-                    Text(
-                        task.title
-                    )
-                    .font(
-                        .system(
-                            size: 17,
-                            weight: .semibold
-                        )
-                    )
-                    .foregroundStyle(
-                        task.isCompleted
-                            ? Color.secondary
-                            : Color.primary
-                    )
-                    .strikethrough(
-                        task.isCompleted,
-                        color: .secondary
-                    )
-
-
-                    if let description =
-                        nonEmpty(
-                            task.description
-                        ) {
-
-                        Text(
-                            description
-                        )
-                        .font(
-                            .system(
-                                size: 14
-                            )
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                        .lineLimit(
-                            3
-                        )
-                    }
-                }
-
-
-                Spacer()
-
-
-                statusBadge(
-                    task
-                )
-            }
-
-
-            if let dueDate =
-                task.dueDate {
-
-                HStack(
-                    spacing: 6
-                ) {
-
-                    Image(
-                        systemName:
-                            "calendar"
-                    )
-
-
-                    Text(
-                        formattedDueDate(
-                            dueDate
-                        )
-                    )
-
-
-                    if isOverdue(
-                        task
-                    ) {
-
-                        Text(
-                            "Überfällig"
-                        )
-                        .font(
-                            .system(
-                                size: 12,
-                                weight: .semibold
-                            )
-                        )
-                        .padding(
-                            .horizontal,
-                            7
-                        )
-                        .padding(
-                            .vertical,
-                            3
-                        )
-                        .background(
-                            Color.red
-                                .opacity(
-                                    0.10
-                                ),
-                            in:
-                                Capsule()
-                        )
-                    }
-                }
-                .font(
-                    .system(
-                        size: 13,
-                        weight: .medium
-                    )
-                )
-                .foregroundStyle(
-                    isOverdue(task)
-                        ? Color.red
-                        : Color.secondary
-                )
-            }
-
-
-            if let source =
-                task.externalSource {
-
-                Label(
-                    source.courseName,
-                    systemImage:
-                        "link"
-                )
-                .font(
-                    .system(
-                        size: 12,
-                        weight: .medium
-                    )
-                )
-                .foregroundStyle(
-                    .secondary
-                )
-                .padding(
-                    .horizontal,
-                    9
-                )
-                .padding(
-                    .vertical,
-                    5
-                )
-                .background(
-                    Color.secondary
-                        .opacity(
-                            0.08
-                        ),
-                    in:
-                        Capsule()
-                )
-            }
-
-
-            Divider()
-                .padding(
-                    .top,
-                    2
-                )
-
-
-            HStack(
-                spacing: 10
-            ) {
-
-                Button {
-
-                    taskToEdit = task
-
-                } label: {
-
-                    Label(
-                        "Bearbeiten",
-                        systemImage: "pencil"
-                    )
-                    .font(
-                        .system(
-                            size: 14,
-                            weight: .semibold
-                        )
-                    )
-                    .padding(
-                        .horizontal,
-                        12
-                    )
-                    .frame(
-                        height: 34
-                    )
-                }
-                .buttonStyle(
-                    .plain
-                )
-                .foregroundStyle(
-                    Color.accentColor
-                )
-                .background(
-                    Color(
-                        uiColor:
-                            .secondarySystemBackground
-                    ),
-                    in:
-                        RoundedRectangle(
-                            cornerRadius: 8,
-                            style: .continuous
-                        )
-                )
-                .overlay {
-
-                    RoundedRectangle(
-                        cornerRadius: 8,
-                        style: .continuous
-                    )
-                    .stroke(
-                        Color.secondary
-                            .opacity(
-                                0.20
-                            ),
-                        lineWidth: 1
-                    )
-                }
-                .disabled(
-                    updatingTaskID != nil
-                    || deletingTaskID != nil
-                )
-
-
-                Button {
-
-                    taskToDelete = task
-
-                } label: {
-
-                    HStack(
-                        spacing: 5
-                    ) {
-
-                        if deletingTaskID == task.id {
-
-                            ProgressView()
-                                .controlSize(.small)
-                                .tint(.red)
-
-                        } else {
-
-                            Image(
-                                systemName: "trash"
-                            )
-                        }
-
-
-                        Text(
-                            deletingTaskID == task.id
-                                ? "Wird gelöscht …"
-                                : "Löschen"
-                        )
-                    }
-                    .font(
-                        .system(
-                            size: 14,
-                            weight: .semibold
-                        )
-                    )
-                    .padding(
-                        .horizontal,
-                        12
-                    )
-                    .frame(
-                        height: 34
-                    )
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.red)
-                .background(
-                    Color.red.opacity(0.07),
-                    in:
-                        RoundedRectangle(
-                            cornerRadius: 8,
-                            style: .continuous
-                        )
-                )
-                .overlay {
-
-                    RoundedRectangle(
-                        cornerRadius: 8,
-                        style: .continuous
-                    )
-                    .stroke(
-                        Color.red.opacity(0.22),
-                        lineWidth: 1
-                    )
-                }
-                .disabled(
-                    updatingTaskID != nil
-                    || deletingTaskID != nil
-                )
-                .confirmationDialog(
-                    "„\(task.title)“ löschen?",
-                    isPresented:
-                        Binding(
-                            get: {
-
-                                taskToDelete?.id
-                                    == task.id
-                            },
-                            set: { isPresented in
-
-                                if !isPresented,
-                                   taskToDelete?.id
-                                    == task.id {
-
-                                    taskToDelete =
-                                        nil
-                                }
-                            }
-                        ),
-                    titleVisibility:
-                        .visible
-                ) {
-
-                    Button(
-                        "Löschen",
-                        role: .destructive
-                    ) {
-
-                        Task {
-
-                            await deleteTask(
-                                task
-                            )
-                        }
-                    }
-
-                } message: {
-
-                    Text(
-                        "Diese Aufgabe wird dauerhaft gelöscht."
-                    )
-                }
-                .buttonStyle(
-                    .plain
-                )
-                .foregroundStyle(
-                    .red
-                )
-                .background(
-                    Color.red
-                        .opacity(
-                            0.07
-                        ),
-                    in:
-                        RoundedRectangle(
-                            cornerRadius: 8,
-                            style: .continuous
-                        )
-                )
-                .overlay {
-
-                    RoundedRectangle(
-                        cornerRadius: 8,
-                        style: .continuous
-                    )
-                    .stroke(
-                        Color.red
-                            .opacity(
-                                0.22
-                            ),
-                        lineWidth: 1
-                    )
-                }
-                .disabled(
-                    updatingTaskID != nil
-                    || deletingTaskID != nil
-                )
-
-
-                Spacer()
-            }
-        }
-        .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-        )
-        .padding(
-            16
-        )
-        .background(
-            Color(
-                uiColor:
-                    .systemBackground
-            ),
-            in:
-                RoundedRectangle(
-                    cornerRadius: 18,
-                    style:
-                        .continuous
-                )
-        )
-        .overlay {
-
-            RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
-            .stroke(
-                Color.secondary
-                    .opacity(
-                        0.11
-                    ),
-                lineWidth: 1
-            )
-        }
-        .shadow(
-            color:
-                Color.black
-                    .opacity(
-                        0.035
-                    ),
-            radius: 9,
-            y: 3
-        )
-    }
-
-
-    // MARK: - Status Button
-
-    private func statusButton(
-        _ task: StudyTask
-    ) -> some View {
-
-        Button {
-
-            Task {
-
-                await toggleStatus(
-                    for: task
-                )
-            }
-
-        } label: {
-
-            ZStack {
-
-                Circle()
-                    .stroke(
-                        task.isCompleted
-                            ? Color.green
-                            : Color.secondary
-                                .opacity(
-                                    0.45
-                                ),
-                        lineWidth: 2
-                    )
-                    .frame(
-                        width: 26,
-                        height: 26
-                    )
-
-
-                if updatingTaskID
-                    == task.id {
-
-                    ProgressView()
-                        .controlSize(
-                            .mini
-                        )
-
-
-                } else if task.isCompleted {
-
-                    Circle()
-                        .fill(
-                            Color.green
-                        )
-                        .frame(
-                            width: 26,
-                            height: 26
-                        )
-
-
-                    Image(
-                        systemName:
-                            "checkmark"
-                    )
-                    .font(
-                        .system(
-                            size: 12,
-                            weight: .bold
-                        )
-                    )
-                    .foregroundStyle(
-                        .white
-                    )
-                }
-            }
-        }
-        .buttonStyle(
-            .plain
-        )
-        .disabled(
-            updatingTaskID != nil
-        )
-        .accessibilityLabel(
-            task.isCompleted
-                ? "Aufgabe wieder öffnen"
-                : "Aufgabe als erledigt markieren"
-        )
-    }
-
-
-    // MARK: - Status Badge
-
-    private func statusBadge(
-        _ task: StudyTask
-    ) -> some View {
-
-        Text(
-            task.isCompleted
-                ? "Erledigt"
-                : "Offen"
-        )
-        .font(
-            .system(
-                size: 12,
-                weight: .semibold
-            )
-        )
-        .foregroundStyle(
-            task.isCompleted
-                ? Color.green
-                : Color.orange
-        )
-        .padding(
-            .horizontal,
-            9
-        )
-        .padding(
-            .vertical,
-            5
-        )
-        .background(
-            (
-                task.isCompleted
-                    ? Color.green
-                    : Color.orange
-            )
-            .opacity(
-                0.10
-            ),
-            in:
-                Capsule()
-        )
     }
 
 
