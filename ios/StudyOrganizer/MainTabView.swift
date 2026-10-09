@@ -14,6 +14,9 @@ struct MainTabView: View {
     
     @State
     private var dashboardRefreshID = 0
+    
+    @State
+    private var tasksRefreshID = 0
 
 
     private enum AppTab: Int, Hashable, CaseIterable {
@@ -136,12 +139,12 @@ struct MainTabView: View {
 
             NavigationStack {
 
-                PlaceholderView(
-                    title: "Aufgaben",
-                    subtitle:
-                        "Hier entsteht deine modulübergreifende Aufgabenübersicht.",
-                    icon:
-                        "checkmark.square.fill"
+                GlobalTasksView(
+                    session: session,
+                    refreshID: tasksRefreshID
+                )
+                .environmentObject(
+                    sessionManager
                 )
             }
             .tag(
@@ -415,6 +418,12 @@ struct MainTabView: View {
             if tab == .dashboard {
 
                 dashboardRefreshID += 1
+            }
+
+
+            if tab == .tasks {
+
+                tasksRefreshID += 1
             }
         } label: {
 
