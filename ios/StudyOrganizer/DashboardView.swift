@@ -717,309 +717,39 @@ struct DashboardView: View {
                             \.element.id
                     ) { index, item in
 
-                        dashboardTaskCard(
-                            item,
-                            index:
-                                index
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-
-    // MARK: - Dashboard Task Card
-
-    private func dashboardTaskCard(
-        _ item: DashboardTask,
-        index: Int
-    ) -> some View {
-
-        let overdue =
-            isOverdue(
-                item.task
-            )
-
-
-        let accent =
-            overdue
-            ? Color.red
-            : moduleColor(
-                item.module.color
-            )
-
-
-        return HStack(
-            spacing: 12
-        ) {
-
-            RoundedRectangle(
-                cornerRadius: 4,
-                style: .continuous
-            )
-            .fill(
-                accent
-            )
-            .frame(
-                width: 4
-            )
-
-
-            VStack(
-                alignment: .leading,
-                spacing: 7
-            ) {
-
-                HStack(
-                    alignment: .center
-                ) {
-
-                    Text(
-                        moduleCode(
-                            item.module
-                        )
-                    )
-                    .font(
-                        .system(
-                            size: 10.5,
-                            weight: .bold
-                        )
-                    )
-                    .foregroundStyle(
-                        moduleColor(
-                            item.module.color
-                        )
-                    )
-                    .padding(
-                        .horizontal,
-                        7
-                    )
-                    .padding(
-                        .vertical,
-                        3
-                    )
-                    .background(
-                        moduleColor(
-                            item.module.color
+                        TaskCardView(
+                            task: item.task,
+                            module: item.module,
+                            style: .compact
                         )
                         .opacity(
-                            0.08
-                        ),
-                        in:
-                            Capsule()
-                    )
-
-
-                    Spacer()
-
-
-                    if overdue {
-
-                        Text(
-                            "Überfällig"
+                            animateContent
+                                ? 1
+                                : 0
                         )
-                        .font(
-                            .system(
-                                size: 10.5,
-                                weight: .semibold
+                        .offset(
+                            y:
+                                animateContent
+                                    ? 0
+                                    : 9
+                        )
+                        .animation(
+                            .spring(
+                                response: 0.42,
+                                dampingFraction: 0.88
                             )
-                        )
-                        .foregroundStyle(
-                            .red
-                        )
-                        .padding(
-                            .horizontal,
-                            7
-                        )
-                        .padding(
-                            .vertical,
-                            3
-                        )
-                        .background(
-                            Color.red
-                                .opacity(
-                                    0.08
-                                ),
-                            in:
-                                Capsule()
+                            .delay(
+                                0.18
+                                + Double(index)
+                                * 0.04
+                            ),
+                            value:
+                                animateContent
                         )
                     }
-                }
-
-
-                Text(
-                    item.task.title
-                )
-                .font(
-                    .system(
-                        size: 16,
-                        weight: .semibold
-                    )
-                )
-                .foregroundStyle(
-                    .primary
-                )
-                .lineLimit(
-                    2
-                )
-
-
-                Text(
-                    item.module.name
-                )
-                .font(
-                    .system(
-                        size: 12.5,
-                        weight: .medium
-                    )
-                )
-                .foregroundStyle(
-                    .secondary
-                )
-                .lineLimit(
-                    1
-                )
-
-
-                if let dueDate =
-                    item.task.dueDate {
-
-                    Label {
-
-                        Text(
-                            formattedDate(
-                                dueDate
-                            )
-                        )
-
-                    } icon: {
-
-                        Image(
-                            systemName:
-                                "calendar"
-                        )
-                    }
-                    .font(
-                        .system(
-                            size: 12,
-                            weight: .medium
-                        )
-                    )
-                    .foregroundStyle(
-                        overdue
-                        ? Color.red
-                        : Color.secondary
-                    )
-                    .padding(
-                        .top,
-                        1
-                    )
                 }
             }
-            .padding(
-                .vertical,
-                13
-            )
-            .padding(
-                .trailing,
-                14
-            )
         }
-        .frame(
-            maxWidth: .infinity,
-            alignment: .leading
-        )
-        .background {
-
-            RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
-            .fill(
-                Color(
-                    uiColor:
-                        .systemBackground
-                )
-            )
-
-
-            RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(
-                            0.07
-                        ),
-                        accent.opacity(
-                            overdue
-                                ? 0.018
-                                : 0.009
-                        ),
-                        Color.clear
-                    ],
-                    startPoint:
-                        .topLeading,
-                    endPoint:
-                        .bottomTrailing
-                )
-            )
-        }
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
-        )
-        .overlay {
-
-            RoundedRectangle(
-                cornerRadius: 18,
-                style: .continuous
-            )
-            .stroke(
-                Color.secondary
-                    .opacity(
-                        0.09
-                    ),
-                lineWidth: 1
-            )
-        }
-        .shadow(
-            color:
-                Color.black.opacity(
-                    0.03
-                ),
-            radius: 7,
-            y: 3
-        )
-        .opacity(
-            animateContent
-                ? 1
-                : 0
-        )
-        .offset(
-            y:
-                animateContent
-                ? 0
-                : 9
-        )
-        .animation(
-            .spring(
-                response: 0.42,
-                dampingFraction: 0.88
-            )
-            .delay(
-                0.18
-                + Double(index)
-                * 0.04
-            ),
-            value:
-                animateContent
-        )
     }
 
 
