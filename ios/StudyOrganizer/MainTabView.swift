@@ -160,12 +160,11 @@ struct MainTabView: View {
 
             NavigationStack {
 
-                PlaceholderView(
-                    title: "Profil",
-                    subtitle:
-                        "Profil und Einstellungen werden hier angezeigt.",
-                    icon:
-                        "person.fill"
+                ProfileView(
+                    session: session
+                )
+                .environmentObject(
+                    sessionManager
                 )
             }
             .tag(

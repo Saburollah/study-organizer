@@ -16,6 +16,11 @@
 		7762440E3075A79D00C944C4 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7762440D3075A79D00C944C4 /* MainTabView.swift */; };
 		777D7BCC30797E2300A19017 /* GlobalTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BCB30797E2300A19017 /* GlobalTasksView.swift */; };
 		777D7BDE3079858E00A19017 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BDD3079858E00A19017 /* TaskCardView.swift */; };
+		777D7BF030799F6C00A19017 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BEF30799F6C00A19017 /* ProfileView.swift */; };
+		777D7BF23079A3DB00A19017 /* ChangePasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BF13079A3DB00A19017 /* ChangePasswordView.swift */; };
+		777D7BF4307A625F00A19017 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BF3307A625F00A19017 /* EditProfileView.swift */; };
+		777D7BF6307A65CB00A19017 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BF5307A65CB00A19017 /* ProfileService.swift */; };
+		777D7BF8307A714300A19017 /* PasswordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777D7BF7307A714300A19017 /* PasswordService.swift */; };
 		7793BB6930729931007BD573 /* StudyTaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB6830729931007BD573 /* StudyTaskService.swift */; };
 		7793BB6B30729973007BD573 /* ModuleTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB6A30729973007BD573 /* ModuleTasksView.swift */; };
 		7793BB7D30729FC3007BD573 /* CreateTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7793BB7C30729FC3007BD573 /* CreateTaskView.swift */; };
@@ -36,6 +41,11 @@
 		7762440D3075A79D00C944C4 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		777D7BCB30797E2300A19017 /* GlobalTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalTasksView.swift; sourceTree = "<group>"; };
 		777D7BDD3079858E00A19017 /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		777D7BEF30799F6C00A19017 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		777D7BF13079A3DB00A19017 /* ChangePasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangePasswordView.swift; sourceTree = "<group>"; };
+		777D7BF3307A625F00A19017 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		777D7BF5307A65CB00A19017 /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
+		777D7BF7307A714300A19017 /* PasswordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordService.swift; sourceTree = "<group>"; };
 		778CA07E306A726A00806778 /* StudyOrganizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyOrganizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7793BB6830729931007BD573 /* StudyTaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyTaskService.swift; sourceTree = "<group>"; };
 		7793BB6A30729973007BD573 /* ModuleTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleTasksView.swift; sourceTree = "<group>"; };
@@ -69,6 +79,11 @@
 		778CA075306A726A00806778 = {
 			isa = PBXGroup;
 			children = (
+				777D7BF7307A714300A19017 /* PasswordService.swift */,
+				777D7BF5307A65CB00A19017 /* ProfileService.swift */,
+				777D7BF3307A625F00A19017 /* EditProfileView.swift */,
+				777D7BF13079A3DB00A19017 /* ChangePasswordView.swift */,
+				777D7BEF30799F6C00A19017 /* ProfileView.swift */,
 				777D7BDD3079858E00A19017 /* TaskCardView.swift */,
 				777D7BCB30797E2300A19017 /* GlobalTasksView.swift */,
 				775BABE13077DAA100A48CAB /* DashboardView.swift */,
@@ -174,6 +189,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				77C96F22306D8563007A13BE /* SessionStore.swift in Sources */,
+				777D7BF23079A3DB00A19017 /* ChangePasswordView.swift in Sources */,
 				776243FC30745EF500C944C4 /* EditTaskView.swift in Sources */,
 				7793BB6B30729973007BD573 /* ModuleTasksView.swift in Sources */,
 				77C96F20306D8505007A13BE /* LoginService.swift in Sources */,
@@ -189,7 +205,11 @@
 				777D7BCC30797E2300A19017 /* GlobalTasksView.swift in Sources */,
 				7756F665306E8F7F003B47E2 /* ModuleService.swift in Sources */,
 				77C96F04306BE2B4007A13BE /* SwiftUIView.swift in Sources */,
+				777D7BF6307A65CB00A19017 /* ProfileService.swift in Sources */,
 				77C96F24306D85E7007A13BE /* SessionManager.swift in Sources */,
+				777D7BF4307A625F00A19017 /* EditProfileView.swift in Sources */,
+				777D7BF030799F6C00A19017 /* ProfileView.swift in Sources */,
+				777D7BF8307A714300A19017 /* PasswordService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
